@@ -28,6 +28,10 @@ export interface ApprovalStep {
   status: StepStatus;
   at?: string;
   comment?: string;
+  /** What the approver filled in at this step. */
+  answers?: FormValues;
+  /** The step's form as it was when answered, so later edits to the process don't change history. */
+  fields?: FormField[];
 }
 
 export interface Attachment {
@@ -62,6 +66,8 @@ export interface Request {
   meetingId?: string;
   /** Answers to a process's custom form fields, by field id. */
   fields?: FormValues;
+  /** The form as it was when submitted, so renaming or removing a field later doesn't change what was asked. */
+  form?: FormField[];
 }
 
 export interface Decision {
@@ -166,6 +172,10 @@ export interface ProcessStep {
   approverId: PersonId;
   /** Only runs when the amount is above this. Undefined: always runs. */
   minAmount?: number;
+  /** Only runs when a request form answer matches. */
+  when?: Condition;
+  /** What the approver fills in at this step, e.g. a budget code. Required ones must be answered to approve. */
+  fields?: FormField[];
   slaHours: number;
 }
 
@@ -173,13 +183,28 @@ export type FieldKind =
   | 'text'
   | 'longtext'
   | 'number'
+  | 'money'
   | 'date'
+  | 'email'
+  | 'phone'
+  | 'url'
   | 'select'
   | 'radio'
   | 'checkboxes'
   | 'yesno'
   | 'rating'
-  | 'scale';
+  | 'scale'
+  | 'person'
+  | 'department'
+  /** Not a question: a heading and optional text that splits a long form. */
+  | 'section';
+
+/** "When question X is (or isn't) this answer". For checkboxes, "is" means "includes". */
+export interface Condition {
+  fieldId: string;
+  equals: string;
+  op?: 'is' | 'isNot';
+}
 
 /** One question in a dynamic form (request forms and surveys). */
 export interface FormField {
@@ -189,10 +214,12 @@ export interface FormField {
   required: boolean;
   /** Shown under the question. */
   help?: string;
+  /** Hint inside empty text boxes. */
+  placeholder?: string;
   /** Choices for select, radio and checkboxes. */
   options?: string[];
-  /** Only ask this when an earlier question has this answer. */
-  showIf?: { fieldId: string; equals: string };
+  /** Only ask this when an earlier question has (or hasn't) this answer. */
+  showIf?: Condition;
 }
 
 /** Answers by field id. Checkboxes store a list; everything else a string. */

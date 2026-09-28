@@ -1,4 +1,4 @@
-import { Banner, Button, Card, CardHeader, EmptyState, Field, Input, Modal, PageHeader, Switch, Text, Textarea, useToast } from '@repo/ui';
+import { Banner, Button, cn, Card, CardHeader, EmptyState, Field, Input, Modal, PageHeader, Switch, Text, Textarea, useToast } from '@repo/ui';
 import { CalendarCheck, ClipboardList, GraduationCap, HeartPulse, RotateCcw } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router';
@@ -6,11 +6,12 @@ import { CheckGroup } from '../components/CheckGroup';
 import { FormBuilder, newField } from '../components/forms/FormBuilder';
 import { FormRenderer } from '../components/forms/FormRenderer';
 import { headerLink } from '../components/links';
+import { MobileActionBar } from '../components/MobileActionBar';
 import { canManageSurveys, surveyAudience, surveyResponsesFor, uid, useStore } from '../data/store';
 import type { FormField, FormValues, Survey } from '../data/types';
-import { cleanFields, formProblems } from '../lib/forms';
+import { cleanFields, formProblems, questionsOf, toDateInput } from '../lib/forms';
+import { DEPARTMENTS } from '../lib/org';
 
-const DEPARTMENTS = ['Operations', 'Finance', 'People', 'Product', 'IT', 'Legal', 'Leadership'];
 
 const f = (label: string, kind: FormField['kind'], extra: Partial<FormField> = {}): FormField => ({ ...newField(kind), label, ...extra });
 
@@ -90,6 +91,7 @@ export function SurveyEditor() {
   const [preview, setPreview] = useState<FormValues>({});
   const [errors, setErrors] = useState<{ title?: string; questions?: string[]; closesAt?: string }>({});
   const [confirm, setConfirm] = useState(false);
+  const [view, setView] = useState<'build' | 'preview'>('build');
 
   if (!canManageSurveys(state)) {
     return (
@@ -115,9 +117,9 @@ export function SurveyEditor() {
   const check = () => {
     const e: typeof errors = {};
     if (!draft.title.trim()) e.title = 'Give the survey a title people will recognise, like “Team pulse · October”.';
-    const problems = [...(draft.fields.length ? [] : ['Add at least one question.']), ...formProblems(draft.fields)];
+    const problems = [...(questionsOf(draft.fields).length ? [] : ['Add at least one question.']), ...formProblems(cleanFields(draft.fields))];
     if (problems.length) e.questions = problems;
-    if (draft.closesAt && new Date(draft.closesAt).getTime() < Date.now() && draft.status !== 'closed') e.closesAt = 'Choose a day after today.';
+    if (draft.closesAt && new Date(draft.closesAt).getTime() < Date.now() && draft.status !== 'closed') e.closesAt = 'Choose today or a later day.';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -173,8 +175,27 @@ export function SurveyEditor() {
         </Banner>
       ) : null}
 
+      {/* Phones and tablets: switch between building and previewing instead of scrolling past the whole form. */}
+      <div role="tablist" aria-label="Editor view" className="grid grid-cols-2 gap-1 rounded-lg bg-surface-sunken p-1 lg:hidden">
+        {(['build', 'preview'] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            role="tab"
+            aria-selected={view === v}
+            onClick={() => setView(v)}
+            className={cn(
+              'rounded-md py-2 text-md font-medium focus-visible:outline-2 focus-visible:outline-ring',
+              view === v ? 'bg-surface text-fg shadow-xs' : 'text-fg-muted',
+            )}
+          >
+            {v === 'build' ? 'Build' : `Preview${questionsOf(draft.fields).length ? ` (${questionsOf(draft.fields).length})` : ''}`}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <div className="flex min-w-0 flex-col gap-6">
+        <div className={cn('min-w-0 flex-col gap-6 lg:flex', view === 'build' ? 'flex' : 'hidden')}>
           {!original && draft.fields.length === 0 ? (
             <Card className="flex flex-col gap-3">
               <CardHeader title="Start from a template" description="Or add your own questions below." />
@@ -184,17 +205,21 @@ export function SurveyEditor() {
                     key={t.id}
                     type="button"
                     onClick={() => {
-                      setDraft({ ...draft, ...t.make() });
+                      const made = t.make();
+                      // Keep a title the admin already typed.
+                      setDraft({ ...draft, ...made, title: draft.title.trim() ? draft.title : made.title });
                       setPreview({});
                       setErrors({});
                     }}
-                    className="flex flex-col items-start gap-1 rounded-lg border border-border bg-surface p-3 text-start hover:border-primary hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    className="flex items-start gap-3 rounded-lg border border-border bg-surface p-3 text-start hover:border-primary hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:flex-col sm:gap-1"
                   >
-                    <span aria-hidden className="text-primary [&_svg]:size-5">
+                    <span aria-hidden className="mt-0.5 text-primary sm:mt-0 [&_svg]:size-5">
                       {t.icon}
                     </span>
-                    <span className="font-medium text-fg">{t.name}</span>
-                    <span className="text-sm text-fg-muted">{t.hint}</span>
+                    <span className="flex min-w-0 flex-col">
+                      <span className="font-medium text-fg">{t.name}</span>
+                      <span className="text-sm text-fg-muted">{t.hint}</span>
+                    </span>
                   </button>
                 ))}
               </div>
@@ -255,18 +280,24 @@ export function SurveyEditor() {
               disabled={locked}
               onCheckedChange={(on) => set({ anonymous: on })}
             />
-            <Field label="Last day to answer" optional helpText="The survey closes at the end of this day." error={errors.closesAt}>
+            <Field
+              label="Last day to answer"
+              optional
+              helpText={draft.status === 'closed' ? 'This survey is closed. Reopen it from its page to take answers again.' : 'The survey closes at the end of this day.'}
+              error={errors.closesAt}
+            >
               <Input
                 type="date"
                 className="max-w-xs"
-                value={draft.closesAt ? draft.closesAt.slice(0, 10) : ''}
+                value={draft.closesAt ? toDateInput(draft.closesAt) : ''}
+                min={toDateInput(new Date().toISOString())}
                 onChange={(e) => set({ closesAt: e.target.value ? new Date(`${e.target.value}T23:59:00`).toISOString() : undefined })}
               />
             </Field>
           </Card>
         </div>
 
-        <Card className="flex min-w-0 flex-col gap-4 self-start lg:sticky lg:top-20">
+        <Card className={cn('min-w-0 flex-col gap-4 self-start lg:sticky lg:top-20 lg:flex', view === 'preview' ? 'flex' : 'hidden')}>
           <CardHeader
             title="Preview"
             description="What people see. Try answering: follow-up questions appear as you go."
@@ -295,6 +326,21 @@ export function SurveyEditor() {
         </Card>
       </div>
 
+      <MobileActionBar label="Survey actions">
+        {published ? (
+          <Button variant="primary" onClick={saveChanges}>
+            Save changes
+          </Button>
+        ) : (
+          <>
+            <Button onClick={saveDraft}>Save draft</Button>
+            <Button variant="primary" onClick={() => check() && setConfirm(true)}>
+              Review and send
+            </Button>
+          </>
+        )}
+      </MobileActionBar>
+
       <Modal
         open={confirm}
         onOpenChange={setConfirm}
@@ -304,7 +350,7 @@ export function SurveyEditor() {
       >
         <ul className="flex list-disc flex-col gap-1.5 ps-5 text-md">
           <li>
-            <strong>{draft.title}</strong>: {draft.fields.length} questions
+            <strong>{draft.title}</strong>: {questionsOf(draft.fields).length} questions
           </li>
           <li>Goes to {draft.audience.length ? draft.audience.join(', ') : 'everyone'} ({audience.length} people), on Home and in their notifications.</li>
           <li>{draft.anonymous ? 'Anonymous: names are never shown with answers.' : 'Answers show who gave them.'}</li>

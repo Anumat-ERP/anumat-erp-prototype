@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router';
+import { Fragment, useEffect, type ReactNode } from 'react';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router';
 import { TourPanel } from './components/DemoTour';
 import { Shell } from './layout/Shell';
 import { Approvals } from './pages/Approvals';
@@ -38,6 +38,13 @@ function RouteFocus() {
   return null;
 }
 
+/** Remounts a page when its :id changes, so nothing from the previous item (a draft, answers, a tab) carries over. */
+function Keyed({ children }: { children: ReactNode }) {
+  const { id } = useParams();
+  const { pathname } = useLocation();
+  return <Fragment key={id ?? pathname}>{children}</Fragment>;
+}
+
 export function App() {
   return (
     <>
@@ -51,26 +58,26 @@ export function App() {
           <Route path="home" element={<Home />} />
           <Route path="requests" element={<Requests />} />
           <Route path="requests/new" element={<NewRequest />} />
-          <Route path="requests/:id" element={<RequestDetail />} />
-          <Route path="requests/:id/edit" element={<NewRequest />} />
+          <Route path="requests/:id" element={<Keyed><RequestDetail /></Keyed>} />
+          <Route path="requests/:id/edit" element={<Keyed><NewRequest /></Keyed>} />
           <Route path="approvals" element={<Approvals />} />
           <Route path="meetings" element={<Meetings />} />
           <Route path="meetings/new" element={<NewMeeting />} />
-          <Route path="meetings/:id" element={<MeetingDetail />} />
+          <Route path="meetings/:id" element={<Keyed><MeetingDetail /></Keyed>} />
           <Route path="documents" element={<Documents />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="insights" element={<Insights />} />
           <Route path="settings/people" element={<People />} />
           <Route path="settings/feedback" element={<Navigate to="/surveys?tab=feedback" replace />} />
           <Route path="surveys" element={<Surveys />} />
-          <Route path="surveys/new" element={<SurveyEditor />} />
-          <Route path="surveys/:id" element={<SurveyDetail />} />
-          <Route path="surveys/:id/edit" element={<SurveyEditor />} />
+          <Route path="surveys/new" element={<Keyed><SurveyEditor /></Keyed>} />
+          <Route path="surveys/:id" element={<Keyed><SurveyDetail /></Keyed>} />
+          <Route path="surveys/:id/edit" element={<Keyed><SurveyEditor /></Keyed>} />
           <Route path="support" element={<Support />} />
           <Route path="settings/notifications" element={<NotificationSettings />} />
           <Route path="telegram" element={<TelegramPreview />} />
           <Route path="processes" element={<Processes />} />
-          <Route path="processes/:id" element={<ProcessEditor />} />
+          <Route path="processes/:id" element={<Keyed><ProcessEditor /></Keyed>} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

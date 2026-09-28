@@ -48,8 +48,8 @@ export const TOUR: Step[] = [
     title: 'Approve from Telegram',
     as: 'priya',
     to: '/telegram',
-    say: 'It’s over $1,000, so Finance reviews next. Priya gets it on Telegram, where she already is, and approves with one tap. Nobody chased anyone.',
-    doThis: 'Tap Approve on the laptops message.',
+    say: 'It’s over $1,000, so Finance reviews next. Priya gets it on Telegram, where she already is. Finance must say which budget it comes from, so she taps the budget line and it’s approved. Nobody chased anyone.',
+    doThis: 'Tap “Approve · Q4 equipment” on the laptops message.',
   },
   {
     title: 'Decide together',

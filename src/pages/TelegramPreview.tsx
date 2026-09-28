@@ -4,7 +4,9 @@ import { useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { LogoMark } from '../components/Logo';
 import { headerLink } from '../components/links';
-import { isDone, notificationsFor, prefsFor, useStore, waitingOnMe } from '../data/store';
+import { isDone, notificationsFor, prefsFor, stepForm, useStore, waitingOnMe } from '../data/store';
+import type { FormValues } from '../data/types';
+import { choicesFor, isQuestion } from '../lib/forms';
 import { googleCalendarUrl } from '../lib/calendar';
 import { daysUntil, formatMoney, formatTime, formatWeekday, typeLabel, typeName } from '../lib/format';
 
@@ -76,38 +78,54 @@ export function TelegramPreview() {
             <span className="text-[#6d7d8b]">Your step: {step?.name}</span>
           </>
         ),
-        buttons: (
-          <>
-            <div className="flex gap-1">
-              <InlineButton
-                onClick={() => {
-                  const i = r.steps.findIndex((s) => s.status === 'current');
-                  const next = r.steps[i + 1];
-                  dispatch({ type: 'decide', requestId: r.id, decision: 'approve', comment: '' });
-                  setReplies((list) => [
-                    ...list,
-                    {
-                      id: `reply-${r.id}`,
-                      at: new Date().toISOString(),
-                      body: next ? (
-                        <>
-                          Approved {r.id}. Sent to {person(next.approverId).name} for {next.name.toLowerCase()}.
-                        </>
-                      ) : (
-                        <>Approved {r.id}. The request is fully approved.</>
-                      ),
-                    },
-                  ]);
-                  toast({ tone: 'success', title: `Approved ${r.id} from Telegram` });
-                }}
-              >
-                Approve
-              </InlineButton>
-              <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>Request changes</InlineButton>
-            </div>
-            <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>Open in Anumat</InlineButton>
-          </>
-        ),
+        buttons: (() => {
+          const approve = (answers?: FormValues, picked?: string) => {
+            const i = r.steps.findIndex((st) => st.status === 'current');
+            const next = r.steps[i + 1];
+            dispatch({ type: 'decide', requestId: r.id, decision: 'approve', comment: '', answers });
+            setReplies((list) => [
+              ...list,
+              {
+                id: `reply-${r.id}`,
+                at: new Date().toISOString(),
+                body: (
+                  <>
+                    Approved {r.id}
+                    {picked ? ` on ${picked}` : ''}.{' '}
+                    {next ? `Sent to ${person(next.approverId).name} for ${next.name.toLowerCase()}.` : 'The request is fully approved.'}
+                  </>
+                ),
+              },
+            ]);
+            toast({ tone: 'success', title: `Approved ${r.id} from Telegram` });
+          };
+          // What this step needs from the approver decides which buttons the bot can offer.
+          const required = stepForm(state, r).filter((f) => f.required && isQuestion(f));
+          const pick = required.length === 1 && ['radio', 'select', 'yesno'].includes(required[0]!.kind) ? required[0] : undefined;
+          return (
+            <>
+              {required.length === 0 ? (
+                <div className="flex gap-1">
+                  <InlineButton onClick={() => approve()}>Approve</InlineButton>
+                  <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>Request changes</InlineButton>
+                </div>
+              ) : pick ? (
+                <>
+                  <span className="px-1 text-xs text-[#6d7d8b]">{pick.label}? Tap to approve:</span>
+                  {choicesFor(pick).map((c) => (
+                    <InlineButton key={c} onClick={() => approve({ [pick.id]: c }, c)}>
+                      Approve · {c}
+                    </InlineButton>
+                  ))}
+                  <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>Request changes</InlineButton>
+                </>
+              ) : (
+                <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>Add details to approve</InlineButton>
+              )}
+              <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>Open in Anumat</InlineButton>
+            </>
+          );
+        })(),
       });
     }
   }

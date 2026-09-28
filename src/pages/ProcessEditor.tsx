@@ -1,17 +1,47 @@
-import { Banner, Button, Card, CardHeader, Checkbox, EmptyState, Field, IconButton, Input, PageHeader, Select, Switch, Text, useToast } from '@repo/ui';
-import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
+import { Badge, Banner, Button, Card, CardHeader, EmptyState, Field, IconButton, Input, PageHeader, Select, Switch, Text, cn, useToast } from '@repo/ui';
+import { ArrowDown, ArrowUp, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ApprovalTimeline } from '../components/ApprovalTimeline';
 import { headerLink } from '../components/links';
 import { canBuildProcesses, routeFor, uid, useStore } from '../data/store';
 import { CheckGroup } from '../components/CheckGroup';
-import { FormBuilder } from '../components/forms/FormBuilder';
-import { cleanFields, formProblems } from '../lib/forms';
-import type { Process, ProcessStep } from '../data/types';
+import { ConditionPicker, FormBuilder } from '../components/forms/FormBuilder';
+import { FormRenderer } from '../components/forms/FormRenderer';
+import { MobileActionBar } from '../components/MobileActionBar';
+import { canBranchOn, choicesFor, cleanFields, cleanValues, formProblems, questionsOf } from '../lib/forms';
+import type { FormValues, Process, ProcessStep } from '../data/types';
 import { formatMoney, isBuiltInType, typeName } from '../lib/format';
+import { DEPARTMENTS } from '../lib/org';
 
-const DEPARTMENTS = ['Operations', 'Finance', 'People', 'Product', 'IT', 'Legal', 'Leadership'];
+
+const BUILT_IN_PREFIXES = ['PR', 'LV', 'EX', 'CT'];
+
+/** Everything that would make a saved process misbehave, in words an admin can act on. */
+function processProblems(p: Process, all: Process[]): string[] {
+  const out: string[] = [];
+  if (!p.name.trim()) out.push('Give the request type a name.');
+  if (!isBuiltInType(p.requestType)) {
+    const prefix = (p.prefix ?? '').trim().toUpperCase();
+    const clash = all.find((o) => o.id !== p.id && (o.prefix ?? '').toUpperCase() === prefix);
+    if (prefix.length < 2) out.push('Add an ID prefix of 2–3 letters, like TR.');
+    else if (BUILT_IN_PREFIXES.includes(prefix)) out.push(`The ID prefix “${prefix}” is used by a built-in request type. Pick another.`);
+    else if (clash) out.push(`The ID prefix “${prefix}” is already used by ${clash.name}. Pick another.`);
+  }
+  const fields = cleanFields(p.fields ?? []);
+  out.push(...formProblems(fields).map((x) => `Request form: ${x}`));
+  p.steps.forEach((st, i) => {
+    const label = `Step ${i + 1}${st.name.trim() ? ` (${st.name.trim()})` : ''}`;
+    if (!st.name.trim()) out.push(`Step ${i + 1} needs a name.`);
+    out.push(...formProblems(cleanFields(st.fields ?? [])).map((x) => `${label}: ${x}`));
+    if (st.when) {
+      const src = fields.find((f) => f.id === st.when!.fieldId);
+      if (!src) out.push(`${label} runs on a form question that no longer exists.`);
+      else if (!choicesFor(src).includes(st.when.equals.trim())) out.push(`${label} runs on an answer to “${src.label}” that no longer exists.`);
+    }
+  });
+  return out;
+}
 
 export function ProcessEditor() {
   const { id } = useParams();
@@ -21,6 +51,9 @@ export function ProcessEditor() {
   const original = state.processes.find((p) => p.id === id);
   const [draft, setDraft] = useState<Process | undefined>(original);
   const [tryAmount, setTryAmount] = useState('12500');
+  const [tryAnswers, setTryAnswers] = useState<FormValues>({});
+  const [showProblems, setShowProblems] = useState(false);
+  const [openForms, setOpenForms] = useState<string[]>(() => original?.steps.filter((s) => s.fields?.length).map((s) => s.id) ?? []);
   const builder = canBuildProcesses(state);
 
   if (!original || !draft) {
@@ -39,10 +72,35 @@ export function ProcessEditor() {
     if (s) steps.splice(i + by, 0, s);
     setDraft({ ...draft, steps });
   };
-  const changed = JSON.stringify(draft) !== JSON.stringify(original);
+  // Empty lists and missing ones mean the same thing, so saving doesn't leave "unsaved changes" behind.
+  const normal = (p: Process) =>
+    JSON.stringify({ ...p, fields: p.fields?.length ? p.fields : undefined, steps: p.steps.map((st) => ({ ...st, fields: st.fields?.length ? st.fields : undefined })) });
+  const changed = normal(draft) !== normal(original);
   const amount = Number(tryAmount.replace(/,/g, '')) || 0;
-  const preview = routeFor([{ ...draft, active: true }], draft.requestType, draft.requestType === 'leave' ? undefined : amount);
   const hasAmount = isBuiltInType(draft.requestType) ? draft.requestType !== 'leave' : Boolean(draft.hasAmount);
+  // Request-form questions a step can depend on: ones with a fixed list of answers.
+  const branchSources = (draft.fields ?? []).filter((f) => canBranchOn(f.kind) && f.label.trim());
+  const preview = routeFor([{ ...draft, active: true }], draft.requestType, hasAmount ? amount : undefined, cleanValues(draft.fields ?? [], tryAnswers));
+  const problems = processProblems(draft, state.processes);
+
+  const save = () => {
+    if (problems.length) {
+      setShowProblems(true);
+      toast({ tone: 'critical', title: `Fix ${problems.length} ${problems.length === 1 ? 'problem' : 'problems'} to save`, description: problems[0] });
+      return;
+    }
+    setShowProblems(false);
+    dispatch({
+      type: 'saveProcess',
+      process: {
+        ...draft,
+        name: draft.name.trim(),
+        fields: draft.fields?.length ? cleanFields(draft.fields) : undefined,
+        steps: draft.steps.map((st) => ({ ...st, name: st.name.trim(), fields: st.fields?.length ? cleanFields(st.fields) : undefined })),
+      },
+    });
+    toast({ tone: 'success', title: `Saved ${draft.name}`, description: 'New requests follow the updated route.' });
+  };
 
   return (
     <>
@@ -51,21 +109,18 @@ export function ProcessEditor() {
         subtitle={`Runs when ${draft.trigger.toLowerCase()}.`}
         backAction={{ content: 'Process Builder', href: '/processes' }}
         renderLink={headerLink}
-        primaryAction={{
-          content: 'Save process',
-          disabled: !changed || !builder,
-          onAction: () => {
-            const problems = formProblems(draft.fields ?? []);
-            if (problems.length) {
-              toast({ tone: 'critical', title: 'The form has problems', description: problems[0] });
-              return;
-            }
-            dispatch({ type: 'saveProcess', process: { ...draft, fields: cleanFields(draft.fields ?? []) } });
-            toast({ tone: 'success', title: `Saved ${draft.name}`, description: 'New requests follow the updated route.' });
-          },
-        }}
-        secondaryActions={changed ? [{ content: 'Discard changes', onAction: () => setDraft(original) }] : undefined}
+        primaryAction={{ content: 'Save process', disabled: !changed || !builder, onAction: save }}
+        secondaryActions={changed ? [{ content: 'Discard changes', onAction: () => (setDraft(original), setShowProblems(false)) }] : undefined}
       />
+      {showProblems && problems.length ? (
+        <Banner tone="critical" title={`Fix ${problems.length === 1 ? 'this' : 'these'} to save`}>
+          <ul className="list-disc ps-5">
+            {problems.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        </Banner>
+      ) : null}
       {!builder ? (
         <Banner tone="info" title="View only">
           Only admins, and people an admin allows under People &amp; roles, can change processes.
@@ -122,19 +177,34 @@ export function ProcessEditor() {
                           options={state.people.map((p) => ({ value: p.id, label: `${p.name} · ${p.role}` }))}
                         />
                       </Field>
-                      {hasAmount ? (
-                        <Field label="Runs when" helpText={s.minAmount === undefined ? 'Every request goes through this step.' : undefined}>
-                          <Select
-                            value={s.minAmount === undefined ? 'always' : 'over'}
-                            onChange={(e) => setStep(i, { minAmount: e.target.value === 'always' ? undefined : (s.minAmount ?? 1000) })}
-                            options={[
-                              { value: 'always', label: 'Always' },
-                              { value: 'over', label: 'Amount is over…' },
-                            ]}
-                          />
-                        </Field>
-                      ) : null}
-                      {hasAmount && s.minAmount !== undefined ? (
+                      <Field
+                        label="Runs when"
+                        helpText={
+                          s.when
+                            ? 'Only when the request form has this answer.'
+                            : s.minAmount === undefined
+                              ? 'Every request goes through this step.'
+                              : undefined
+                        }
+                      >
+                        <Select
+                          value={s.when ? 'answer' : s.minAmount !== undefined && hasAmount ? 'over' : 'always'}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            const src = branchSources[0];
+                            setStep(i, {
+                              minAmount: v === 'over' ? (s.minAmount ?? 1000) : undefined,
+                              when: v === 'answer' && src ? { fieldId: src.id, equals: choicesFor(src)[0] ?? '', op: 'is' } : undefined,
+                            });
+                          }}
+                          options={[
+                            { value: 'always', label: 'Always' },
+                            ...(hasAmount ? [{ value: 'over', label: 'Amount is over…' }] : []),
+                            ...(branchSources.length || s.when ? [{ value: 'answer', label: 'A form answer matches…' }] : []),
+                          ]}
+                        />
+                      </Field>
+                      {hasAmount && s.minAmount !== undefined && !s.when ? (
                         <Field label="Amount threshold">
                           <Input
                             prefix="$"
@@ -144,6 +214,11 @@ export function ProcessEditor() {
                           />
                         </Field>
                       ) : null}
+                      {s.when ? (
+                        <div className="sm:col-span-2">
+                          <ConditionPicker sources={branchSources} value={s.when} onChange={(when) => setStep(i, { when })} />
+                        </div>
+                      ) : null}
                       <Field label="Respond within" helpText="Approvers get a reminder after this.">
                         <Input
                           suffix="hours"
@@ -152,6 +227,29 @@ export function ProcessEditor() {
                           onChange={(e) => setStep(i, { slaHours: Number(e.target.value.replace(/\D/g, '')) || 0 })}
                         />
                       </Field>
+                    </div>
+                    <div className="flex flex-col gap-3 border-t border-border pt-3">
+                      <button
+                        type="button"
+                        aria-expanded={openForms.includes(s.id)}
+                        onClick={() => setOpenForms(openForms.includes(s.id) ? openForms.filter((x) => x !== s.id) : [...openForms, s.id])}
+                        className="flex items-center gap-2 self-start rounded-sm text-md font-medium text-fg hover:text-fg-link focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                      >
+                        <ChevronRight aria-hidden className={cn('size-4 transition-transform', openForms.includes(s.id) && 'rotate-90')} />
+                        Approver fills in
+                        <Badge size="sm" tone={s.fields?.length ? 'primary' : 'neutral'}>
+                          {s.fields?.length ? `${questionsOf(s.fields).length} fields` : 'Nothing'}
+                        </Badge>
+                      </button>
+                      {openForms.includes(s.id) ? (
+                        <>
+                          <Text variant="bodySm" tone="muted">
+                            Details {person(s.approverId).name.split(' ')[0]} adds when approving, like a budget code or PO number. Required ones must be filled in to
+                            approve, so this step can’t be approved in bulk.
+                          </Text>
+                          <FormBuilder noun="field" fields={s.fields ?? []} onChange={(fields) => setStep(i, { fields })} />
+                        </>
+                      ) : null}
                     </div>
                   </Card>
                 </div>
@@ -187,7 +285,7 @@ export function ProcessEditor() {
                 label="Has an amount"
                 helpText="Adds an amount field, so steps can run only above a threshold."
                 checked={Boolean(draft.hasAmount)}
-                onCheckedChange={(on) => setDraft({ ...draft, hasAmount: on })}
+                onCheckedChange={(on) => setDraft({ ...draft, hasAmount: on, steps: on ? draft.steps : draft.steps.map((st) => ({ ...st, minAmount: undefined })) })}
               />
             </Card>
           ) : null}
@@ -227,18 +325,34 @@ export function ProcessEditor() {
                 <Input prefix="$" inputMode="decimal" value={tryAmount} onChange={(e) => setTryAmount(e.target.value)} />
               </Field>
             ) : null}
+            {draft.steps.some((st) => st.when) ? (
+              <div className="mt-4">
+                <FormRenderer
+                  fields={branchSources.filter((f) => draft.steps.some((st) => st.when?.fieldId === f.id))}
+                  values={tryAnswers}
+                  onChange={setTryAnswers}
+                  idPrefix="try"
+                />
+              </div>
+            ) : null}
             <div className="mt-4">
               <ApprovalTimeline steps={preview.map((s) => ({ ...s, status: 'waiting' as const }))} />
             </div>
-            {hasAmount ? (
-              <Text variant="bodySm" tone="muted" className="mt-4">
-                {preview.length} of {draft.steps.length} steps run for {formatMoney(amount)}.
-              </Text>
-            ) : null}
+            <Text variant="bodySm" tone="muted" className="mt-4">
+              {preview.length} of {draft.steps.length} steps run{hasAmount ? ` for ${formatMoney(amount)}` : ''}.
+            </Text>
           </Card>
         </div>
       </div>
       </fieldset>
+      {changed && builder ? (
+        <MobileActionBar label="Unsaved changes">
+          <Button onClick={() => (setDraft(original), setShowProblems(false))}>Discard</Button>
+          <Button variant="primary" onClick={save}>
+            Save process
+          </Button>
+        </MobileActionBar>
+      ) : null}
     </>
   );
 }

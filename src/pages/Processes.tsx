@@ -4,7 +4,15 @@ import { Fragment } from 'react';
 import { useNavigate } from 'react-router';
 import { RequestIcon } from '../components/RequestIcon';
 import { canBuildProcesses, uid, useStore } from '../data/store';
+import type { Process } from '../data/types';
 import { formatMoney } from '../lib/format';
+
+/** A two-letter ID prefix no other request type uses: NR, then NA, NB… */
+function freePrefix(processes: Process[]) {
+  const used = new Set(['PR', 'LV', 'EX', 'CT', ...processes.map((p) => (p.prefix ?? '').toUpperCase())]);
+  const candidates = ['NR', ...'ABCDEFGHIJKLMOPQSTUVWXYZ'.split('').map((c) => `N${c}`)];
+  return candidates.find((c) => !used.has(c)) ?? 'NZ';
+}
 
 export function Processes() {
   const { state, person, dispatch } = useStore();
@@ -19,7 +27,7 @@ export function Processes() {
         id,
         name: 'New request type',
         requestType: id,
-        prefix: 'NR',
+        prefix: freePrefix(state.processes),
         hasAmount: true,
         fields: [],
         submitters: [],

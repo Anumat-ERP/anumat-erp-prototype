@@ -26,7 +26,7 @@ import { Person } from '../components/Person';
 import { SurveyResults } from '../components/SurveyResults';
 import { canManageSurveys, isOpen, surveyAudience, surveyResponsesFor, uid, useStore } from '../data/store';
 import type { FormValues, Survey, SurveyResponse } from '../data/types';
-import { cleanValues, formatAnswer, validateForm, visibleFields } from '../lib/forms';
+import { cleanValues, formatAnswer, questionsOf, validateForm, visibleFields } from '../lib/forms';
 import { formatDate, formatDateTime } from '../lib/format';
 import { audienceLabel, closesLabel, surveyStatus } from './Surveys';
 
@@ -34,13 +34,15 @@ import { audienceLabel, closesLabel, surveyStatus } from './Surveys';
 const ANON_MIN = 3;
 
 function Answers({ survey, response }: { survey: Survey; response: SurveyResponse }) {
+  const { person } = useStore();
+  const numbers = new Map(questionsOf(survey.fields).map((f, i) => [f.id, i + 1]));
   return (
     <DescriptionList
       layout="stacked"
       dividers
-      items={visibleFields(survey.fields, response.answers).map((f, i) => ({
-        term: `${i + 1}. ${f.label}`,
-        description: formatAnswer(f, response.answers[f.id]),
+      items={questionsOf(visibleFields(survey.fields, response.answers)).map((f) => ({
+        term: `${numbers.get(f.id)}. ${f.label}`,
+        description: formatAnswer(f, response.answers[f.id], (id) => person(id).name),
       }))}
     />
   );
@@ -172,14 +174,15 @@ function ResultsPanel({ survey, responses }: { survey: Survey; responses: Survey
           </Text>
         </Card>
         <Card className="flex flex-col gap-1">
+          {/* A timestamp could tie an answer to whoever just said they'd answered, so anonymous surveys don't show one. */}
           <Text as="span" variant="bodySm" tone="muted">
-            Last answer
+            {survey.anonymous ? 'Privacy' : 'Last answer'}
           </Text>
           <Text as="span" variant="heading">
-            {responses.length ? formatDate([...responses].sort((a, b) => b.at.localeCompare(a.at))[0]!.at) : '—'}
+            {survey.anonymous ? 'Anonymous' : responses.length ? formatDate([...responses].sort((a, b) => b.at.localeCompare(a.at))[0]!.at) : '—'}
           </Text>
           <Text as="span" variant="caption" tone="subtle">
-            {survey.fields.length} questions
+            {questionsOf(survey.fields).length} questions
           </Text>
         </Card>
       </div>
@@ -222,7 +225,7 @@ function ResultsPanel({ survey, responses }: { survey: Survey; responses: Survey
           This survey is anonymous, so totals stay hidden until nobody can be picked out from them. {responses.length} so far.
         </Banner>
       ) : responses.length ? (
-        <SurveyResults survey={survey} responses={responses} />
+        <SurveyResults survey={survey} responses={responses} minAnswers={ANON_MIN} />
       ) : (
         <Card>
           <EmptyState size="card" headingAs="h2" heading="No answers yet" image={null}>
@@ -373,6 +376,7 @@ export function SurveyDetail() {
         backAction={{ content: 'Surveys', href: '/surveys' }}
         renderLink={headerLink}
         secondaryActions={actions}
+        maxVisibleSecondaryActions={1}
       />
       {meta}
       {survey.status === 'draft' ? (

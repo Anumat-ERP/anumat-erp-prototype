@@ -1,10 +1,11 @@
 import { EmptyState, IndexTable, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger, Text, useToast, type DataTableColumn, type Selection } from '@repo/ui';
+import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Person } from '../components/Person';
 import { RequestIcon } from '../components/RequestIcon';
 import { StatusBadge } from '../components/StatusBadge';
-import { useStore, waitingOnMe } from '../data/store';
+import { needsDetails, useStore, waitingOnMe } from '../data/store';
 import type { Process, Request } from '../data/types';
 import { daysUntil, formatMoney, formatRelative, stepStatus, typeLabel, typeName } from '../lib/format';
 
@@ -27,7 +28,7 @@ function titleCell(r: Request, processes: Process[]) {
 }
 
 export function Approvals() {
-  const { state, me, dispatch } = useStore();
+  const { state, me, person, dispatch } = useStore();
   const { toast } = useToast();
   const [selected, setSelected] = useState<Selection>([]);
   const waiting = waitingOnMe(state).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
@@ -39,7 +40,20 @@ export function Approvals() {
   const waitingColumns: DataTableColumn<Request>[] = [
     { id: 'title', header: 'Request', cell: (r) => titleCell(r, state.processes) },
     { id: 'from', header: 'From', cell: (r) => <Person id={r.requesterId} size="xs" /> },
-    { id: 'step', header: 'Your step', cell: (r) => r.steps.find((s) => s.status === 'current')?.name },
+    {
+      id: 'step',
+      header: 'Your step',
+      cell: (r) => (
+        <span className="flex flex-col">
+          {r.steps.find((s) => s.status === 'current')?.name}
+          {needsDetails(state, r) ? (
+            <Text as="span" variant="caption" tone="muted">
+              Asks for details
+            </Text>
+          ) : null}
+        </span>
+      ),
+    },
     { id: 'amount', header: 'Amount', align: 'end', numeric: true, sortable: true, sortValue: (r) => r.amount ?? -1, cell: (r) => formatMoney(r.amount) },
     {
       id: 'age',
@@ -71,6 +85,44 @@ export function Approvals() {
           <TabsTrigger value="decided">Decided by you</TabsTrigger>
         </TabsList>
         <TabsContent value="waiting" className="pt-4">
+          {/* Phones: one card per request, with the step and a way in. */}
+          <ul className="flex flex-col gap-3 md:hidden" aria-label="Requests waiting on your decision">
+            {waiting.length === 0 ? (
+              <li>
+                <EmptyState size="card" heading="All caught up">
+                  Nothing is waiting on your decision.
+                </EmptyState>
+              </li>
+            ) : null}
+            {waiting.map((r) => {
+              const days = -daysUntil(r.createdAt);
+              return (
+                <li key={r.id}>
+                  <Link
+                    to={`/requests/${r.id}`}
+                    className="flex gap-3 rounded-lg border border-border bg-surface p-4 shadow-xs active:bg-surface-hover focus-visible:outline-2 focus-visible:outline-ring"
+                  >
+                    <RequestIcon type={r.type} className="size-9 shrink-0" />
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="flex items-start justify-between gap-2">
+                        <span className="font-medium text-fg">{r.title}</span>
+                        {r.amount !== undefined ? <span className="shrink-0 font-semibold tabular-nums">{formatMoney(r.amount)}</span> : null}
+                      </span>
+                      <Text as="span" variant="caption" tone="muted">
+                        {r.id} · {typeName(r.type, state.processes)} · {person(r.requesterId).name}
+                      </Text>
+                      <span className="flex items-center justify-between gap-2 text-sm">
+                        <span className="text-fg-muted">Your step: {r.steps.find((st) => st.status === 'current')?.name}</span>
+                        <span className={days >= 2 ? 'font-medium text-critical-subtle-fg' : 'text-fg-muted'}>{formatRelative(r.createdAt)}</span>
+                      </span>
+                    </span>
+                    <ChevronRight aria-hidden className="size-4 shrink-0 self-center text-fg-subtle" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="hidden md:block">
           <IndexTable<Request>
             caption="Requests waiting on your decision"
             captionHidden
@@ -86,9 +138,17 @@ export function Approvals() {
                 content: 'Approve',
                 onAction: (scope) => {
                   const ids = scope.all ? waiting.map((r) => r.id) : scope.ids;
-                  ids.forEach((requestId) => dispatch({ type: 'decide', requestId, decision: 'approve' }));
-                  setSelected([]);
-                  toast({ tone: 'success', title: `Approved ${ids.length} ${ids.length === 1 ? 'request' : 'requests'}` });
+                  // Steps that ask the approver for details (a budget line…) can't be approved blind.
+                  const skip = waiting.filter((r) => ids.includes(r.id) && needsDetails(state, r)).map((r) => r.id);
+                  const done = ids.filter((x) => !skip.includes(x));
+                  done.forEach((requestId) => dispatch({ type: 'decide', requestId, decision: 'approve' }));
+                  setSelected(skip);
+                  if (done.length) toast({ tone: 'success', title: `Approved ${done.length} ${done.length === 1 ? 'request' : 'requests'}` });
+                  if (skip.length)
+                    toast({
+                      title: `${skip.length} ${skip.length === 1 ? 'needs' : 'need'} details first`,
+                      description: `Open ${skip.join(', ')} to fill in what your step asks for.`,
+                    });
                 },
               },
             ]}
@@ -98,8 +158,30 @@ export function Approvals() {
               </EmptyState>
             }
           />
+          </div>
         </TabsContent>
         <TabsContent value="decided" className="pt-4">
+          <ul className="flex flex-col divide-y divide-border rounded-lg border border-border bg-surface md:hidden" aria-label="Requests you decided">
+            {decided.map((x) => (
+              <li key={x.r.id}>
+                <Link to={`/requests/${x.r.id}`} className="flex items-center gap-3 p-4 active:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring">
+                  <span className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="truncate font-medium text-fg">{x.r.title}</span>
+                    <Text as="span" variant="caption" tone="muted">
+                      {x.step ? stepStatus[x.step.status] : ''} · {x.step?.at ? formatRelative(x.step.at) : ''}
+                    </Text>
+                  </span>
+                  <StatusBadge status={x.r.status} size="sm" />
+                </Link>
+              </li>
+            ))}
+            {decided.length === 0 ? (
+              <li className="p-4">
+                <Text tone="muted">Requests you decide are listed here.</Text>
+              </li>
+            ) : null}
+          </ul>
+          <div className="hidden md:block">
           <IndexTable<(typeof decided)[number]>
             caption="Requests you decided"
             captionHidden
@@ -115,6 +197,7 @@ export function Approvals() {
               </EmptyState>
             }
           />
+          </div>
         </TabsContent>
       </Tabs>
     </>

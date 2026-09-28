@@ -12,16 +12,18 @@ import {
   Textarea,
   useToast,
 } from '@repo/ui';
-import { formatAnswer, visibleFields } from '../lib/forms';
+import { formatAnswer, questionsOf, visibleFields } from '../lib/forms';
 import { Paperclip } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ApprovalTimeline } from '../components/ApprovalTimeline';
+import { MobileActionBar } from '../components/MobileActionBar';
 import { DecisionModal, type Decision } from '../components/DecisionModal';
 import { AppLink, headerLink } from '../components/links';
 import { Person } from '../components/Person';
 import { StatusBadge } from '../components/StatusBadge';
-import { useStore } from '../data/store';
+import { stepForm, useStore } from '../data/store';
+import type { FormValues } from '../data/types';
 import { formatBytesShort, formatDate, formatDateTime, formatMoney, formatRelative, typeLabel, typeName } from '../lib/format';
 
 export function RequestDetail() {
@@ -54,8 +56,8 @@ export function RequestDetail() {
   const meeting = state.meetings.find((m) => m.id === r.meetingId);
   const tasks = state.tasks.filter((t) => t.source?.href === `/requests/${r.id}`);
 
-  const decide = (d: Decision, text: string) => {
-    dispatch({ type: 'decide', requestId: r.id, decision: d, comment: text });
+  const decide = (d: Decision, text: string, answers?: FormValues) => {
+    dispatch({ type: 'decide', requestId: r.id, decision: d, comment: text, answers });
     if (d === 'approve') {
       toast({
         tone: 'success',
@@ -74,7 +76,11 @@ export function RequestDetail() {
     { term: 'Department', description: r.department },
     ...(r.amount !== undefined ? [{ term: 'Amount', description: <span className="font-semibold tabular-nums">{formatMoney(r.amount)}</span> }] : []),
     ...(r.startDate && r.endDate ? [{ term: 'Dates', description: `${formatDate(r.startDate)} – ${formatDate(r.endDate)}` }] : []),
-    ...visibleFields(state.processes.find((p) => p.requestType === r.type)?.fields ?? [], r.fields ?? {}).map((f) => ({ term: f.label, description: formatAnswer(f, r.fields?.[f.id]) })),
+    // The form as it was when submitted, so later edits to the process don't relabel or hide answers.
+    ...questionsOf(visibleFields(r.form ?? state.processes.find((p) => p.requestType === r.type)?.fields ?? [], r.fields ?? {})).map((f) => ({
+      term: f.label,
+      description: formatAnswer(f, r.fields?.[f.id], (pid) => person(pid).name),
+    })),
     { term: 'Submitted', description: r.status === 'draft' ? 'Not yet' : formatDateTime(r.createdAt) },
   ];
 
@@ -170,18 +176,20 @@ export function RequestDetail() {
             <CardHeader title="Activity" />
             <ol className="mt-4 flex flex-col gap-4">
               {r.activity.map((a) => (
-                <li key={a.id} className="flex gap-3">
-                  <Person id={a.personId} size="xs" />
-                  <div className="min-w-0 flex-1">
+                <li key={a.id} className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <Person id={a.personId} size="xs" />
+                    <Text as="span" variant="caption" tone="subtle" className="shrink-0">
+                      {formatRelative(a.at)}
+                    </Text>
+                  </div>
+                  <div className="min-w-0 ps-7">
                     {a.kind === 'comment' ? (
-                      <p className="rounded-md bg-surface-sunken px-3 py-2">{a.text}</p>
+                      <p className="rounded-md bg-surface-sunken px-3 py-2 break-words">{a.text}</p>
                     ) : (
                       <Text tone="muted">{a.text}</Text>
                     )}
                   </div>
-                  <Text as="span" variant="caption" tone="subtle" className="shrink-0">
-                    {formatRelative(a.at)}
-                  </Text>
                 </li>
               ))}
             </ol>
@@ -272,12 +280,28 @@ export function RequestDetail() {
         </div>
       </div>
 
+      {mine ? (
+        <MobileActionBar label="Your decision">
+          <Button onClick={() => setDecision('decline')}>Decline</Button>
+          <Button onClick={() => setDecision('changes')}>Send back</Button>
+          <Button variant="primary" onClick={() => setDecision('approve')}>
+            Approve
+          </Button>
+        </MobileActionBar>
+      ) : requester && r.status === 'changes' ? (
+        <MobileActionBar label="Next step">
+          <Button variant="primary" onClick={() => navigate(`/requests/${r.id}/edit`)}>
+            Edit and resubmit
+          </Button>
+        </MobileActionBar>
+      ) : null}
       <DecisionModal
         decision={decision}
         requestTitle={`${r.id} · ${r.title}`}
         nextStep={next ? `${person(next.approverId).name} for ${next.name.toLowerCase()}` : undefined}
         onClose={() => setDecision(null)}
         onConfirm={decide}
+        fields={mine ? stepForm(state, r) : []}
       />
       <Modal
         open={confirmWithdraw}

@@ -1,6 +1,7 @@
 import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Tabs, TabsContent, TabsList, TabsTrigger, Text, type BadgeTone } from '@repo/ui';
 import { EyeOff, Users } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { questionsOf } from '../lib/forms';
 import { FeedbackInbox } from '../components/FeedbackInbox';
 import { canManageSurveys, hasAnswered, isOpen, surveyAudience, surveyResponsesFor, surveysToAnswer, useStore } from '../data/store';
 import type { DataState, Survey } from '../data/types';
@@ -23,7 +24,7 @@ export function closesLabel(survey: Survey) {
   return d <= 0 ? 'Closes today' : d === 1 ? 'Closes tomorrow' : `Closes in ${d} days`;
 }
 
-const minutes = (s: Survey) => Math.max(1, Math.round(s.fields.length * 0.4));
+const minutes = (s: Survey) => Math.max(1, Math.round(questionsOf(s.fields).length * 0.4));
 
 function SurveyRow({ state, survey, manage }: { state: DataState; survey: Survey; manage: boolean }) {
   const status = surveyStatus(survey);
@@ -60,7 +61,7 @@ function SurveyRow({ state, survey, manage }: { state: DataState; survey: Survey
             </span>
           ) : null}
           <span>
-            {survey.fields.length} questions · {closesLabel(survey)}
+            {questionsOf(survey.fields).length} questions · {closesLabel(survey)}
           </span>
         </Text>
       </div>
@@ -145,7 +146,7 @@ export function Surveys() {
                 {s.title}
               </Text>
               <Text variant="bodySm" tone="muted">
-                {s.fields.length} questions · about {minutes(s)} min · {closesLabel(s)}
+                {questionsOf(s.fields).length} questions · about {minutes(s)} min · {closesLabel(s)}
                 {s.anonymous ? ' · Anonymous' : ''}
               </Text>
             </div>

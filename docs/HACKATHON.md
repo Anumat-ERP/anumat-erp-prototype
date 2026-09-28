@@ -31,6 +31,8 @@ Done and verified in a browser (light, dark, phone width):
 | Calendar | Every meeting has **Add to Google Calendar** and an **.ics** download for Outlook and Apple Calendar |
 | Process builder | Admins create new request types ("New process") with an ID prefix, optional amount, custom form fields and who can submit; admins can give members the "Can build processes" permission; others see processes read-only |
 | Pricing & support | Public `/pricing`: Cloud, your own cloud, or on-premise, free during the pilot, with a contact-sales form. Help menu (?) → Help & support with Telegram, Facebook and email |
+| Process forms | Request forms and per-step approver forms (Finance picks the budget line to approve). Steps can run only when a form answer matches (a new supplier adds a Legal check). Requests keep a copy of the form they were submitted with |
+| Mobile | Sticky action bar for approvers and editors, card list for Approvals, Build/Preview switch in the survey editor, 0–10 scale on one row |
 | Surveys | Admins build team surveys with a dynamic form builder (10 answer types, required, "only ask when" follow-ups, templates, live preview), send them to everyone or chosen departments, optionally anonymous with a closing day. People answer from Home, the bell or Surveys. Results chart each question (averages, recommend score, choice bars, comments); anonymous results stay hidden until 3 answers. The same builder powers request form fields in Process Builder |
 | Feedback to us | A short survey (0–10 score + comment) about Anumat appears after someone makes decisions, at most once a month; Help menu → Send feedback / Report a problem. Admins see it with sales enquiries under Surveys → **Feedback & enquiries** |
 | Demo | Guided 9-step tour (top bar → **Demo tour**) that resets data and switches people for you |
@@ -118,7 +120,7 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 | 0:30 | Problem → one place | Dara | "Everything waiting on Dara is now in one place." | Point at "Needs your decision" and the company name |
 | 0:45 | Ask | Alex | "Alex needs laptops. One form, and Anumat already shows who approves." | Change amount 7500 → 500 → 7500, Submit |
 | 1:10 | Approve | Dara | "It's at the top of Dara's queue with everything she needs." | Open it, Approve |
-| 1:25 | Approve from Telegram | Priya | "Over $1,000, so Finance is next. Priya gets it on Telegram and approves with one tap. Nobody chased anyone." | Tap **Approve** on the laptops message |
+| 1:25 | Approve from Telegram | Priya | "Over $1,000, so Finance is next. Finance must say which budget pays, so Priya taps the budget line on Telegram and it's approved. Nobody chased anyone." | Tap **Approve · Q4 equipment** on the laptops message |
 | 1:45 | Decide together | Dara | "Bigger calls happen in meetings, recorded next to the request." | Record a decision, add an action item for Alex |
 | 2:10 | Act | Alex | "That's now Alex's task, due this week, linked to the decision." | Point at it under This week, open it, tick one off |
 | 2:25 | Change the rules | Dara | "Operations owns the process, not IT." | Raise the Finance threshold, Try it |

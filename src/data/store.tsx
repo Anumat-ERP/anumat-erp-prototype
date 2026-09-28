@@ -1,12 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import { seed } from './seed';
 import { mekongSeed } from './seedMekong';
-import type { Access, Activity, Channel, FormValues, Lead, NotificationEvent, NotificationPrefs, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Survey, Task, TaskStatus, TaskStatusDef } from './types';
+import { cleanValues, matches, validateForm } from '../lib/forms';
+import type { Access, Activity, Channel, FormField, FormValues, Lead, NotificationEvent, NotificationPrefs, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Survey, Task, TaskStatus, TaskStatusDef } from './types';
 
-const STORAGE_KEY = 'anumat-prototype-v10';
+const STORAGE_KEY = 'anumat-prototype-v11';
 
 type Action =
-  | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string }
+  | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string; answers?: FormValues }
   | { type: 'comment'; requestId: string; text: string }
   | { type: 'create'; request: Request }
   | { type: 'submit'; requestId: string }
@@ -46,13 +47,25 @@ const now = () => new Date().toISOString();
 let counter = 0;
 export const uid = (prefix: string) => `${prefix}-${Date.now().toString(36)}${(counter++).toString(36)}`;
 
-/** Build the approval route for a request from its process and amount. */
-export function routeFor(processes: Process[], type: RequestType, amount?: number): ApprovalStep[] {
+/** Build the approval route for a request from its process, amount and form answers. */
+export function routeFor(processes: Process[], type: RequestType, amount?: number, answers: FormValues = {}): ApprovalStep[] {
   const process = processes.find((p) => p.requestType === type && p.active);
   if (!process) return [];
   return process.steps
-    .filter((s) => s.minAmount === undefined || (amount ?? 0) > s.minAmount)
+    .filter((s) => (s.minAmount === undefined || (amount ?? 0) > s.minAmount) && (!s.when || matches(s.when, answers)))
     .map((s, i) => ({ id: s.id, name: s.name, approverId: s.approverId, status: i === 0 ? 'current' : 'waiting' }));
+}
+
+/** What the approver of a request's current step has to fill in, from its process. */
+export function stepForm(state: DataState, r: Request): FormField[] {
+  const current = r.steps.find((s) => s.status === 'current');
+  if (!current) return [];
+  return state.processes.find((p) => p.requestType === r.type)?.steps.find((s) => s.id === current.id)?.fields ?? [];
+}
+
+/** Approving needs details first (a required step field), so it can't happen in one tap or in bulk. */
+export function needsDetails(state: DataState, r: Request) {
+  return stepForm(state, r).some((f) => f.required && f.kind !== 'section');
 }
 
 /** Put a request (back) into approval with a fresh route from its process. */
@@ -63,7 +76,7 @@ function submitted(state: DataState, r: Request, verb: string): Request {
     status: 'pending',
     createdAt: r.status === 'draft' ? time : r.createdAt,
     updatedAt: time,
-    steps: routeFor(state.processes, r.type, r.amount),
+    steps: routeFor(state.processes, r.type, r.amount, r.fields),
     activity: [...r.activity, { id: uid('a'), at: time, personId: state.meId, kind: 'event', text: verb }],
   };
 }
@@ -79,10 +92,14 @@ function reducer(state: DataState, action: Action): DataState {
         const i = r.steps.findIndex((s) => s.status === 'current');
         const step = r.steps[i];
         if (!step) return r;
+        const form = stepForm(state, r);
+        // Approving must include the step's required details; anything else (a stray bulk approve) is ignored.
+        if (action.decision === 'approve' && Object.keys(validateForm(form, action.answers ?? {})).length) return r;
+        const answers = action.decision === 'approve' && form.length ? cleanValues(form, action.answers ?? {}) : undefined;
         const time = now();
         const stepStatus = action.decision === 'approve' ? 'done' : action.decision === 'changes' ? 'returned' : 'declined';
         const steps = r.steps.map((s, j) => {
-          if (j === i) return { ...s, status: stepStatus, at: time, comment: action.comment || undefined } as ApprovalStep;
+          if (j === i) return { ...s, status: stepStatus, at: time, comment: action.comment || undefined, answers, fields: answers ? form : undefined } as ApprovalStep;
           if (j === i + 1 && action.decision === 'approve') return { ...s, status: 'current' } as ApprovalStep;
           return s;
         });
@@ -252,14 +269,17 @@ function reducer(state: DataState, action: Action): DataState {
     case 'closeSurvey':
       return { ...state, surveys: state.surveys.map((x) => (x.id === action.surveyId ? { ...x, status: 'closed', closesAt: now() } : x)) };
     case 'reopenSurvey':
-      return { ...state, surveys: state.surveys.map((x) => (x.id === action.surveyId ? { ...x, status: 'open', closesAt: action.closesAt } : x)) };
+      return { ...state, surveys: state.surveys.map((x) => (x.id === action.surveyId ? { ...x, status: 'open', closesAt: action.closesAt, publishedAt: now() } : x)) };
     case 'deleteSurvey':
       return {
         ...state,
         surveys: state.surveys.filter((x) => x.id !== action.surveyId),
         surveyResponses: state.surveyResponses.filter((x) => x.surveyId !== action.surveyId),
       };
-    case 'answerSurvey':
+    case 'answerSurvey': {
+      const sv = state.surveys.find((x) => x.id === action.surveyId);
+      // Closed while they were answering, not for them, or already answered: nothing to save.
+      if (!sv || !isOpen(sv) || !surveyAudience(state, sv).some((p) => p.id === state.meId)) return state;
       if (state.surveyResponses.some((x) => x.surveyId === action.surveyId && x.personId === state.meId)) return state;
       return {
         ...state,
@@ -268,6 +288,7 @@ function reducer(state: DataState, action: Action): DataState {
           { id: uid('resp'), surveyId: action.surveyId, personId: state.meId, at: now(), answers: action.answers },
         ],
       };
+    }
     case 'reset':
       return seed;
   }

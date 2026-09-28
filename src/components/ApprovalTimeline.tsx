@@ -1,5 +1,6 @@
 import { Text, cn } from '@repo/ui';
 import { Circle, CircleCheck, CircleX, Clock, Undo2 } from 'lucide-react';
+import { formatAnswer, questionsOf, visibleFields } from '../lib/forms';
 import { useStore } from '../data/store';
 import type { ApprovalStep } from '../data/types';
 import { formatDateTime, stepStatus } from '../lib/format';
@@ -40,6 +41,16 @@ export function ApprovalTimeline({ steps }: { steps: ApprovalStep[] }) {
                 {approver.id === me.id ? 'You' : approver.name} · {stepStatus[step.status]}
                 {step.at ? ` · ${formatDateTime(step.at)}` : ''}
               </Text>
+              {step.answers && step.fields ? (
+                <dl className="mt-1 flex flex-col gap-1 rounded-md border border-border-subtle px-3 py-2 text-sm">
+                  {questionsOf(visibleFields(step.fields, step.answers)).map((f) => (
+                    <div key={f.id} className="flex flex-wrap gap-x-2">
+                      <dt className="text-fg-muted">{f.label}:</dt>
+                      <dd className="font-medium text-fg">{formatAnswer(f, step.answers?.[f.id], (id) => person(id).name)}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
               {step.comment ? (
                 <p className="mt-1 rounded-md bg-surface-sunken px-3 py-2 text-sm text-fg">“{step.comment}”</p>
               ) : null}

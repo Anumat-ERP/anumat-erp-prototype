@@ -24,9 +24,9 @@ import { canSubmit, routeFor, uid, useStore } from '../data/store';
 import type { Attachment, FormValues, Request, RequestType } from '../data/types';
 import { cleanValues, validateForm } from '../lib/forms';
 import { isBuiltInType, typeName } from '../lib/format';
+import { DEPARTMENTS } from '../lib/org';
 
 const PREFIX: Record<string, string> = { purchase: 'PR', leave: 'LV', expense: 'EX', contract: 'CT' };
-const DEPARTMENTS = ['Operations', 'Finance', 'People', 'Product', 'IT', 'Legal', 'Leadership'];
 
 type Errors = Partial<Record<string, string>>;
 
@@ -56,6 +56,7 @@ const DEMO: Record<string, Partial<Request>> = {
     type: 'purchase',
     title: 'Laptops for 3 new analysts',
     amount: 7500,
+    fields: { 'new-supplier': 'No' },
     department: 'Operations',
     description: 'Three laptops for the analysts starting next month. Two quotes attached; we recommend the cheaper one with the 3-year warranty.',
     attachments: [
@@ -74,7 +75,10 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
   const { state, me, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [type, setType] = useState<RequestType>(initial?.type ?? 'purchase');
+  // Start on a type this person may actually raise.
+  const [type, setType] = useState<RequestType>(
+    () => initial?.type ?? state.processes.find((p) => p.active && canSubmit(state, p))?.requestType ?? 'purchase',
+  );
   const [title, setTitle] = useState(initial?.title ?? '');
   const [amount, setAmount] = useState(initial?.amount !== undefined ? String(initial.amount) : '');
   const [startDate, setStartDate] = useState(toDateInput(initial?.startDate));
@@ -83,7 +87,10 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
   const [description, setDescription] = useState(initial?.description ?? '');
   const [attachments, setAttachments] = useState<Attachment[]>(initial?.attachments ?? []);
   const [fileError, setFileError] = useState<string>();
-  const [answers, setAnswers] = useState<FormValues>(initial?.fields ?? {});
+  // Drop answers the current form can't show (a renamed choice, a removed field), so nothing looks picked that isn't.
+  const [answers, setAnswers] = useState<FormValues>(() =>
+    cleanValues(state.processes.find((p) => p.requestType === (initial?.type ?? type))?.fields ?? [], initial?.fields ?? {}),
+  );
   const [errors, setErrors] = useState<Errors>({});
   const returned = existing?.steps.find((s) => s.status === 'returned');
 
@@ -97,10 +104,12 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
 
   const hasAmount = builtIn ? type !== 'leave' : Boolean(process?.hasAmount);
   const amountNumber = Number(amount.replace(/,/g, ''));
-  const route = routeFor(state.processes, type, hasAmount && amountNumber > 0 ? amountNumber : undefined);
+  const route = routeFor(state.processes, type, hasAmount && amountNumber > 0 ? amountNumber : undefined, cleanValues(customFields, answers));
 
   const validate = (): Errors => {
     const e: Errors = {};
+    if (!existing && !allowed.some((p) => p.requestType === type)) e.type = 'You can’t raise this kind of request. Pick another type.';
+    else if (route.length === 0) e.type = 'Nobody approves this type yet: its approval process is off. Ask an admin to turn it on.';
     if (!title.trim()) e.title = 'Give the request a short title, like “Laptops for new hires”.';
     if (hasAmount && type !== 'contract' && !(amountNumber > 0)) e.amount = 'Enter the amount in US dollars, for example 1250.';
     for (const [id, message] of Object.entries(validateForm(customFields, answers))) e[`field-${id}`] = message;
@@ -117,7 +126,11 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
     event?.preventDefault();
     const e = submit ? validate() : title.trim() ? {} : { title: 'A draft needs at least a title.' };
     setErrors(e);
-    if (Object.keys(e).length) return;
+    if (Object.keys(e).length) {
+      // Take people to the first problem instead of leaving them to hunt for it.
+      requestAnimationFrame(() => document.querySelector<HTMLElement>('main [aria-invalid="true"]')?.focus());
+      return;
+    }
     const fields = {
       type,
       title: title.trim(),
@@ -128,6 +141,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
       description: description.trim(),
       attachments,
       fields: customFields.length ? cleanValues(customFields, answers) : undefined,
+      form: customFields.length ? customFields : undefined,
     };
     if (existing) {
       dispatch({ type: 'update', requestId: existing.id, patch: fields, submit });
@@ -138,8 +152,9 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
       navigate(`/requests/${existing.id}`);
       return;
     }
-    const n = Math.max(0, ...state.requests.filter((r) => r.type === type).map((r) => Number(r.id.split('-')[1]) || 0)) + 1;
-    const prefix = PREFIX[type] ?? process?.prefix ?? type.slice(0, 2).toUpperCase();
+    const prefix = PREFIX[type] ?? (process?.prefix?.trim().toUpperCase() || type.slice(0, 2).toUpperCase());
+    // Number by prefix across every request, so two types can never hand out the same ID.
+    const n = Math.max(0, ...state.requests.filter((r) => r.id.startsWith(`${prefix}-`)).map((r) => Number(r.id.split('-')[1]) || 0)) + 1;
     const id = `${prefix}-${String(n).padStart(4, '0')}`;
     const time = new Date().toISOString();
     dispatch({
@@ -180,7 +195,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
                 Each problem is described next to its field.
               </Banner>
             ) : null}
-            <Field label="What kind of request?" required disabled={existing !== undefined && existing.status !== 'draft'}>
+            <Field label="What kind of request?" required disabled={existing !== undefined && existing.status !== 'draft'} error={errors.type}>
               <Select
                 value={type}
                 onChange={(e) => setType(e.target.value as RequestType)}
