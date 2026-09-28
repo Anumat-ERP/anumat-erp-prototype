@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import { seed } from './seed';
 import { mekongSeed } from './seedMekong';
-import type { Access, Activity, Channel, Lead, NotificationEvent, NotificationPrefs, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Task, TaskStatus, TaskStatusDef } from './types';
+import type { Access, Activity, Channel, FormValues, Lead, NotificationEvent, NotificationPrefs, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Survey, Task, TaskStatus, TaskStatusDef } from './types';
 
-const STORAGE_KEY = 'anumat-prototype-v9';
+const STORAGE_KEY = 'anumat-prototype-v10';
 
 type Action =
   | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string }
@@ -34,6 +34,12 @@ type Action =
   | { type: 'saveProcess'; process: Process }
   | { type: 'createProcess'; process: Process }
   | { type: 'setBuilder'; personId: string; on: boolean }
+  | { type: 'saveSurvey'; survey: Survey }
+  | { type: 'publishSurvey'; surveyId: string }
+  | { type: 'closeSurvey'; surveyId: string }
+  | { type: 'reopenSurvey'; surveyId: string; closesAt?: string }
+  | { type: 'deleteSurvey'; surveyId: string }
+  | { type: 'answerSurvey'; surveyId: string; answers: FormValues }
   | { type: 'reset' };
 
 const now = () => new Date().toISOString();
@@ -237,6 +243,31 @@ function reducer(state: DataState, action: Action): DataState {
       return { ...state, people: state.people.map((p) => (p.id === action.personId ? { ...p, canBuildProcesses: action.on } : p)) };
     case 'saveProcess':
       return { ...state, processes: state.processes.map((p) => (p.id === action.process.id ? action.process : p)) };
+    case 'saveSurvey':
+      return state.surveys.some((x) => x.id === action.survey.id)
+        ? { ...state, surveys: state.surveys.map((x) => (x.id === action.survey.id ? action.survey : x)) }
+        : { ...state, surveys: [action.survey, ...state.surveys] };
+    case 'publishSurvey':
+      return { ...state, surveys: state.surveys.map((x) => (x.id === action.surveyId ? { ...x, status: 'open', publishedAt: x.publishedAt ?? now() } : x)) };
+    case 'closeSurvey':
+      return { ...state, surveys: state.surveys.map((x) => (x.id === action.surveyId ? { ...x, status: 'closed', closesAt: now() } : x)) };
+    case 'reopenSurvey':
+      return { ...state, surveys: state.surveys.map((x) => (x.id === action.surveyId ? { ...x, status: 'open', closesAt: action.closesAt } : x)) };
+    case 'deleteSurvey':
+      return {
+        ...state,
+        surveys: state.surveys.filter((x) => x.id !== action.surveyId),
+        surveyResponses: state.surveyResponses.filter((x) => x.surveyId !== action.surveyId),
+      };
+    case 'answerSurvey':
+      if (state.surveyResponses.some((x) => x.surveyId === action.surveyId && x.personId === state.meId)) return state;
+      return {
+        ...state,
+        surveyResponses: [
+          ...state.surveyResponses,
+          { id: uid('resp'), surveyId: action.surveyId, personId: state.meId, at: now(), answers: action.answers },
+        ],
+      };
     case 'reset':
       return seed;
   }
@@ -414,7 +445,10 @@ export function notificationsFor(state: DataState): Notification[] {
     }
     return out;
   });
-  return [...fromRequests, ...fromMeetings, ...fromTasks, ...fromRaci].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20);
+  const fromSurveys = surveysToAnswer(state)
+    .filter((sv) => sv.createdBy !== me && sv.publishedAt)
+    .map((sv) => ({ id: `s-${sv.id}`, at: sv.publishedAt ?? '', personId: sv.createdBy, text: `asked you to answer “${sv.title}”`, href: `/surveys/${sv.id}` }));
+  return [...fromRequests, ...fromMeetings, ...fromTasks, ...fromRaci, ...fromSurveys].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20);
 }
 
 const UNKNOWN_STATUS: TaskStatusDef = { id: 'unknown', name: 'Unknown', category: 'todo', tone: 'neutral' };
@@ -431,6 +465,36 @@ export function isDone(state: DataState, task: Task) {
 /** The first status in a category: where checkboxes send a task. */
 export function firstStatus(state: DataState, category: TaskStatusDef['category']) {
   return state.taskStatuses.find((s) => s.category === category)?.id ?? category;
+}
+
+/** Admins create surveys and see their results. */
+export const canManageSurveys = (state: DataState) => isAdmin(state);
+
+/** People a survey asks: everyone, or the chosen departments. */
+export function surveyAudience(state: DataState, survey: Survey) {
+  return state.people.filter((p) => survey.audience.length === 0 || survey.audience.includes(p.department));
+}
+
+export function surveyResponsesFor(state: DataState, surveyId: string) {
+  return state.surveyResponses.filter((r) => r.surveyId === surveyId);
+}
+
+export function hasAnswered(state: DataState, surveyId: string, personId = state.meId) {
+  return state.surveyResponses.some((r) => r.surveyId === surveyId && r.personId === personId);
+}
+
+/** Open, past its closing day? Treated as closed. */
+export function isOpen(survey: Survey) {
+  return survey.status === 'open' && (!survey.closesAt || new Date(survey.closesAt).getTime() > Date.now());
+}
+
+/** Open surveys that ask the signed-in person and that they haven't answered. */
+export function surveysToAnswer(state: DataState) {
+  const me = state.people.find((p) => p.id === state.meId);
+  if (!me) return [];
+  return state.surveys.filter(
+    (sv) => isOpen(sv) && (sv.audience.length === 0 || sv.audience.includes(me.department)) && !hasAnswered(state, sv.id),
+  );
 }
 
 /** Owners and admins manage the workspace and can change any task. */

@@ -12,6 +12,7 @@ import {
   Textarea,
   useToast,
 } from '@repo/ui';
+import { formatAnswer, visibleFields } from '../lib/forms';
 import { Paperclip } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
@@ -73,7 +74,7 @@ export function RequestDetail() {
     { term: 'Department', description: r.department },
     ...(r.amount !== undefined ? [{ term: 'Amount', description: <span className="font-semibold tabular-nums">{formatMoney(r.amount)}</span> }] : []),
     ...(r.startDate && r.endDate ? [{ term: 'Dates', description: `${formatDate(r.startDate)} – ${formatDate(r.endDate)}` }] : []),
-    ...(state.processes.find((p) => p.requestType === r.type)?.fields ?? []).map((f) => ({ term: f.label, description: r.fields?.[f.id] || '—' })),
+    ...visibleFields(state.processes.find((p) => p.requestType === r.type)?.fields ?? [], r.fields ?? {}).map((f) => ({ term: f.label, description: formatAnswer(f, r.fields?.[f.id]) })),
     { term: 'Submitted', description: r.status === 'draft' ? 'Not yet' : formatDateTime(r.createdAt) },
   ];
 

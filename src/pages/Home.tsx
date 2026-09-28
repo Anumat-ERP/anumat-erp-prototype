@@ -1,10 +1,11 @@
 import { Button, Card, CardHeader, Checkbox, EmptyState, PageHeader, Text } from '@repo/ui';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ClipboardList } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { AppLink } from '../components/links';
 import { AvatarGroup } from '../components/Person';
 import { RequestIcon } from '../components/RequestIcon';
-import { firstStatus, isDone, useStore, waitingOnMe } from '../data/store';
+import { firstStatus, isDone, surveysToAnswer, useStore, waitingOnMe } from '../data/store';
+import { closesLabel } from './Surveys';
 import { useTaskMover } from '../components/useTaskMover';
 import { daysUntil, formatMoney, formatRelative, formatTime, formatWeekday, typeLabel, typeName } from '../lib/format';
 
@@ -37,6 +38,7 @@ export function Home() {
   const { move, dialog } = useTaskMover();
   const navigate = useNavigate();
   const waiting = waitingOnMe(state);
+  const surveys = surveysToAnswer(state);
   const inFlight = state.requests.filter((r) => r.status === 'pending').length;
   const approved30 = state.requests.filter((r) => r.status === 'approved' && daysUntil(r.updatedAt) > -30).length;
   const myTasks = state.tasks
@@ -138,6 +140,33 @@ export function Home() {
         </div>
 
         <div className="flex min-w-0 flex-col gap-6">
+          {surveys.length ? (
+            <Card className="flex flex-col gap-3 border-primary/40">
+              <CardHeader
+                title="Your view is wanted"
+                description={`${surveys.length} ${surveys.length === 1 ? 'survey is' : 'surveys are'} waiting for your answer.`}
+              />
+              <ul className="flex flex-col gap-2">
+                {surveys.slice(0, 3).map((s) => (
+                  <li key={s.id}>
+                    <Link
+                      to={`/surveys/${s.id}`}
+                      className="flex items-center gap-3 rounded-md p-2 -mx-2 hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-ring"
+                    >
+                      <ClipboardList aria-hidden className="size-5 shrink-0 text-primary" />
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate font-medium text-fg">{s.title}</span>
+                        <span className="text-sm text-fg-muted">
+                          {s.fields.length} questions · {closesLabel(s)}
+                        </span>
+                      </span>
+                      <ChevronRight aria-hidden className="size-4 text-fg-subtle" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ) : null}
           <Card>
             <CardHeader title="Upcoming meetings" actions={<AppLink to="/meetings">All</AppLink>} />
             <ul className="mt-3 flex flex-col gap-3">

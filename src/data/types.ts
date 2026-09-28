@@ -61,7 +61,7 @@ export interface Request {
   activity: Activity[];
   meetingId?: string;
   /** Answers to a process's custom form fields, by field id. */
-  fields?: Record<string, string>;
+  fields?: FormValues;
 }
 
 export interface Decision {
@@ -169,12 +169,34 @@ export interface ProcessStep {
   slaHours: number;
 }
 
+export type FieldKind =
+  | 'text'
+  | 'longtext'
+  | 'number'
+  | 'date'
+  | 'select'
+  | 'radio'
+  | 'checkboxes'
+  | 'yesno'
+  | 'rating'
+  | 'scale';
+
+/** One question in a dynamic form (request forms and surveys). */
 export interface FormField {
   id: string;
   label: string;
-  kind: 'text' | 'number' | 'date';
+  kind: FieldKind;
   required: boolean;
+  /** Shown under the question. */
+  help?: string;
+  /** Choices for select, radio and checkboxes. */
+  options?: string[];
+  /** Only ask this when an earlier question has this answer. */
+  showIf?: { fieldId: string; equals: string };
 }
+
+/** Answers by field id. Checkboxes store a list; everything else a string. */
+export type FormValues = Record<string, string | string[]>;
 
 export interface Process {
   id: string;
@@ -209,6 +231,32 @@ export interface Feedback {
   /** 0–10 "how likely to recommend", for surveys. */
   score?: number;
   text: string;
+}
+
+export interface Survey {
+  id: string;
+  title: string;
+  description: string;
+  fields: FormField[];
+  /** Departments asked to answer. Empty: everyone. */
+  audience: string[];
+  /** Answers are stored without names, and results wait for enough answers. */
+  anonymous: boolean;
+  status: 'draft' | 'open' | 'closed';
+  createdBy: PersonId;
+  createdAt: string;
+  publishedAt?: string;
+  /** Last day to answer (ISO date). */
+  closesAt?: string;
+}
+
+export interface SurveyResponse {
+  id: string;
+  surveyId: string;
+  /** Who answered. Kept even for anonymous surveys so nobody answers twice, but never shown. */
+  personId: PersonId;
+  at: string;
+  answers: FormValues;
 }
 
 export interface Lead {
@@ -248,4 +296,6 @@ export interface DataState {
   /** When each person last answered or dismissed the survey. */
   surveyAt: Record<PersonId, string>;
   notificationPrefs: Record<PersonId, NotificationPrefs>;
+  surveys: Survey[];
+  surveyResponses: SurveyResponse[];
 }

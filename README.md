@@ -40,8 +40,10 @@ script are in [docs/HACKATHON.md](docs/HACKATHON.md).
 | Telegram preview (`/telegram`) | As **Priya**, see what the bot sends and tap **Approve**: the request is approved in Anumat |
 | Add to calendar | Open a meeting: **Add to Google Calendar** or download an **.ics** for Outlook and Apple |
 | New process | As an admin (or a member with *Can build processes*), Processes → **New process**: name, ID prefix, amount on or off, form fields, who can submit |
+| Dynamic forms | Form fields and survey questions share one builder: short answer, paragraph, multiple choice, checkboxes, dropdown, yes/no, rating 1–5, scale 0–10, number, date; help text, required, reorder, duplicate, and **Only ask when** an earlier answer matches |
+| Surveys (`/surveys`) | As Dara, answer **Hybrid work pulse** (anonymous), then see charts per question. **New survey** → start from a template, add questions, choose everyone or departments, anonymous, closing day; the live preview shows follow-up questions appear. As **Lina**, answer from Home or the bell |
 | Pricing (`/pricing`) | Cloud, your own cloud or on-premise; **Contact sales** form |
-| Help & support | The **?** menu: contact channels, send feedback, report a problem. Admins see scores and enquiries under **Feedback** |
+| Help & support | The **?** menu: contact channels, send feedback, report a problem. Admins see these and sales enquiries under Surveys → **Feedback & enquiries** |
 | Permissions | As **Lina**, Alex's tasks are view only. As **Alex**, ticking a task Dara assigned sends it to her for sign-off; moving to Blocked asks why. As **Dara**, sign it off from the list or the bell |
 
 Use the account menu to **view the prototype as** any of the eight people

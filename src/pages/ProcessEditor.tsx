@@ -6,7 +6,9 @@ import { ApprovalTimeline } from '../components/ApprovalTimeline';
 import { headerLink } from '../components/links';
 import { canBuildProcesses, routeFor, uid, useStore } from '../data/store';
 import { CheckGroup } from '../components/CheckGroup';
-import type { FormField, Process, ProcessStep } from '../data/types';
+import { FormBuilder } from '../components/forms/FormBuilder';
+import { cleanFields, formProblems } from '../lib/forms';
+import type { Process, ProcessStep } from '../data/types';
 import { formatMoney, isBuiltInType, typeName } from '../lib/format';
 
 const DEPARTMENTS = ['Operations', 'Finance', 'People', 'Product', 'IT', 'Legal', 'Leadership'];
@@ -53,7 +55,12 @@ export function ProcessEditor() {
           content: 'Save process',
           disabled: !changed || !builder,
           onAction: () => {
-            dispatch({ type: 'saveProcess', process: draft });
+            const problems = formProblems(draft.fields ?? []);
+            if (problems.length) {
+              toast({ tone: 'critical', title: 'The form has problems', description: problems[0] });
+              return;
+            }
+            dispatch({ type: 'saveProcess', process: { ...draft, fields: cleanFields(draft.fields ?? []) } });
             toast({ tone: 'success', title: `Saved ${draft.name}`, description: 'New requests follow the updated route.' });
           },
         }}
@@ -201,57 +208,17 @@ export function ProcessEditor() {
             ) : null}
           </Card>
           <Card className="flex flex-col gap-3">
-            <CardHeader title="Form fields" description="Extra questions on the request form, after title and description." />
-            {(draft.fields ?? []).length ? (
-              <ul className="flex flex-col gap-3">
-                {(draft.fields ?? []).map((f, i) => {
-                  const setField = (patch: Partial<FormField>) =>
-                    setDraft({ ...draft, fields: (draft.fields ?? []).map((x, j) => (j === i ? { ...x, ...patch } : x)) });
-                  return (
-                    <li key={f.id} className="flex flex-col gap-2 rounded-md border border-border p-3">
-                      <div className="flex items-end gap-2">
-                        <Field label="Question" className="flex-1">
-                          <Input value={f.label} onChange={(e) => setField({ label: e.target.value })} />
-                        </Field>
-                        <IconButton
-                          size="sm"
-                          icon={<Trash2 />}
-                          label={`Remove “${f.label || 'field'}”`}
-                          onClick={() => setDraft({ ...draft, fields: (draft.fields ?? []).filter((_, j) => j !== i) })}
-                        />
-                      </div>
-                      <div className="flex flex-wrap items-center gap-4">
-                        <Select
-                          size="sm"
-                          aria-label={`Answer type for ${f.label || 'field'}`}
-                          value={f.kind}
-                          onChange={(e) => setField({ kind: e.target.value as FormField['kind'] })}
-                          options={[
-                            { value: 'text', label: 'Text' },
-                            { value: 'number', label: 'Number' },
-                            { value: 'date', label: 'Date' },
-                          ]}
-                          className="w-32"
-                        />
-                        <Checkbox label="Required" checked={f.required} onCheckedChange={(c) => setField({ required: c === true })} />
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <Text variant="bodySm" tone="muted">
-                No extra fields.
-              </Text>
-            )}
-            <Button
-              size="sm"
-              icon={<Plus />}
-              className="self-start"
-              onClick={() => setDraft({ ...draft, fields: [...(draft.fields ?? []), { id: uid('fld'), label: '', kind: 'text', required: false }] })}
-            >
-              Add field
-            </Button>
+            <CardHeader title="Form fields" description="Extra questions on the request form, after title and description. Choices, yes/no, ratings, and questions that only appear for certain answers." />
+            <FormBuilder noun="field" fields={draft.fields ?? []} onChange={(fields) => setDraft({ ...draft, fields })} />
+            {formProblems(draft.fields ?? []).length ? (
+              <Banner tone="warning" inline title="Fix these before saving">
+                <ul className="list-disc ps-5">
+                  {formProblems(draft.fields ?? []).map((p) => (
+                    <li key={p}>{p}</li>
+                  ))}
+                </ul>
+              </Banner>
+            ) : null}
           </Card>
           <Card className="lg:sticky lg:top-20">
             <CardHeader title="Try it" description={`Which steps a ${typeName(draft.requestType, state.processes).toLowerCase()} request would go through.`} />

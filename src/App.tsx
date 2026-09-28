@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Route, Routes, useLocation } from 'react-router';
+import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { TourPanel } from './components/DemoTour';
 import { Shell } from './layout/Shell';
 import { Approvals } from './pages/Approvals';
@@ -14,7 +14,9 @@ import { NewMeeting } from './pages/NewMeeting';
 import { NewRequest } from './pages/NewRequest';
 import { NotFound } from './pages/NotFound';
 import { ProcessEditor } from './pages/ProcessEditor';
-import { FeedbackAdmin } from './pages/FeedbackAdmin';
+import { SurveyDetail } from './pages/SurveyDetail';
+import { SurveyEditor } from './pages/SurveyEditor';
+import { Surveys } from './pages/Surveys';
 import { NotificationSettings } from './pages/NotificationSettings';
 import { People } from './pages/People';
 import { TelegramPreview } from './pages/TelegramPreview';
@@ -59,7 +61,11 @@ export function App() {
           <Route path="tasks" element={<Tasks />} />
           <Route path="insights" element={<Insights />} />
           <Route path="settings/people" element={<People />} />
-          <Route path="settings/feedback" element={<FeedbackAdmin />} />
+          <Route path="settings/feedback" element={<Navigate to="/surveys?tab=feedback" replace />} />
+          <Route path="surveys" element={<Surveys />} />
+          <Route path="surveys/new" element={<SurveyEditor />} />
+          <Route path="surveys/:id" element={<SurveyDetail />} />
+          <Route path="surveys/:id/edit" element={<SurveyEditor />} />
           <Route path="support" element={<Support />} />
           <Route path="settings/notifications" element={<NotificationSettings />} />
           <Route path="telegram" element={<TelegramPreview />} />

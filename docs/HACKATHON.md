@@ -31,7 +31,8 @@ Done and verified in a browser (light, dark, phone width):
 | Calendar | Every meeting has **Add to Google Calendar** and an **.ics** download for Outlook and Apple Calendar |
 | Process builder | Admins create new request types ("New process") with an ID prefix, optional amount, custom form fields and who can submit; admins can give members the "Can build processes" permission; others see processes read-only |
 | Pricing & support | Public `/pricing`: Cloud, your own cloud, or on-premise, free during the pilot, with a contact-sales form. Help menu (?) → Help & support with Telegram, Facebook and email |
-| Feedback | A short survey (0–10 score + comment) appears after someone makes decisions, at most once a month; Help menu → Send feedback / Report a problem. Admins see NPS, comments and sales enquiries under **Feedback** |
+| Surveys | Admins build team surveys with a dynamic form builder (10 answer types, required, "only ask when" follow-ups, templates, live preview), send them to everyone or chosen departments, optionally anonymous with a closing day. People answer from Home, the bell or Surveys. Results chart each question (averages, recommend score, choice bars, comments); anonymous results stay hidden until 3 answers. The same builder powers request form fields in Process Builder |
+| Feedback to us | A short survey (0–10 score + comment) about Anumat appears after someone makes decisions, at most once a month; Help menu → Send feedback / Report a problem. Admins see it with sales enquiries under Surveys → **Feedback & enquiries** |
 | Demo | Guided 9-step tour (top bar → **Demo tour**) that resets data and switches people for you |
 | Brand | Anumat design system + brand tokens, accessible contrast, dark mode |
 
@@ -160,6 +161,7 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 | Can one person be in several companies? | Yes. Accounts belong to a person; each workspace is a separate company with its own data and role. Show the workspace switcher. |
 | Do people have to open the app to approve? | No. They choose Telegram or email per event and can approve straight from Telegram (shown in the tour). Meetings go to Google Calendar, Outlook or Apple Calendar. |
 | Can customers add their own processes? | Yes. Admins, or members they allow, create request types with their own fields, route and who can submit. |
+| Can admins ask their team things? | Yes: Surveys, with the same no-code form builder as request forms. Anonymous surveys never show names and hide totals until at least 3 people answer, so nobody can be picked out. |
 | How do you sell and deploy it? | Free during the pilot. Cloud (we host), your own cloud, or on-premise for data that must stay in the country or building; see the Pricing page. |
 | What about data security? | Planned: encryption in transit and at rest, an audit trail (already visible as request activity), version history. |
 

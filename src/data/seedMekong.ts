@@ -10,6 +10,8 @@ const APPROVER: Record<string, string> = { dara: 'omar', priya: 'maria', sokha: 
 export const mekongSeed: DataState = {
   ...seed,
   org: { name: 'Mekong Freight', size: '1–49' },
+  surveys: [],
+  surveyResponses: [],
   meId: 'dara',
   people: [
     { id: 'omar', name: 'Omar Haddad', role: 'Managing Director', department: 'Leadership', access: 'owner' },

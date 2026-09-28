@@ -1,4 +1,5 @@
 import type { DataState, Request, StepStatus, Task } from './types';
+import { surveyResponses, surveys } from './seedSurveys';
 
 /** An ISO timestamp `days` from now (negative = past) at `hour`:`minute`. */
 export function at(days: number, hour = 9, minute = 0) {
@@ -346,6 +347,8 @@ export const seed: DataState = withRaci({
     { id: 'f3', at: at(-2, 9), personId: 'daniel', kind: 'feedback', text: 'Leave requests should show who else is off that week.' },
   ],
   leads: [],
+  surveys,
+  surveyResponses,
   surveyAt: { alex: at(-5, 16), priya: at(-4, 11), daniel: at(-2, 9) },
   notificationPrefs: {
     priya: {

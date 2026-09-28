@@ -1,5 +1,5 @@
 import { ActionMenu, AppShell, Avatar, Badge, Button, IconButton, Navigation, SearchField, useToast, type NavigationSection } from '@repo/ui';
-import { BarChart3, CalendarDays, Check, CircleHelp, MessageSquareHeart, Presentation, UsersRound, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Sun, Workflow } from 'lucide-react';
+import { BarChart3, CalendarDays, Check, CircleHelp, ClipboardList, Presentation, UsersRound, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Sun, Workflow } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { Logo } from '../components/Logo';
@@ -8,7 +8,7 @@ import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
 import { FeedbackDialog, SurveyPrompt } from '../components/Feedback';
 import { useTour } from '../components/DemoTour';
 import { navLink } from '../components/links';
-import { isAdmin, isDone, useStore, waitingOnMe } from '../data/store';
+import { isDone, surveysToAnswer, useStore, waitingOnMe } from '../data/store';
 
 type Theme = 'light' | 'dark';
 
@@ -36,6 +36,7 @@ export function Shell() {
 
   const waiting = waitingOnMe(state).length;
   const myOpenTasks = state.tasks.filter((t) => t.ownerId === me.id && !isDone(state, t)).length;
+  const toAnswer = surveysToAnswer(state).length;
   const at = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   const sections: NavigationSection[] = [
@@ -61,6 +62,14 @@ export function Shell() {
           badge: myOpenTasks || undefined,
           badgeLabel: `${myOpenTasks} open tasks assigned to you`,
         },
+        {
+          label: 'Surveys',
+          href: '/surveys',
+          icon: <ClipboardList />,
+          selected: at('/surveys'),
+          badge: toAnswer || undefined,
+          badgeLabel: `${toAnswer} surveys waiting for your answer`,
+        },
       ],
     },
     {
@@ -69,9 +78,6 @@ export function Shell() {
         { label: 'Insights', href: '/insights', icon: <BarChart3 />, selected: at('/insights') },
         { label: 'Process Builder', href: '/processes', icon: <Workflow />, selected: at('/processes') },
         { label: 'People & roles', href: '/settings/people', icon: <UsersRound />, selected: at('/settings/people') },
-        ...(isAdmin(state)
-          ? [{ label: 'Feedback', href: '/settings/feedback', icon: <MessageSquareHeart />, selected: at('/settings/feedback') }]
-          : []),
       ],
     },
   ];

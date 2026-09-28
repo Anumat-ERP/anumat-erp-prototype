@@ -18,9 +18,11 @@ import {
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { ApprovalTimeline } from '../components/ApprovalTimeline';
+import { FormRenderer } from '../components/forms/FormRenderer';
 import { headerLink } from '../components/links';
 import { canSubmit, routeFor, uid, useStore } from '../data/store';
-import type { Attachment, Request, RequestType } from '../data/types';
+import type { Attachment, FormValues, Request, RequestType } from '../data/types';
+import { cleanValues, validateForm } from '../lib/forms';
 import { isBuiltInType, typeName } from '../lib/format';
 
 const PREFIX: Record<string, string> = { purchase: 'PR', leave: 'LV', expense: 'EX', contract: 'CT' };
@@ -81,7 +83,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
   const [description, setDescription] = useState(initial?.description ?? '');
   const [attachments, setAttachments] = useState<Attachment[]>(initial?.attachments ?? []);
   const [fileError, setFileError] = useState<string>();
-  const [answers, setAnswers] = useState<Record<string, string>>(initial?.fields ?? {});
+  const [answers, setAnswers] = useState<FormValues>(initial?.fields ?? {});
   const [errors, setErrors] = useState<Errors>({});
   const returned = existing?.steps.find((s) => s.status === 'returned');
 
@@ -101,9 +103,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
     const e: Errors = {};
     if (!title.trim()) e.title = 'Give the request a short title, like “Laptops for new hires”.';
     if (hasAmount && type !== 'contract' && !(amountNumber > 0)) e.amount = 'Enter the amount in US dollars, for example 1250.';
-    for (const f of customFields) {
-      if (f.required && !answers[f.id]?.trim()) e[`field-${f.id}`] = `Answer “${f.label}”.`;
-    }
+    for (const [id, message] of Object.entries(validateForm(customFields, answers))) e[`field-${id}`] = message;
     if (type === 'leave') {
       if (!startDate) e.startDate = 'Choose the first day of leave.';
       if (!endDate) e.endDate = 'Choose the last day of leave.';
@@ -127,7 +127,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
       endDate: type === 'leave' && endDate ? new Date(endDate).toISOString() : undefined,
       description: description.trim(),
       attachments,
-      fields: customFields.length ? answers : undefined,
+      fields: customFields.length ? cleanValues(customFields, answers) : undefined,
     };
     if (existing) {
       dispatch({ type: 'update', requestId: existing.id, patch: fields, submit });
@@ -206,25 +206,15 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
                 <DatePicker label="Last day" value={endDate} onChange={(e) => setEndDate(e.target.value)} error={errors.endDate} />
               </div>
             ) : null}
-            {customFields.map((f) =>
-              f.kind === 'date' ? (
-                <DatePicker
-                  key={f.id}
-                  label={f.label}
-                  value={answers[f.id] ?? ''}
-                  onChange={(e) => setAnswers({ ...answers, [f.id]: e.target.value })}
-                  error={errors[`field-${f.id}`]}
-                />
-              ) : (
-                <Field key={f.id} label={f.label} required={f.required} optional={!f.required} error={errors[`field-${f.id}`]}>
-                  <Input
-                    inputMode={f.kind === 'number' ? 'decimal' : undefined}
-                    value={answers[f.id] ?? ''}
-                    onChange={(e) => setAnswers({ ...answers, [f.id]: e.target.value })}
-                  />
-                </Field>
-              ),
-            )}
+            {customFields.length ? (
+              <FormRenderer
+                fields={customFields}
+                values={answers}
+                onChange={setAnswers}
+                idPrefix="field"
+                errors={Object.fromEntries(Object.entries(errors).flatMap(([k, v]) => (k.startsWith('field-') && v ? [[k.slice(6), v]] : [])))}
+              />
+            ) : null}
             <Field label="Department" required>
               <Select value={department} onChange={(e) => setDepartment(e.target.value)} options={DEPARTMENTS.map((d) => ({ value: d, label: d }))} />
             </Field>
