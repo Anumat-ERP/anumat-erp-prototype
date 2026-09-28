@@ -77,7 +77,10 @@ export function RequestDetail() {
     ...(r.amount !== undefined ? [{ term: 'Amount', description: <span className="font-semibold tabular-nums">{formatMoney(r.amount)}</span> }] : []),
     ...(r.startDate && r.endDate ? [{ term: 'Dates', description: `${formatDate(r.startDate)} – ${formatDate(r.endDate)}` }] : []),
     // The form as it was when submitted, so later edits to the process don't relabel or hide answers.
-    ...questionsOf(visibleFields(r.form ?? state.processes.find((p) => p.requestType === r.type)?.fields ?? [], r.fields ?? {})).map((f) => ({
+    ...questionsOf(visibleFields(r.form ?? state.processes.find((p) => p.requestType === r.type)?.fields ?? [], r.fields ?? {}))
+      // Requests from before a question existed have no copy of the form: show only what they answered.
+      .filter((f) => r.form || r.fields?.[f.id] !== undefined)
+      .map((f) => ({
       term: f.label,
       description: formatAnswer(f, r.fields?.[f.id], (pid) => person(pid).name),
     })),
