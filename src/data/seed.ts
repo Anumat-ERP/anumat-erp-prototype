@@ -1,0 +1,630 @@
+import type { DataState, Request, StepStatus, Task } from './types';
+import { surveyResponses, surveys } from './seedSurveys';
+
+/** An ISO timestamp `days` from now (negative = past) at `hour`:`minute`. */
+export function at(days: number, hour = 9, minute = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  d.setHours(hour, minute, 0, 0);
+  return d.toISOString();
+}
+
+const steps = (...list: [string, string, StepStatus, number?, string?][]) =>
+  list.map(([name, approverId, status, days, comment], i) => ({
+    id: `s${i + 1}`,
+    name,
+    approverId,
+    status,
+    at: days === undefined ? undefined : at(days, 10 + i),
+    comment,
+  }));
+
+const requests: Request[] = [
+  {
+    id: 'PR-1042',
+    type: 'purchase',
+    title: 'Laptops for new team members',
+    requesterId: 'alex',
+    department: 'Operations',
+    amount: 12500,
+    description:
+      'Five laptops for the operations analysts starting on the 1st. Quote from two suppliers attached; we recommend the second (better warranty, same price).',
+    status: 'pending',
+    createdAt: at(-2, 9, 14),
+    updatedAt: at(-2, 9, 14),
+    steps: steps(['Manager review', 'dara', 'current'], ['Finance review', 'priya', 'waiting'], ['Final approval', 'sokha', 'waiting']),
+    attachments: [
+      { name: 'Laptop_Proposal.pdf', size: 2_400_000 },
+      { name: 'Supplier_Quotes.xlsx', size: 184_000 },
+    ],
+    activity: [
+      { id: 'a1', at: at(-2, 9, 14), personId: 'alex', kind: 'event', text: 'submitted the request' },
+      { id: 'a2', at: at(-1, 15, 2), personId: 'priya', kind: 'comment', text: 'Budget is available in the Q4 equipment line.' },
+    ],
+    meetingId: 'ops-weekly',
+  },
+  {
+    id: 'LV-2031',
+    type: 'leave',
+    title: 'Annual leave, 5 days',
+    requesterId: 'lina',
+    department: 'Product',
+    startDate: at(12),
+    endDate: at(16),
+    description: 'Family trip. Handover notes are in the design team channel; Omar covers asset requests.',
+    status: 'pending',
+    createdAt: at(-1, 11, 40),
+    updatedAt: at(-1, 11, 40),
+    steps: steps(['Manager review', 'dara', 'current']),
+    attachments: [],
+    activity: [{ id: 'a1', at: at(-1, 11, 40), personId: 'lina', kind: 'event', text: 'submitted the request' }],
+  },
+  {
+    id: 'EX-3317',
+    type: 'expense',
+    title: 'Client dinner with Northwind',
+    requesterId: 'alex',
+    department: 'Operations',
+    amount: 184.5,
+    description: 'Dinner with the Northwind operations team after the quarterly review. Receipt attached.',
+    status: 'pending',
+    createdAt: at(-3, 18, 5),
+    updatedAt: at(-3, 18, 5),
+    steps: steps(['Manager review', 'dara', 'current']),
+    attachments: [{ name: 'Receipt_Northwind.jpg', size: 412_000 }],
+    activity: [{ id: 'a1', at: at(-3, 18, 5), personId: 'alex', kind: 'event', text: 'submitted the request' }],
+  },
+  {
+    id: 'PR-1044',
+    type: 'purchase',
+    title: 'Design software licences',
+    requesterId: 'lina',
+    department: 'Product',
+    amount: 2160,
+    description: 'Annual licences for three designers. Replaces the monthly plan and saves about 18% a year.',
+    status: 'pending',
+    createdAt: at(0, 8, 30),
+    updatedAt: at(0, 8, 30),
+    steps: steps(['Manager review', 'dara', 'current'], ['Finance review', 'priya', 'waiting']),
+    attachments: [{ name: 'Licence_Quote.pdf', size: 96_000 }],
+    activity: [{ id: 'a1', at: at(0, 8, 30), personId: 'lina', kind: 'event', text: 'submitted the request' }],
+  },
+  {
+    id: 'CT-0412',
+    type: 'contract',
+    title: 'Cloud hosting renewal, 2 years',
+    requesterId: 'omar',
+    department: 'IT',
+    amount: 48000,
+    description: 'Renewal of our hosting contract with a 12% discount for a two-year term. Legal is checking the new data-processing terms.',
+    status: 'pending',
+    createdAt: at(-6, 10, 0),
+    updatedAt: at(-4, 16, 20),
+    steps: steps(
+      ['Manager review', 'dara', 'done', -5, 'Two-year term makes sense; go ahead.'],
+      ['Legal review', 'maria', 'current'],
+      ['Finance review', 'priya', 'waiting'],
+      ['Final approval', 'sokha', 'waiting'],
+    ),
+    attachments: [{ name: 'Cloud_Hosting_Contract_v3.pdf', size: 1_120_000 }],
+    activity: [
+      { id: 'a1', at: at(-6, 10, 0), personId: 'omar', kind: 'event', text: 'submitted the request' },
+      { id: 'a2', at: at(-5, 10, 0), personId: 'dara', kind: 'event', text: 'approved Manager review' },
+    ],
+    meetingId: 'vendor-review',
+  },
+  {
+    id: 'PR-1036',
+    type: 'purchase',
+    title: 'Ergonomic chairs for the support team',
+    requesterId: 'alex',
+    department: 'Operations',
+    amount: 5600,
+    description: 'Eight chairs to replace the ones flagged in the workplace safety review.',
+    status: 'changes',
+    createdAt: at(-9, 9, 0),
+    updatedAt: at(-7, 14, 10),
+    steps: steps(
+      ['Manager review', 'dara', 'done', -8],
+      ['Finance review', 'priya', 'returned', -7, 'Please attach a second quote before I approve.'],
+      ['Final approval', 'sokha', 'waiting'],
+    ),
+    attachments: [{ name: 'Chair_Quote.pdf', size: 210_000 }],
+    activity: [
+      { id: 'a1', at: at(-9, 9, 0), personId: 'alex', kind: 'event', text: 'submitted the request' },
+      { id: 'a2', at: at(-8, 10, 0), personId: 'dara', kind: 'event', text: 'approved Manager review' },
+      { id: 'a3', at: at(-7, 14, 10), personId: 'priya', kind: 'event', text: 'requested changes' },
+    ],
+  },
+  {
+    id: 'PR-1039',
+    type: 'purchase',
+    title: 'Standing desks, product team',
+    requesterId: 'lina',
+    department: 'Product',
+    amount: 3200,
+    description: 'Four standing desks.',
+    status: 'approved',
+    createdAt: at(-12, 9, 0),
+    updatedAt: at(-10, 11, 0),
+    steps: steps(['Manager review', 'dara', 'done', -11], ['Finance review', 'priya', 'done', -10]),
+    attachments: [],
+    activity: [
+      { id: 'a1', at: at(-12, 9, 0), personId: 'lina', kind: 'event', text: 'submitted the request' },
+      { id: 'a2', at: at(-10, 11, 0), personId: 'priya', kind: 'event', text: 'approved Finance review' },
+    ],
+  },
+  {
+    id: 'EX-3309',
+    type: 'expense',
+    title: 'Operations summit tickets',
+    requesterId: 'dara',
+    department: 'Operations',
+    amount: 1450,
+    description: 'Two tickets for the regional operations summit.',
+    status: 'approved',
+    createdAt: at(-15, 9, 0),
+    updatedAt: at(-14, 9, 0),
+    steps: steps(['Manager review', 'sokha', 'done', -14], ['Finance review', 'priya', 'done', -14]),
+    attachments: [{ name: 'Summit_Invoice.pdf', size: 88_000 }],
+    activity: [{ id: 'a1', at: at(-15, 9, 0), personId: 'dara', kind: 'event', text: 'submitted the request' }],
+  },
+  {
+    id: 'EX-3320',
+    type: 'expense',
+    title: 'Team offsite venue deposit',
+    requesterId: 'daniel',
+    department: 'People',
+    amount: 2800,
+    description: 'Deposit to hold the venue for the December offsite.',
+    status: 'declined',
+    createdAt: at(-5, 9, 0),
+    updatedAt: at(-4, 12, 0),
+    steps: steps(
+      ['Manager review', 'sokha', 'done', -5],
+      ['Finance review', 'priya', 'declined', -4, 'Over the quarterly events budget. Resubmit in Q1.'],
+    ),
+    attachments: [],
+    activity: [{ id: 'a1', at: at(-5, 9, 0), personId: 'daniel', kind: 'event', text: 'submitted the request' }],
+  },
+  {
+    id: 'LV-2027',
+    type: 'leave',
+    title: 'Sick leave, 2 days',
+    requesterId: 'omar',
+    department: 'IT',
+    startDate: at(-8),
+    endDate: at(-7),
+    description: 'Doctor’s note attached.',
+    status: 'approved',
+    createdAt: at(-8, 7, 30),
+    updatedAt: at(-8, 9, 0),
+    steps: steps(['Manager review', 'dara', 'done', -8]),
+    attachments: [{ name: 'Doctor_Note.pdf', size: 64_000 }],
+    activity: [{ id: 'a1', at: at(-8, 7, 30), personId: 'omar', kind: 'event', text: 'submitted the request' }],
+  },
+  {
+    id: 'CT-0409',
+    type: 'contract',
+    title: 'NDA with Acme Logistics',
+    requesterId: 'maria',
+    department: 'Legal',
+    description: 'Mutual NDA ahead of the warehouse partnership talks.',
+    status: 'approved',
+    createdAt: at(-20, 9, 0),
+    updatedAt: at(-19, 9, 0),
+    steps: steps(['Legal review', 'maria', 'done', -19]),
+    attachments: [{ name: 'NDA_Acme.pdf', size: 150_000 }],
+    activity: [{ id: 'a1', at: at(-20, 9, 0), personId: 'maria', kind: 'event', text: 'submitted the request' }],
+  },
+  {
+    id: 'PR-1045',
+    type: 'purchase',
+    title: 'Warehouse barcode scanners',
+    requesterId: 'dara',
+    department: 'Operations',
+    amount: 4900,
+    description: 'Ten scanners for the new stock-count process. Waiting on the final quote.',
+    status: 'draft',
+    createdAt: at(-1, 17, 0),
+    updatedAt: at(-1, 17, 0),
+    steps: [],
+    attachments: [],
+    activity: [],
+  },
+];
+
+
+const SRC = {
+  pr1042: { label: 'PR-1042', href: '/requests/PR-1042' },
+  ct0412: { label: 'CT-0412', href: '/requests/CT-0412' },
+  ops: { label: 'Operations weekly', href: '/meetings/ops-weekly' },
+  budget: { label: 'Q4 budget review', href: '/meetings/q4-budget' },
+  hiring: { label: 'Hiring sync', href: '/meetings/hiring-sync' },
+  vendor: { label: 'Cloud hosting vendor review', href: '/meetings/vendor-review' },
+};
+
+// [title, owner, due (days from today), status, source, notes]
+const MORE: [string, string, number, string, keyof typeof SRC | null, string?][] = [
+  ['Set up accounts for the five new analysts', 'omar', 3, 'todo', 'hiring'],
+  ['Order access badges for new starters', 'daniel', 1, 'doing', 'hiring'],
+  ['Book onboarding sessions with each team lead', 'daniel', 6, 'todo', 'hiring'],
+  ['Prepare the week-one schedule for new analysts', 'alex', 8, 'todo', 'hiring'],
+  ['Collect bank details for payroll', 'daniel', -1, 'blocked', 'hiring', 'Waiting on two of the five starters to reply.'],
+  ['Check warranty terms on the recommended laptops', 'alex', 0, 'review', 'pr1042'],
+  ['Reserve desks on the third floor for the analysts', 'lina', 4, 'todo', 'pr1042'],
+  ['Confirm data-processing terms meet our customer contracts, including the EU clauses and the subprocessor list', 'maria', 2, 'doing', 'ct0412', 'Two customer contracts require 30 days’ notice of new subprocessors.'],
+  ['Compare the two-year price against a one-year renewal with the current discount', 'priya', 5, 'todo', 'ct0412'],
+  ['Draft the migration risk summary', 'omar', 9, 'todo', 'vendor'],
+  ['Ask the vendor for their uptime history', 'omar', -3, 'blocked', 'vendor', 'Vendor contact is out until Monday.'],
+  ['Map warehouse zones for the stock-count pilot', 'dara', 2, 'doing', 'ops'],
+  ['Pick two shifts to trial the new count process', 'alex', 5, 'todo', 'ops'],
+  ['Write the stock-count checklist', 'alex', 12, 'todo', 'ops'],
+  ['Share the pilot plan with the warehouse leads', 'dara', 7, 'todo', 'ops'],
+  ['Update the department budget tracker with Q4 lines', 'priya', 1, 'review', 'budget'],
+  ['Tell department heads the events budget is frozen until Q1', 'priya', -2, 'done', 'budget'],
+  ['Move the December offsite deposit request to Q1', 'daniel', 20, 'todo', 'budget'],
+  ['Renew the design tool licences before they lapse', 'lina', 10, 'todo', null],
+  ['Review the travel policy per-diem rates', 'daniel', 15, 'todo', null],
+  ['Archive last year’s expense policy', 'priya', -8, 'done', null],
+  ['Fix the printer on the second floor', 'omar', -5, 'done', null],
+  ['Plan the quarterly operations review', 'dara', 14, 'todo', null],
+  ['Send the monthly ops report to leadership', 'dara', -4, 'done', null],
+  ['Clean up duplicate supplier records', 'alex', -6, 'doing', null, 'About 40 duplicates left.'],
+  ['Get signatures on the Acme NDA renewal', 'maria', 25, 'todo', null],
+  ['Prepare the board pack for next month', 'sokha', 18, 'todo', null],
+  ['Review team goals with each department head', 'sokha', 3, 'doing', null],
+  ['Approve the updated org chart', 'sokha', -1, 'review', null],
+  ['Replace the meeting room screen', 'omar', 30, 'todo', null],
+];
+
+const MORE_TASKS: Task[] = MORE.map(([title, ownerId, days, status, source, notes], i) => ({
+  id: `m${i + 1}`,
+  title,
+  ownerId,
+  due: at(days),
+  status,
+  source: source ? SRC[source] : undefined,
+  notes,
+  doneAt: status === 'done' ? at(Math.min(days, -1), 15) : undefined,
+}));
+
+const ORGANIZER: Record<string, string> = {
+  '/meetings/ops-weekly': 'dara',
+  '/meetings/vendor-review': 'omar',
+  '/meetings/q4-budget': 'priya',
+  '/meetings/hiring-sync': 'daniel',
+};
+
+/**
+ * Who assigned each demo task: the meeting organiser for action items, the
+ * requester's manager (Dara, for Operations) for request follow-ups, else the owner.
+ */
+function withAssigners(tasks: Task[]): Task[] {
+  return tasks.map((t) => {
+    const href = t.source?.href ?? '';
+    let by = t.ownerId;
+    if (ORGANIZER[href]) by = ORGANIZER[href];
+    else if (href.startsWith('/requests/') && ['alex', 'lina'].includes(t.ownerId)) by = 'dara';
+    return {
+      ...t,
+      assignedById: by,
+      statusNote: t.status === 'blocked' ? (t.notes ?? 'Waiting on someone outside the team.') : undefined,
+    };
+  });
+}
+
+/** Example consulted people, so the RACI view has something to show. */
+const CONSULTED: Record<string, string[]> = { t3: ['omar', 'priya'], m8: ['priya'], m9: ['dara'], t1: ['priya'] };
+
+/**
+ * RACI defaults for demo tasks: other meeting attendees, or the request's
+ * approvers, are kept informed. R (owner) and A (assigner) are already set.
+ */
+function withRaci(state: DataState): DataState {
+  const informedFor = (t: Task) => {
+    const href = t.source?.href ?? '';
+    const meeting = state.meetings.find((m) => href === `/meetings/${m.id}`);
+    const request = state.requests.find((r) => href === `/requests/${r.id}`);
+    const ids = meeting ? meeting.attendeeIds : request ? request.steps.map((s) => s.approverId) : [];
+    return [...new Set(ids)].filter((id) => id !== t.ownerId && id !== t.assignedById);
+  };
+  return {
+    ...state,
+    tasks: state.tasks.map((t) => ({
+      ...t,
+      consultedIds: CONSULTED[t.id] ?? [],
+      informedIds: informedFor(t).filter((id) => !(CONSULTED[t.id] ?? []).includes(id)),
+    })),
+  };
+}
+
+export const seed: DataState = withRaci({
+  org: { name: 'Lotus Logistics', size: '50–199' },
+  feedback: [
+    { id: 'f1', at: at(-5, 16), personId: 'alex', kind: 'survey', score: 9, text: 'Much faster than chasing approvals on Telegram. Would love reminders there too.' },
+    { id: 'f2', at: at(-4, 11), personId: 'priya', kind: 'survey', score: 7, text: 'Finance review is clear. I need to see the budget line next to the amount.' },
+    { id: 'f3', at: at(-2, 9), personId: 'daniel', kind: 'feedback', text: 'Leave requests should show who else is off that week.' },
+  ],
+  leads: [],
+  surveys,
+  surveyResponses,
+  surveyAt: { alex: at(-5, 16), priya: at(-4, 11), daniel: at(-2, 9) },
+  notificationPrefs: {
+    priya: {
+      events: { approvals: ['telegram'], requestUpdates: ['email'], tasks: ['telegram'], meetings: ['telegram'] },
+      telegram: { username: 'priya_shah', connectedAt: at(-20) },
+    },
+  },
+  meId: 'dara',
+  lastSeen: { dara: at(-2, 18), alex: at(-3, 18), priya: at(-3, 18), sokha: at(-10), maria: at(-10), daniel: at(-10), lina: at(-10), omar: at(-10) },
+  people: [
+    { id: 'dara', name: 'Dara Sok', role: 'Operations Manager', department: 'Operations', access: 'owner' },
+    { id: 'alex', name: 'Alex Tan', role: 'Operations Lead', department: 'Operations', access: 'member' },
+    { id: 'priya', name: 'Priya Shah', role: 'Finance Manager', department: 'Finance', access: 'member', canBuildProcesses: true },
+    { id: 'sokha', name: 'Sokha Chan', role: 'Chief Executive', department: 'Leadership', access: 'admin' },
+    { id: 'maria', name: 'Maria Lopez', role: 'Legal Counsel', department: 'Legal', access: 'member' },
+    { id: 'daniel', name: 'Daniel Kim', role: 'Head of People', department: 'People', access: 'member' },
+    { id: 'lina', name: 'Lina Park', role: 'Product Designer', department: 'Product', access: 'member' },
+    { id: 'omar', name: 'Omar Haddad', role: 'IT Lead', department: 'IT', access: 'member' },
+  ],
+  requests,
+  meetings: [
+    {
+      id: 'ops-weekly',
+      title: 'Operations weekly',
+      start: at(1, 10, 0),
+      durationMin: 45,
+      location: 'Room 3 · Video link in invite',
+      organizerId: 'dara',
+      attendeeIds: ['dara', 'alex', 'priya', 'omar'],
+      agenda: ['Onboarding equipment for new analysts', 'Stock-count process pilot', 'Open action items'],
+      decisions: [],
+      requestIds: ['PR-1042'],
+    },
+    {
+      id: 'vendor-review',
+      title: 'Cloud hosting vendor review',
+      start: at(3, 14, 0),
+      durationMin: 60,
+      location: 'Video call',
+      organizerId: 'omar',
+      attendeeIds: ['omar', 'dara', 'maria', 'priya'],
+      agenda: ['Data-processing terms', 'Two-year vs one-year pricing', 'Migration risk'],
+      decisions: [],
+      requestIds: ['CT-0412'],
+    },
+    {
+      id: 'q4-budget',
+      title: 'Q4 budget review',
+      start: at(-4, 13, 0),
+      durationMin: 90,
+      location: 'Board room',
+      organizerId: 'priya',
+      attendeeIds: ['priya', 'sokha', 'dara', 'daniel'],
+      agenda: ['Q3 actuals', 'Q4 equipment line', 'Events budget'],
+      decisions: [
+        { id: 'd1', text: 'Keep the Q4 equipment line at $40,000.' },
+        { id: 'd2', text: 'Freeze new event spending until Q1.', requestId: 'EX-3320' },
+      ],
+      requestIds: ['EX-3320'],
+    },
+    {
+      id: 'hiring-sync',
+      title: 'Hiring sync',
+      start: at(-1, 11, 0),
+      durationMin: 30,
+      location: 'Room 1',
+      organizerId: 'daniel',
+      attendeeIds: ['daniel', 'dara', 'alex'],
+      agenda: ['Analyst start dates', 'Onboarding checklist'],
+      decisions: [{ id: 'd1', text: 'All five analysts start on the 1st; equipment must arrive by the 28th.', requestId: 'PR-1042' }],
+      requestIds: ['PR-1042'],
+    },
+  ],
+  documents: [
+    {
+      id: 'doc-laptop',
+      name: 'Laptop_Proposal.pdf',
+      kind: 'pdf',
+      status: 'review',
+      ownerId: 'alex',
+      size: 2_400_000,
+      linkedTo: { label: 'PR-1042', href: '/requests/PR-1042' },
+      versions: [
+        { version: 'v2', at: at(-2, 9, 0), authorId: 'alex', note: 'Added second supplier quote' },
+        { version: 'v1', at: at(-4, 16, 0), authorId: 'alex', note: 'First draft' },
+      ],
+    },
+    {
+      id: 'doc-cloud',
+      name: 'Cloud_Hosting_Contract_v3.pdf',
+      kind: 'pdf',
+      status: 'review',
+      ownerId: 'maria',
+      size: 1_120_000,
+      linkedTo: { label: 'CT-0412', href: '/requests/CT-0412' },
+      versions: [
+        { version: 'v3', at: at(-4, 15, 0), authorId: 'maria', note: 'Updated data-processing annex' },
+        { version: 'v2', at: at(-6, 11, 0), authorId: 'omar', note: 'Vendor redlines' },
+        { version: 'v1', at: at(-9, 10, 0), authorId: 'omar', note: 'Vendor draft' },
+      ],
+    },
+    {
+      id: 'doc-budget',
+      name: 'Q4_Budget.xlsx',
+      kind: 'sheet',
+      status: 'approved',
+      ownerId: 'priya',
+      size: 356_000,
+      linkedTo: { label: 'Q4 budget review', href: '/meetings/q4-budget' },
+      versions: [
+        { version: 'v4', at: at(-4, 17, 0), authorId: 'priya', note: 'Final after review meeting' },
+        { version: 'v3', at: at(-6, 10, 0), authorId: 'priya', note: 'Department inputs' },
+      ],
+    },
+    {
+      id: 'doc-onboarding',
+      name: 'Onboarding_Checklist.docx',
+      kind: 'doc',
+      status: 'draft',
+      ownerId: 'daniel',
+      size: 48_000,
+      linkedTo: { label: 'Hiring sync', href: '/meetings/hiring-sync' },
+      versions: [{ version: 'v1', at: at(-1, 12, 0), authorId: 'daniel', note: 'First draft' }],
+    },
+    {
+      id: 'doc-travel',
+      name: 'Travel_Policy.pdf',
+      kind: 'pdf',
+      status: 'approved',
+      ownerId: 'daniel',
+      size: 220_000,
+      versions: [{ version: 'v5', at: at(-40, 9, 0), authorId: 'daniel', note: 'Per-diem rates for 2026' }],
+    },
+    {
+      id: 'doc-vendors',
+      name: 'Vendor_Comparison.xlsx',
+      kind: 'sheet',
+      status: 'draft',
+      ownerId: 'omar',
+      size: 128_000,
+      linkedTo: { label: 'Cloud hosting vendor review', href: '/meetings/vendor-review' },
+      versions: [{ version: 'v1', at: at(-3, 14, 0), authorId: 'omar', note: 'Three vendors compared' }],
+    },
+    {
+      id: 'doc-nda',
+      name: 'NDA_Acme.pdf',
+      kind: 'pdf',
+      status: 'approved',
+      ownerId: 'maria',
+      size: 150_000,
+      linkedTo: { label: 'CT-0409', href: '/requests/CT-0409' },
+      versions: [{ version: 'v1', at: at(-19, 9, 0), authorId: 'maria', note: 'Signed by both parties' }],
+    },
+    {
+      id: 'doc-expense',
+      name: 'Expense_Policy_2025.pdf',
+      kind: 'pdf',
+      status: 'archived',
+      ownerId: 'priya',
+      size: 190_000,
+      versions: [{ version: 'v3', at: at(-280, 9, 0), authorId: 'priya', note: 'Replaced by the 2026 policy' }],
+    },
+  ],
+  taskStatuses: [
+    { id: 'todo', name: 'To do', category: 'todo', tone: 'neutral', locked: true },
+    { id: 'doing', name: 'In progress', category: 'active', tone: 'info' },
+    { id: 'blocked', name: 'Blocked', category: 'active', tone: 'critical', requireNote: true },
+    { id: 'review', name: 'In review', category: 'active', tone: 'warning' },
+    { id: 'done', name: 'Done', category: 'done', tone: 'success', locked: true, signOff: true },
+  ],
+  tasks: withAssigners([
+    { id: 't1', title: 'Confirm laptop delivery date with supplier', ownerId: 'alex', due: at(2), status: 'doing', source: { label: 'PR-1042', href: '/requests/PR-1042' } },
+    { id: 't2', title: 'Send onboarding checklist to new analysts', ownerId: 'daniel', due: at(5), status: 'todo', source: { label: 'Hiring sync', href: '/meetings/hiring-sync' } },
+    { id: 't3', title: 'Review data-processing annex', ownerId: 'maria', due: at(1), status: 'doing', source: { label: 'CT-0412', href: '/requests/CT-0412' } },
+    { id: 't4', title: 'Get a second quote for ergonomic chairs', ownerId: 'alex', due: at(-2), status: 'todo', source: { label: 'PR-1036', href: '/requests/PR-1036' } },
+    { id: 't5', title: 'Share Q4 budget with department heads', ownerId: 'priya', due: at(-3), status: 'done', doneAt: at(-3, 16), source: { label: 'Q4 budget review', href: '/meetings/q4-budget' } },
+    { id: 't6', title: 'Draft stock-count pilot plan', ownerId: 'dara', due: at(4), status: 'todo', source: { label: 'Operations weekly', href: '/meetings/ops-weekly' } },
+    { id: 't7', title: 'Finish the barcode scanner request', ownerId: 'dara', due: at(-1), status: 'todo', source: { label: 'PR-1045', href: '/requests/PR-1045' } },
+    { id: 't8', title: 'Update the vendor comparison with support SLAs', ownerId: 'omar', due: at(2), status: 'todo', source: { label: 'Cloud hosting vendor review', href: '/meetings/vendor-review' } },
+    { id: 't9', title: 'Approve Q4 team goals', ownerId: 'dara', due: at(-6), status: 'done', doneAt: at(-6, 11) },
+    ...MORE_TASKS,
+  ]),
+  processes: [
+    {
+      id: 'proc-purchase',
+      name: 'Purchase approval',
+      requestType: 'purchase',
+      trigger: 'A purchase request is submitted',
+      active: true,
+      avgHours: 30,
+      runs30d: 24,
+      fields: [
+        {
+          id: 'new-supplier',
+          label: 'Is this a new supplier?',
+          kind: 'yesno',
+          required: true,
+          help: 'New suppliers get a quick check by Legal before Finance.',
+        },
+        {
+          id: 'supplier-name',
+          label: 'Supplier name and website',
+          kind: 'text',
+          required: true,
+          placeholder: 'e.g. Mekong Office Supply, mekongoffice.com',
+          showIf: { fieldId: 'new-supplier', equals: 'Yes', op: 'is' },
+        },
+      ],
+      steps: [
+        { id: 'p1', name: 'Manager review', role: 'Requester’s manager', approverId: 'dara', slaHours: 24 },
+        {
+          id: 'p4',
+          name: 'Supplier check',
+          role: 'Legal counsel',
+          approverId: 'maria',
+          when: { fieldId: 'new-supplier', equals: 'Yes', op: 'is' },
+          slaHours: 24,
+        },
+        {
+          id: 'p2',
+          name: 'Finance review',
+          role: 'Finance manager',
+          approverId: 'priya',
+          minAmount: 1000,
+          slaHours: 48,
+          fields: [
+            {
+              id: 'budget-line',
+              label: 'Budget line',
+              kind: 'radio',
+              required: true,
+              options: ['Q4 equipment', 'Operations budget', 'Unplanned spend'],
+            },
+            { id: 'ledger-note', label: 'Note for the ledger', kind: 'text', required: false, placeholder: 'e.g. PO 2291' },
+          ],
+        },
+        { id: 'p3', name: 'Final approval', role: 'Chief executive', approverId: 'sokha', minAmount: 10000, slaHours: 48 },
+      ],
+    },
+    {
+      id: 'proc-expense',
+      name: 'Expense claim',
+      requestType: 'expense',
+      trigger: 'An expense is submitted',
+      active: true,
+      avgHours: 12,
+      runs30d: 41,
+      steps: [
+        { id: 'e1', name: 'Manager review', role: 'Requester’s manager', approverId: 'dara', slaHours: 24 },
+        { id: 'e2', name: 'Finance review', role: 'Finance manager', approverId: 'priya', minAmount: 500, slaHours: 48 },
+      ],
+    },
+    {
+      id: 'proc-leave',
+      name: 'Leave request',
+      requestType: 'leave',
+      trigger: 'Leave is requested',
+      active: true,
+      avgHours: 6,
+      runs30d: 17,
+      steps: [{ id: 'l1', name: 'Manager review', role: 'Requester’s manager', approverId: 'dara', slaHours: 24 }],
+    },
+    {
+      id: 'proc-contract',
+      name: 'Contract review',
+      requestType: 'contract',
+      trigger: 'A contract is submitted',
+      active: true,
+      avgHours: 96,
+      runs30d: 5,
+      steps: [
+        { id: 'c1', name: 'Manager review', role: 'Requester’s manager', approverId: 'dara', slaHours: 24 },
+        { id: 'c2', name: 'Legal review', role: 'Legal counsel', approverId: 'maria', slaHours: 72 },
+        { id: 'c3', name: 'Finance review', role: 'Finance manager', approverId: 'priya', minAmount: 5000, slaHours: 48 },
+        { id: 'c4', name: 'Final approval', role: 'Chief executive', approverId: 'sokha', minAmount: 25000, slaHours: 48 },
+      ],
+    },
+  ],
+});

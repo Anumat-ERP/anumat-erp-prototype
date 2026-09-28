@@ -1,0 +1,358 @@
+import { Badge, Banner, Button, Card, CardHeader, EmptyState, Field, IconButton, Input, PageHeader, Select, Switch, Text, cn, useToast } from '@repo/ui';
+import { ArrowDown, ArrowUp, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { ApprovalTimeline } from '../components/ApprovalTimeline';
+import { headerLink } from '../components/links';
+import { canBuildProcesses, routeFor, uid, useStore } from '../data/store';
+import { CheckGroup } from '../components/CheckGroup';
+import { ConditionPicker, FormBuilder } from '../components/forms/FormBuilder';
+import { FormRenderer } from '../components/forms/FormRenderer';
+import { MobileActionBar } from '../components/MobileActionBar';
+import { canBranchOn, choicesFor, cleanFields, cleanValues, formProblems, questionsOf } from '../lib/forms';
+import type { FormValues, Process, ProcessStep } from '../data/types';
+import { formatMoney, isBuiltInType, typeName } from '../lib/format';
+import { DEPARTMENTS } from '../lib/org';
+
+
+const BUILT_IN_PREFIXES = ['PR', 'LV', 'EX', 'CT'];
+
+/** Everything that would make a saved process misbehave, in words an admin can act on. */
+function processProblems(p: Process, all: Process[]): string[] {
+  const out: string[] = [];
+  if (!p.name.trim()) out.push('Give the request type a name.');
+  if (!isBuiltInType(p.requestType)) {
+    const prefix = (p.prefix ?? '').trim().toUpperCase();
+    const clash = all.find((o) => o.id !== p.id && (o.prefix ?? '').toUpperCase() === prefix);
+    if (prefix.length < 2) out.push('Add an ID prefix of 2–3 letters, like TR.');
+    else if (BUILT_IN_PREFIXES.includes(prefix)) out.push(`The ID prefix “${prefix}” is used by a built-in request type. Pick another.`);
+    else if (clash) out.push(`The ID prefix “${prefix}” is already used by ${clash.name}. Pick another.`);
+  }
+  const fields = cleanFields(p.fields ?? []);
+  out.push(...formProblems(fields).map((x) => `Request form: ${x}`));
+  p.steps.forEach((st, i) => {
+    const label = `Step ${i + 1}${st.name.trim() ? ` (${st.name.trim()})` : ''}`;
+    if (!st.name.trim()) out.push(`Step ${i + 1} needs a name.`);
+    out.push(...formProblems(cleanFields(st.fields ?? [])).map((x) => `${label}: ${x}`));
+    if (st.when) {
+      const src = fields.find((f) => f.id === st.when!.fieldId);
+      if (!src) out.push(`${label} runs on a form question that no longer exists.`);
+      else if (!choicesFor(src).includes(st.when.equals.trim())) out.push(`${label} runs on an answer to “${src.label}” that no longer exists.`);
+    }
+  });
+  return out;
+}
+
+export function ProcessEditor() {
+  const { id } = useParams();
+  const { state, person, dispatch } = useStore();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const original = state.processes.find((p) => p.id === id);
+  const [draft, setDraft] = useState<Process | undefined>(original);
+  const [tryAmount, setTryAmount] = useState('12500');
+  const [tryAnswers, setTryAnswers] = useState<FormValues>({});
+  const [showProblems, setShowProblems] = useState(false);
+  const [openForms, setOpenForms] = useState<string[]>(() => original?.steps.filter((s) => s.fields?.length).map((s) => s.id) ?? []);
+  const builder = canBuildProcesses(state);
+
+  if (!original || !draft) {
+    return (
+      <EmptyState heading="This process doesn’t exist" action={<Button onClick={() => navigate('/processes')}>Back to processes</Button>}>
+        The link may be wrong.
+      </EmptyState>
+    );
+  }
+
+  const setStep = (i: number, patch: Partial<ProcessStep>) =>
+    setDraft({ ...draft, steps: draft.steps.map((s, j) => (j === i ? { ...s, ...patch } : s)) });
+  const move = (i: number, by: -1 | 1) => {
+    const steps = [...draft.steps];
+    const [s] = steps.splice(i, 1);
+    if (s) steps.splice(i + by, 0, s);
+    setDraft({ ...draft, steps });
+  };
+  // Empty lists and missing ones mean the same thing, so saving doesn't leave "unsaved changes" behind.
+  const normal = (p: Process) =>
+    JSON.stringify({ ...p, fields: p.fields?.length ? p.fields : undefined, steps: p.steps.map((st) => ({ ...st, fields: st.fields?.length ? st.fields : undefined })) });
+  const changed = normal(draft) !== normal(original);
+  const amount = Number(tryAmount.replace(/,/g, '')) || 0;
+  const hasAmount = isBuiltInType(draft.requestType) ? draft.requestType !== 'leave' : Boolean(draft.hasAmount);
+  // Request-form questions a step can depend on: ones with a fixed list of answers.
+  const branchSources = (draft.fields ?? []).filter((f) => canBranchOn(f.kind) && f.label.trim());
+  const preview = routeFor([{ ...draft, active: true }], draft.requestType, hasAmount ? amount : undefined, cleanValues(draft.fields ?? [], tryAnswers));
+  const problems = processProblems(draft, state.processes);
+
+  const save = () => {
+    if (problems.length) {
+      setShowProblems(true);
+      toast({ tone: 'critical', title: `Fix ${problems.length} ${problems.length === 1 ? 'problem' : 'problems'} to save`, description: problems[0] });
+      return;
+    }
+    setShowProblems(false);
+    dispatch({
+      type: 'saveProcess',
+      process: {
+        ...draft,
+        name: draft.name.trim(),
+        fields: draft.fields?.length ? cleanFields(draft.fields) : undefined,
+        steps: draft.steps.map((st) => ({ ...st, name: st.name.trim(), fields: st.fields?.length ? cleanFields(st.fields) : undefined })),
+      },
+    });
+    toast({ tone: 'success', title: `Saved ${draft.name}`, description: 'New requests follow the updated route.' });
+  };
+
+  return (
+    <>
+      <PageHeader
+        title={draft.name}
+        subtitle={`Runs when ${draft.trigger.toLowerCase()}.`}
+        backAction={{ content: 'Process Builder', href: '/processes' }}
+        renderLink={headerLink}
+        primaryAction={{ content: 'Save process', disabled: !changed || !builder, onAction: save }}
+        secondaryActions={changed ? [{ content: 'Discard changes', onAction: () => (setDraft(original), setShowProblems(false)) }] : undefined}
+      />
+      {showProblems && problems.length ? (
+        <Banner tone="critical" title={`Fix ${problems.length === 1 ? 'this' : 'these'} to save`}>
+          <ul className="list-disc ps-5">
+            {problems.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        </Banner>
+      ) : null}
+      {!builder ? (
+        <Banner tone="info" title="View only">
+          Only admins, and people an admin allows under People &amp; roles, can change processes.
+        </Banner>
+      ) : null}
+      <fieldset disabled={!builder} className="contents">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col">
+          <ol className="flex flex-col">
+            {draft.steps.map((s, i) => (
+              <li key={s.id} className="relative flex flex-col pb-6 last:pb-0">
+                {i < draft.steps.length - 1 ? <span aria-hidden className="absolute start-5 top-10 bottom-0 w-0.5 bg-border-strong" /> : null}
+                <div className="flex gap-3">
+                  <span
+                    aria-hidden
+                    className="relative z-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-fg"
+                  >
+                    {i + 1}
+                  </span>
+                  <Card className="flex min-w-0 flex-1 flex-col gap-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <Text as="h2" variant="subtitle">
+                        Step {i + 1}: {s.name || 'Untitled step'}
+                      </Text>
+                      <div className="flex shrink-0 gap-1">
+                        <IconButton size="sm" icon={<ArrowUp />} label={`Move step ${i + 1} up`} disabled={i === 0} onClick={() => move(i, -1)} />
+                        <IconButton
+                          size="sm"
+                          icon={<ArrowDown />}
+                          label={`Move step ${i + 1} down`}
+                          disabled={i === draft.steps.length - 1}
+                          onClick={() => move(i, 1)}
+                        />
+                        <IconButton
+                          size="sm"
+                          icon={<Trash2 />}
+                          label={`Remove step ${i + 1}`}
+                          disabled={draft.steps.length === 1}
+                          onClick={() => setDraft({ ...draft, steps: draft.steps.filter((_, j) => j !== i) })}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field label="Step name">
+                        <Input value={s.name} onChange={(e) => setStep(i, { name: e.target.value })} />
+                      </Field>
+                      <Field label="Approver">
+                        <Select
+                          value={s.approverId}
+                          onChange={(e) => {
+                            const p = person(e.target.value);
+                            setStep(i, { approverId: p.id, role: p.role });
+                          }}
+                          options={state.people.map((p) => ({ value: p.id, label: `${p.name} · ${p.role}` }))}
+                        />
+                      </Field>
+                      <Field
+                        label="Runs when"
+                        helpText={
+                          s.when
+                            ? 'Only when the request form has this answer.'
+                            : s.minAmount === undefined
+                              ? 'Every request goes through this step.'
+                              : undefined
+                        }
+                      >
+                        <Select
+                          value={s.when ? 'answer' : s.minAmount !== undefined && hasAmount ? 'over' : 'always'}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            const src = branchSources[0];
+                            setStep(i, {
+                              minAmount: v === 'over' ? (s.minAmount ?? 1000) : undefined,
+                              when: v === 'answer' && src ? { fieldId: src.id, equals: choicesFor(src)[0] ?? '', op: 'is' } : undefined,
+                            });
+                          }}
+                          options={[
+                            { value: 'always', label: 'Always' },
+                            ...(hasAmount ? [{ value: 'over', label: 'Amount is over…' }] : []),
+                            ...(branchSources.length || s.when ? [{ value: 'answer', label: 'A form answer matches…' }] : []),
+                          ]}
+                        />
+                      </Field>
+                      {hasAmount && s.minAmount !== undefined && !s.when ? (
+                        <Field label="Amount threshold">
+                          <Input
+                            prefix="$"
+                            inputMode="numeric"
+                            value={String(s.minAmount)}
+                            onChange={(e) => setStep(i, { minAmount: Number(e.target.value.replace(/\D/g, '')) || 0 })}
+                          />
+                        </Field>
+                      ) : null}
+                      {s.when ? (
+                        <div className="sm:col-span-2">
+                          <ConditionPicker sources={branchSources} value={s.when} onChange={(when) => setStep(i, { when })} />
+                        </div>
+                      ) : null}
+                      <Field label="Respond within" helpText="Approvers get a reminder after this.">
+                        <Input
+                          suffix="hours"
+                          inputMode="numeric"
+                          value={String(s.slaHours)}
+                          onChange={(e) => setStep(i, { slaHours: Number(e.target.value.replace(/\D/g, '')) || 0 })}
+                        />
+                      </Field>
+                    </div>
+                    <div className="flex flex-col gap-3 border-t border-border pt-3">
+                      <button
+                        type="button"
+                        aria-expanded={openForms.includes(s.id)}
+                        onClick={() => setOpenForms(openForms.includes(s.id) ? openForms.filter((x) => x !== s.id) : [...openForms, s.id])}
+                        className="flex items-center gap-2 self-start rounded-sm text-md font-medium text-fg hover:text-fg-link focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                      >
+                        <ChevronRight aria-hidden className={cn('size-4 transition-transform', openForms.includes(s.id) && 'rotate-90')} />
+                        Approver fills in
+                        <Badge size="sm" tone={s.fields?.length ? 'primary' : 'neutral'}>
+                          {s.fields?.length ? `${questionsOf(s.fields).length} fields` : 'Nothing'}
+                        </Badge>
+                      </button>
+                      {openForms.includes(s.id) ? (
+                        <>
+                          <Text variant="bodySm" tone="muted">
+                            Details {person(s.approverId).name.split(' ')[0]} adds when approving, like a budget code or PO number. Required ones must be filled in to
+                            approve, so this step can’t be approved in bulk.
+                          </Text>
+                          <FormBuilder noun="field" fields={s.fields ?? []} onChange={(fields) => setStep(i, { fields })} />
+                        </>
+                      ) : null}
+                    </div>
+                  </Card>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <div className="ms-13 mt-4">
+            <Button
+              icon={<Plus />}
+              onClick={() =>
+                setDraft({
+                  ...draft,
+                  steps: [...draft.steps, { id: uid('step'), name: 'New step', role: 'Chief executive', approverId: 'sokha', slaHours: 48 }],
+                })
+              }
+            >
+              Add step
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-6">
+          {!isBuiltInType(draft.requestType) ? (
+            <Card className="flex flex-col gap-4">
+              <CardHeader title="Request type" description="A request type you created. People pick it on the New request form." />
+              <Field label="Request type name">
+                <Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+              </Field>
+              <Field label="ID prefix" helpText={`Requests are numbered ${(draft.prefix || 'XX').toUpperCase()}-0001, ${(draft.prefix || 'XX').toUpperCase()}-0002…`}>
+                <Input value={draft.prefix ?? ''} maxLength={3} onChange={(e) => setDraft({ ...draft, prefix: e.target.value.toUpperCase().replace(/[^A-Z]/g, '') })} />
+              </Field>
+              <Switch
+                label="Has an amount"
+                helpText="Adds an amount field, so steps can run only above a threshold."
+                checked={Boolean(draft.hasAmount)}
+                onCheckedChange={(on) => setDraft({ ...draft, hasAmount: on, steps: on ? draft.steps : draft.steps.map((st) => ({ ...st, minAmount: undefined })) })}
+              />
+            </Card>
+          ) : null}
+          <Card className="flex flex-col gap-3">
+            <CardHeader title="Who can submit" description="Everyone, or only some departments." />
+            <Switch
+              label="Everyone"
+              checked={!draft.submitters?.length}
+              onCheckedChange={(on) => setDraft({ ...draft, submitters: on ? [] : ['Operations'] })}
+            />
+            {draft.submitters?.length ? (
+              <CheckGroup
+                legend="Departments that can submit"
+                options={DEPARTMENTS.map((d) => ({ value: d, label: d }))}
+                value={draft.submitters}
+                onChange={(v) => setDraft({ ...draft, submitters: v.length ? v : ['Operations'] })}
+              />
+            ) : null}
+          </Card>
+          <Card className="flex flex-col gap-3">
+            <CardHeader title="Form fields" description="Extra questions on the request form, after title and description. Choices, yes/no, ratings, and questions that only appear for certain answers." />
+            <FormBuilder noun="field" fields={draft.fields ?? []} onChange={(fields) => setDraft({ ...draft, fields })} />
+            {formProblems(draft.fields ?? []).length ? (
+              <Banner tone="warning" inline title="Fix these before saving">
+                <ul className="list-disc ps-5">
+                  {formProblems(draft.fields ?? []).map((p) => (
+                    <li key={p}>{p}</li>
+                  ))}
+                </ul>
+              </Banner>
+            ) : null}
+          </Card>
+          <Card className="lg:sticky lg:top-20">
+            <CardHeader title="Try it" description={`Which steps a ${typeName(draft.requestType, state.processes).toLowerCase()} request would go through.`} />
+            {hasAmount ? (
+              <Field label="Request amount" className="mt-4">
+                <Input prefix="$" inputMode="decimal" value={tryAmount} onChange={(e) => setTryAmount(e.target.value)} />
+              </Field>
+            ) : null}
+            {draft.steps.some((st) => st.when) ? (
+              <div className="mt-4">
+                <FormRenderer
+                  fields={branchSources.filter((f) => draft.steps.some((st) => st.when?.fieldId === f.id))}
+                  values={tryAnswers}
+                  onChange={setTryAnswers}
+                  idPrefix="try"
+                />
+              </div>
+            ) : null}
+            <div className="mt-4">
+              <ApprovalTimeline steps={preview.map((s) => ({ ...s, status: 'waiting' as const }))} />
+            </div>
+            <Text variant="bodySm" tone="muted" className="mt-4">
+              {preview.length} of {draft.steps.length} steps run{hasAmount ? ` for ${formatMoney(amount)}` : ''}.
+            </Text>
+          </Card>
+        </div>
+      </div>
+      </fieldset>
+      {changed && builder ? (
+        <MobileActionBar label="Unsaved changes">
+          <Button onClick={() => (setDraft(original), setShowProblems(false))}>Discard</Button>
+          <Button variant="primary" onClick={save}>
+            Save process
+          </Button>
+        </MobileActionBar>
+      ) : null}
+    </>
+  );
+}

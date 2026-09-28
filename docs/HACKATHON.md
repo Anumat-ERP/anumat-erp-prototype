@@ -1,0 +1,180 @@
+# Hackathon finish map
+
+**Goal:** win with a polished, low-risk demo that tells one story end to end:
+*one request goes from ask → approve → decide → act → track, and nobody chases anyone.*
+
+**Timeline assumed:** a little over two weeks to demo day. The prototype is a
+front-end demo with seeded data (no backend), deployed to GitHub Pages.
+
+---
+
+## Where we are
+
+Done and verified in a browser (light, dark, phone width):
+
+| Area | What works |
+|---|---|
+| Requests | List with search/filters, detail, new request with live approval-route preview, drafts, edit and resubmit after changes, withdraw, attachments (name and size) |
+| Approvals | Inbox, approve / request changes / decline with comments, bulk approve, "decided by you" |
+| Routing | Rules by type and amount; Process Builder edits steps, approvers, thresholds, SLAs with a "Try it" preview |
+| Meetings | List, schedule (also from a request, with suggested invitees), decisions, action items that become tasks |
+| Documents | List with filters, version history drawer |
+| Tasks | List grouped by due date, or board by status; filters by person, source and search; task detail panel; new task; workspace-defined statuses (e.g. Blocked, In review) in three fixed categories |
+| Insights | Time to decision vs target, where requests wait, spend by department, weekly volume |
+| People | "View as" any of 8 people; notifications bell per person; People & roles page (Owner / Admin / Member) |
+| RACI | Tasks: R = owner, A = assigner (signs off), plus Consulted (can comment, asked for input before sign-off) and Informed (told when done or blocked); filters for *Where I’m consulted / informed*; meeting attendees and request approvers are informed by default. Requests show a derived RACI card |
+| Permissions | Task owner, assigner and admins can change a task; others view only. Per-status rules: "Needs sign-off" (Done by default) and "Ask for a reason" (Blocked by default) |
+| Landing | Marketing page at `/` following the original sketch: hero with a live product preview, problem, flow, modules, use cases, security, pilot, FAQ, closing call to action |
+| Sign-in / sign-up | Mock sign-in at `/signin` (any email; `alex@…` signs in as Alex) and "Create your workspace" at `/welcome` |
+| Workspaces | One person can belong to several companies: the switcher at the top of the sidebar moves between **Lotus Logistics** and **Mekong Freight** (each with its own people, requests and role); "Create a workspace" adds another |
+| Telegram | Notification settings (`/settings/notifications`): choose Email and Telegram per event; connect Telegram with a one-time code. The Telegram preview (`/telegram`) shows what the bot sends, and **Approve** there approves in Anumat |
+| Calendar | Every meeting has **Add to Google Calendar** and an **.ics** download for Outlook and Apple Calendar |
+| Process builder | Admins create new request types ("New process") with an ID prefix, optional amount, custom form fields and who can submit; admins can give members the "Can build processes" permission; others see processes read-only |
+| Pricing & support | Public `/pricing`: Cloud, your own cloud, or on-premise, free during the pilot, with a contact-sales form. Help menu (?) → Help & support with Telegram, Facebook and email |
+| Process forms | Request forms and per-step approver forms (Finance picks the budget line to approve). Steps can run only when a form answer matches (a new supplier adds a Legal check). Requests keep a copy of the form they were submitted with |
+| Mobile | Sticky action bar for approvers and editors, card list for Approvals, Build/Preview switch in the survey editor, 0–10 scale on one row |
+| Surveys | Admins build team surveys with a dynamic form builder (10 answer types, required, "only ask when" follow-ups, templates, live preview), send them to everyone or chosen departments, optionally anonymous with a closing day. People answer from Home, the bell or Surveys. Results chart each question (averages, recommend score, choice bars, comments); anonymous results stay hidden until 3 answers. The same builder powers request form fields in Process Builder |
+| Feedback to us | A short survey (0–10 score + comment) about Anumat appears after someone makes decisions, at most once a month; Help menu → Send feedback / Report a problem. Admins see it with sales enquiries under Surveys → **Feedback & enquiries** |
+| Demo | Guided 9-step tour (top bar → **Demo tour**) that resets data and switches people for you |
+| Brand | Anumat design system + brand tokens, accessible contrast, dark mode |
+
+Not built: real backend, real sign-in and invites, sending email or Telegram messages, real file storage, AI. Feedback and sales enquiries are saved in the browser only.
+
+**Before demo day, fill in `src/config.ts`:** the support Telegram, Facebook page and email, the sales email, the Telegram bot username, and optionally form-service URLs so feedback and enquiries reach you. Until then those links show "Not set up yet"; never put placeholder contacts there.
+
+**Accounts model (for judge questions):** the organisation is the account. The first person creates the workspace and becomes its owner; teammates join by invite or invite code; roles are Owner, Admin and Member; who approves comes from the approval processes (the org chart), not from a role; data is kept separate per organisation. After the hackathon, use a managed service with organisations built in (Clerk, Supabase Auth or Auth0) rather than building sign-in.
+
+---
+
+## What judges usually score, and how we answer it
+
+| Criterion | Our answer | Evidence on stage |
+|---|---|---|
+| Problem is real | Decisions are scattered across email, chat, spreadsheets | Opening line + "Needs your decision" |
+| Solution is clear | One request's full journey in 3 minutes | The demo tour |
+| Execution / polish | It looks and feels like a product | Design system, dark mode, phone view, no dead ends |
+| Innovation | Rules-based routing + (planned) AI decision brief | Process Builder "Try it", AI brief |
+| Impact / business | Time to decision, bottlenecks, spend visibility | Insights page |
+| Feasibility | Built on a real component library with tokens and tests | Storybook, repo structure |
+
+---
+
+## Plan
+
+Priorities: **P0** must ship for the demo · **P1** strongly recommended · **P2** only if time allows.
+
+### Week 1 — make the story undeniable
+
+| # | Task | Priority | Notes |
+|---|---|---|---|
+| 1 | Turn on GitHub Pages and confirm the live URL | P0 | Settings → Pages → Source: GitHub Actions, then re-run the workflow |
+| 1b | Replace the landing page's pilot block with a real quote once a pilot user agrees to be named | P1 | Never show a made-up testimonial |
+| 2 | Rehearse the demo tour 5 times; fix every snag you hit | P0 | Keep a list; each snag is a small fix |
+| 3 | **AI decision brief** on request detail: summary, risks, suggested decision | P1 | Biggest "wow" per hour of work. Needs a decision on how to call the model (see below) |
+| 4 | Replace seed names, amounts and currency with your team's real context | P1 | Judges trust specific details |
+| 5 | Empty, loading and error states on the main screens | P1 | The design system already has the components |
+| 6 | Usability test with 3 people outside the team | P1 | Give them one task: "get this approved". Note where they hesitate |
+
+### Week 2 — make it look inevitable
+
+| # | Task | Priority | Notes |
+|---|---|---|---|
+| 7 | Pitch deck (6 slides, see outline below) | P0 | Use the brand kit and the social card |
+| 8 | Record a 90-second backup video of the tour | P0 | Your fallback if Wi-Fi or the projector fails |
+| 9 | Mobile approve flow: approve from a phone in 2 taps | P1 | Strong live moment: approve on your phone while the laptop updates |
+| 10 | Delegation / out-of-office ("approve on behalf of") | P2 | A common judge question |
+| 11 | Real persistence (Supabase or Firebase) behind the store | P2 | Only if a judge criterion rewards working tech; the store is already isolated in `src/data/store.tsx` |
+| 12 | Put the Anumat brand into the Storybook tokens | P2 | One design system across repos |
+
+### Final 3 days — freeze and rehearse
+
+- Code freeze 48 hours before. Only fix demo-breaking bugs.
+- Rehearse with a timer. Target 2:45 so you finish with margin.
+- Test on the actual demo laptop, browser, screen resolution and network.
+- Open the site once on the venue Wi-Fi, then keep the tab open (it works offline after loading).
+- Bring the backup video on a USB stick and in the cloud.
+
+---
+
+## The AI decision brief (P1): pick one approach
+
+Show a card on the request page: *"Summary · Risks · Suggested decision"*.
+
+| Option | How | Pros | Cons |
+|---|---|---|---|
+| A. Presenter's own API key | The page asks for a key once and stores it in the browser; calls the model directly | Real AI, no server | Key lives in the browser: only for the demo laptop, never commit it |
+| B. Small serverless proxy | A Cloudflare Worker or Vercel function holds the key; the page calls it | Real AI, key stays secret, shareable | A bit of setup; needs an account |
+| C. Scripted brief | Pre-written briefs for the demo requests, clearly labelled "sample" | Zero risk | Not real; don't claim it is |
+
+Recommendation: **B** if you have a day, otherwise **A** for stage only. Keep **C** as the offline fallback.
+
+---
+
+## 3-minute demo script
+
+Run **Demo tour** from the top bar; it follows this script and resets the data.
+
+| Time | Step | As | Say | Do |
+|---|---|---|---|---|
+| 0:00 | Sign up | Dara | "Dara's company runs approvals on email. She sets up Anumat for everyone in under a minute." | On the landing page, Start free → name is pre-filled → Continue → glance at invites and roles → Continue → Create workspace |
+| 0:30 | Problem → one place | Dara | "Everything waiting on Dara is now in one place." | Point at "Needs your decision" and the company name |
+| 0:45 | Ask | Alex | "Alex needs laptops. One form, and Anumat already shows who approves." | Change amount 7500 → 500 → 7500, Submit |
+| 1:10 | Approve | Dara | "It's at the top of Dara's queue with everything she needs." | Open it, Approve |
+| 1:25 | Approve from Telegram | Priya | "Over $1,000, so Finance is next. Finance must say which budget pays, so Priya taps the budget line on Telegram and it's approved. Nobody chased anyone." | Tap **Approve · Q4 equipment** on the laptops message |
+| 1:45 | Decide together | Dara | "Bigger calls happen in meetings, recorded next to the request." | Record a decision, add an action item for Alex |
+| 2:10 | Act | Alex | "That's now Alex's task, due this week, linked to the decision." | Point at it under This week, open it, tick one off |
+| 2:25 | Change the rules | Dara | "Operations owns the process, not IT." | Raise the Finance threshold, Try it |
+| 2:45 | Track | Sokha | "Leadership sees how fast decisions happen, and where they stick. Ask, approve, move forward." | Hover "Where requests are waiting" |
+
+**Presenting:** open the live URL's landing page and click **See how it works**.
+- The panel shows only the step name and Next, so the audience can't read your
+  script. The eye button shows the script; keep it on your laptop or on cards.
+- **Page Down / Page Up** (what most clickers send) move between steps; the arrow
+  keys work too when no control is focused. Keys typed into a form never change steps.
+- The chevron minimizes the panel; pages leave room at the bottom so it never
+  covers their last buttons.
+
+
+---
+
+## Pitch deck outline (6 slides)
+
+1. **Title** — Anumat logo, "Every request becomes a clear decision."
+2. **Problem** — one real story of a request lost in email; the cost in days.
+3. **Solution** — Ask → Approve → Move forward; the six modules in one picture.
+4. **Live demo** — switch to the browser (the tour).
+5. **Why now / why us** — design system, rules engine, AI brief; what's next.
+6. **Ask** — what you want from the judges or partners; team; contact.
+
+---
+
+## Likely judge questions
+
+| Question | Answer |
+|---|---|
+| Is this real or a mock-up? | A working front end with seeded data; routing rules, notifications and insights are computed live. The backend is the next step. |
+| How is this different from Kissflow or Odoo? | Focused on decisions, not a full ERP: request, meeting, decision and task are one linked record. |
+| Who buys it? | Operations leads at 50–500 person companies who approve spend and time off in email today. |
+| How do people sign up? | A company creates a workspace; teammates join by invite or code with a role (the sign-up step of the demo). |
+| Can teams use their own task statuses? | Yes. Each workspace defines its statuses (Blocked, In review…), each in a To do / In progress / Done category, so reports and due dates keep working. |
+| How do you handle permissions? | Owner, Admin and Member roles. Approving follows the approval processes. Tasks can be changed by their owner, whoever assigned them, and admins; statuses can require sign-off or a reason. Show it with "View as" Lina, then Alex. |
+| Do you support RACI? | Yes, built into tasks and requests rather than a separate matrix: the owner is Responsible, whoever assigned it is Accountable and signs off, and you add Consulted and Informed people, each of whom gets the right notifications. |
+| Why not a full workflow editor for tasks? | Strict control lives in request approvals, where auditors need it. Tasks stay light so people keep them up to date; two per-status rules cover the real needs. |
+| Can one person be in several companies? | Yes. Accounts belong to a person; each workspace is a separate company with its own data and role. Show the workspace switcher. |
+| Do people have to open the app to approve? | No. They choose Telegram or email per event and can approve straight from Telegram (shown in the tour). Meetings go to Google Calendar, Outlook or Apple Calendar. |
+| Can customers add their own processes? | Yes. Admins, or members they allow, create request types with their own fields, route and who can submit. |
+| Can admins ask their team things? | Yes: Surveys, with the same no-code form builder as request forms. Anonymous surveys never show names and hide totals until at least 3 people answer, so nobody can be picked out. |
+| How do you sell and deploy it? | Free during the pilot. Cloud (we host), your own cloud, or on-premise for data that must stay in the country or building; see the Pricing page. |
+| What about data security? | Planned: encryption in transit and at rest, an audit trail (already visible as request activity), version history. |
+
+---
+
+## Demo-day checklist
+
+- [ ] Live URL opens on the demo laptop
+- [ ] **Reset demo data** done; tour starts from step 1
+- [ ] Browser zoom set so the audience can read it (125–150%)
+- [ ] Notifications and other apps silenced
+- [ ] Backup video ready
+- [ ] Deck exported to PDF as a fallback
+- [ ] Someone watches the clock
