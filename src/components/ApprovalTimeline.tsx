@@ -4,6 +4,7 @@ import { formatAnswer, questionsOf, visibleFields } from '../lib/forms';
 import { useStore } from '../data/store';
 import type { ApprovalStep } from '../data/types';
 import { formatDateTime, stepStatus } from '../lib/format';
+import { Changed } from '../lib/motion';
 
 const ICON = {
   done: { Icon: CircleCheck, className: 'text-success' },
@@ -37,10 +38,12 @@ export function ApprovalTimeline({ steps }: { steps: ApprovalStep[] }) {
               <Text as="span" variant="label">
                 {step.name}
               </Text>
-              <Text as="span" variant="bodySm" tone="muted">
-                {approver.id === me.id ? 'You' : approver.name} · {stepStatus[step.status]}
-                {step.at ? ` · ${formatDateTime(step.at)}` : ''}
-              </Text>
+              <Changed value={step.status} className="-mx-1 px-1">
+                <Text as="span" variant="bodySm" tone="muted">
+                  {approver.id === me.id ? 'You' : approver.name} · {stepStatus[step.status]}
+                  {step.at ? ` · ${formatDateTime(step.at)}` : ''}
+                </Text>
+              </Changed>
               {step.answers && step.fields ? (
                 <dl className="mt-1 flex flex-col gap-1 rounded-md border border-border-subtle px-3 py-2 text-sm">
                   {questionsOf(visibleFields(step.fields, step.answers)).map((f) => (

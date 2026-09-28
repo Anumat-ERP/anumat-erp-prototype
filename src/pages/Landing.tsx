@@ -34,11 +34,12 @@ import {
   Users,
   Workflow,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ContactChannels } from '../components/ContactChannels';
 import { Logo } from '../components/Logo';
 import { useTour } from '../components/DemoTour';
+import { useReveal } from '../lib/motion';
 
 const NAV = [
   { href: '#how', label: 'How it works' },
@@ -121,7 +122,7 @@ const FAQ = [
 function Section({ id, eyebrow, title, children, className }: { id?: string; eyebrow?: string; title: string; children: ReactNode; className?: string }) {
   return (
     <section id={id} aria-labelledby={id ? `${id}-title` : undefined} className={cn('scroll-mt-20 py-16 md:py-20', className)}>
-      <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 md:px-6">
+      <div data-reveal="" className="mx-auto flex max-w-6xl flex-col gap-10 px-4 md:px-6">
         <div className="flex max-w-2xl flex-col gap-3">
           {eyebrow ? <span className="text-xs font-semibold tracking-wide text-fg-link uppercase">{eyebrow}</span> : null}
           <h2 id={id ? `${id}-title` : undefined} className="text-[clamp(1.625rem,3.2vw,2.25rem)] leading-tight font-bold tracking-tight text-balance text-fg">
@@ -197,9 +198,11 @@ export function Landing() {
   const tour = useTour();
   // During the demo tour, sign-up opens with the company already filled in.
   const startFree = () => navigate(tour.step !== null ? '/welcome?demo=1' : '/welcome');
+  const root = useRef<HTMLDivElement>(null);
+  useReveal(root);
 
   return (
-    <div id="top" className="an-marketing min-h-dvh bg-bg text-fg">
+    <div ref={root} id="top" className="an-marketing min-h-dvh bg-bg text-fg">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-(--a-z-index-toast) focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:shadow-md"
@@ -240,7 +243,7 @@ export function Landing() {
 
       <main id="main-content" tabIndex={-1} className="outline-none">
         {/* Hero */}
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-12 pb-20 md:px-6 md:pt-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+        <div className="an-stagger mx-auto grid max-w-6xl items-center gap-12 px-4 pt-12 pb-20 md:px-6 md:pt-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
           <div className="flex flex-col gap-6">
             <span className="text-xs font-semibold tracking-wide text-fg-link uppercase">Decision &amp; operations ERP</span>
             <h1 className="text-[clamp(2.25rem,5.2vw,3.75rem)] leading-[1.05] font-bold tracking-tight text-balance">

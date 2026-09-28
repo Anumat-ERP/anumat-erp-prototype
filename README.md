@@ -11,7 +11,7 @@ in the hackathon brand: **Anumat Blue `#003D96`** and the submitted logo. Same s
 and demo tour. The product UI follows the calm back-office principles in
 [anumat-erp-web/packages/brand](https://github.com/Anumat-ERP/anumat-erp-web/tree/main/packages/brand):
 ⌘K / Ctrl+K search, A/R/D shortcuts for approvers, exact times on hover, compact
-spacing in the account menu. Only fix demo-breaking bugs here; build new features in the main
+spacing in the account menu. Motion is quiet and explains changes: pages settle in, what you just added or changed is briefly highlighted, charts grow once, and light/dark cross-fade (all off with reduced motion). Only fix demo-breaking bugs here; build new features in the main
 prototype (or the real app) and copy them over deliberately.
 
 Everything runs in the browser with demo data. Changes you make (approving a

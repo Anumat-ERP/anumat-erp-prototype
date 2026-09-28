@@ -28,6 +28,7 @@ import { stepForm, useStore } from '../data/store';
 import type { FormValues } from '../data/types';
 import { formatBytesShort, formatDate, formatDateTime, formatMoney, formatRelative, typeLabel, typeName } from '../lib/format';
 import { Time } from '../components/Time';
+import { Changed } from '../lib/motion';
 
 export function RequestDetail() {
   const { id } = useParams();
@@ -132,7 +133,7 @@ export function RequestDetail() {
     <>
       <PageHeader
         title={r.title}
-        titleMetadata={<StatusBadge status={r.status} />}
+        titleMetadata={<Changed value={r.status} className="-mx-1 px-1"><StatusBadge status={r.status} /></Changed>}
         subtitle={`${typeName(r.type, state.processes)} request from ${person(r.requesterId).name} · updated ${formatRelative(r.updatedAt)}`}
         backAction={{ content: 'Requests', href: '/requests' }}
         renderLink={headerLink}

@@ -19,7 +19,7 @@ export function MobileActionBar({ children, label, className }: { children: Reac
         role="region"
         aria-label={label}
         className={cn(
-          'fixed inset-x-0 bottom-0 z-30 flex items-center gap-2 border-t border-border bg-surface/95 px-4 pt-3 shadow-[0_-4px_12px_rgb(0_0_0/0.06)] backdrop-blur lg:hidden',
+          'an-bar-in fixed inset-x-0 bottom-0 z-30 flex items-center gap-2 border-t border-border bg-surface/95 px-4 pt-3 shadow-[0_-4px_12px_rgb(0_0_0/0.06)] backdrop-blur lg:hidden',
           'pb-[max(0.75rem,env(safe-area-inset-bottom))] [&>*]:flex-1',
           className,
         )}

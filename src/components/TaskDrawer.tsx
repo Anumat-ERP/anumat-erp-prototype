@@ -1,4 +1,4 @@
-import { Avatar, Banner, Button, DatePicker, Drawer, Field, Select, Text, Textarea, useToast } from '@repo/ui';
+import { Avatar, Banner, Button, DatePicker, Drawer, Field, Select, Text, Textarea, cn, useToast } from '@repo/ui';
 import { useEffect, useState } from 'react';
 import { at } from '../data/seed';
 import { canCommentOnTask, canEditTask, firstStatus, isAdmin, planMove, statusDef, uid, useStore } from '../data/store';
@@ -7,6 +7,7 @@ import { PeoplePicker } from './PeoplePicker';
 import type { Task } from '../data/types';
 import { AppLink } from './links';
 import { Time } from './Time';
+import { useFresh } from '../lib/motion';
 
 const CATEGORY_LABEL = { todo: 'To do', active: 'In progress', done: 'Done' } as const;
 
@@ -18,6 +19,7 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
   const { state, me, person, dispatch } = useStore();
   const { toast } = useToast();
   const open = creating || task !== null;
+  const freshComment = useFresh(task?.comments?.map((c) => c.id) ?? [], task?.id);
   const blank = (): Task => ({ id: '', title: '', ownerId: me.id, assignedById: me.id, due: at(7), status: firstStatus(state, 'todo') });
 
   const [draft, setDraft] = useState<Task>(task ?? blank());
@@ -247,7 +249,7 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
             {task.comments?.length ? (
               <ol className="flex flex-col gap-3">
                 {task.comments.map((c) => (
-                  <li key={c.id} className="flex gap-2">
+                  <li key={c.id} className={cn('flex gap-2 rounded-md', freshComment(c.id))}>
                     <Avatar name={person(c.personId).name} size="xs" decorative />
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <Text as="span" variant="bodySm">

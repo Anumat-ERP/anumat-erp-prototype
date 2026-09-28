@@ -7,6 +7,7 @@ import { Notifications } from '../components/Notifications';
 import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
 import { FeedbackDialog, SurveyPrompt } from '../components/Feedback';
 import { useTour } from '../components/DemoTour';
+import { withViewTransition } from '../lib/motion';
 import { CommandPalette, commandKey } from '../components/CommandPalette';
 import { navLink } from '../components/links';
 import { isDone, surveysToAnswer, useStore, waitingOnMe } from '../data/store';
@@ -14,7 +15,7 @@ import { isDone, surveysToAnswer, useStore, waitingOnMe } from '../data/store';
 type Theme = 'light' | 'dark';
 
 function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'));
+  const [theme, setThemeState] = useState<Theme>(() => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'));
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try {
@@ -23,6 +24,12 @@ function useTheme() {
       // Theme still applies for this visit.
     }
   }, [theme]);
+  // Cross-fade between light and dark instead of flashing.
+  const setTheme = (next: Theme) =>
+    withViewTransition(() => {
+      document.documentElement.dataset.theme = next;
+      setThemeState(next);
+    });
   return [theme, setTheme] as const;
 }
 
@@ -258,7 +265,7 @@ export function Shell() {
           <Navigation sections={sections} renderLink={navLink} />
         </>
       } mainClassName="md:p-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+      <div key={pathname} className="an-page mx-auto flex w-full max-w-6xl flex-col gap-6">
         <Outlet />
       </div>
       <CommandPalette open={searching} onOpenChange={setSearching} />

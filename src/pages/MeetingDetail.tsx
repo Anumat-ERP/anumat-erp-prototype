@@ -1,4 +1,4 @@
-import { Badge, Button, Card, CardHeader, Checkbox, EmptyState, Field, Input, List, PageHeader, Select, Text, useToast } from '@repo/ui';
+import { Badge, Button, Card, CardHeader, Checkbox, EmptyState, Field, Input, List, PageHeader, Select, Text, cn, useToast } from '@repo/ui';
 import { Gavel } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
@@ -11,6 +11,7 @@ import { useTaskMover } from '../components/useTaskMover';
 import { downloadIcs, googleCalendarUrl } from '../lib/calendar';
 import { CalendarPlus, Download } from 'lucide-react';
 import { daysUntil, formatShortDate, formatTime, formatWeekday } from '../lib/format';
+import { useFresh } from '../lib/motion';
 
 export function MeetingDetail() {
   const { id } = useParams();
@@ -24,6 +25,8 @@ export function MeetingDetail() {
   const [taskError, setTaskError] = useState<string>();
 
   const m = state.meetings.find((x) => x.id === id);
+  const freshDecision = useFresh(m?.decisions.map((d) => d.id) ?? []);
+  const freshItem = useFresh(state.tasks.filter((t) => m && t.source?.href === `/meetings/${m.id}`).map((t) => t.id));
   if (!m) {
     return (
       <EmptyState heading="This meeting doesn’t exist" action={<Button onClick={() => navigate('/meetings')}>Back to meetings</Button>}>
@@ -60,7 +63,7 @@ export function MeetingDetail() {
             {m.decisions.length ? (
               <ul className="mt-4 flex flex-col gap-3">
                 {m.decisions.map((d) => (
-                  <li key={d.id} className="flex gap-3 rounded-md border border-success-border bg-success-subtle px-3 py-2">
+                  <li key={d.id} className={cn('flex gap-3 rounded-md border border-success-border bg-success-subtle px-3 py-2', freshDecision(d.id))}>
                     <Gavel aria-hidden className="mt-0.5 size-4 shrink-0 text-success-subtle-fg" />
                     <span className="flex min-w-0 flex-col gap-1">
                       <span className="text-fg">{d.text}</span>
@@ -104,7 +107,7 @@ export function MeetingDetail() {
                 {actionItems.map((t) => {
                   const d = daysUntil(t.due);
                   return (
-                    <li key={t.id} className="flex flex-wrap items-start justify-between gap-2">
+                    <li key={t.id} className={cn('flex flex-wrap items-start justify-between gap-2 rounded-md', freshItem(t.id))}>
                       <Checkbox
                         checked={isDone(state, t)}
                         disabled={!canEditTask(state, t)}
