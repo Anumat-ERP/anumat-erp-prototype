@@ -1,14 +1,19 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import { seed } from './seed';
-import type { Activity, ApprovalStep, DataState, Process, Request, RequestType, Task, TaskStatus } from './types';
+import type { Activity, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Task, TaskStatus } from './types';
 
-const STORAGE_KEY = 'anumat-prototype-v1';
+const STORAGE_KEY = 'anumat-prototype-v2';
 
 type Action =
   | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string }
   | { type: 'comment'; requestId: string; text: string }
   | { type: 'create'; request: Request }
   | { type: 'submit'; requestId: string }
+  | { type: 'update'; requestId: string; patch: Partial<Request>; submit?: boolean }
+  | { type: 'withdraw'; requestId: string }
+  | { type: 'createMeeting'; meeting: Meeting }
+  | { type: 'switchUser'; personId: string }
+  | { type: 'markSeen' }
   | { type: 'taskStatus'; taskId: string; status: TaskStatus }
   | { type: 'addTask'; task: Task }
   | { type: 'addDecision'; meetingId: string; text: string }
@@ -26,6 +31,19 @@ export function routeFor(processes: Process[], type: RequestType, amount?: numbe
   return process.steps
     .filter((s) => s.minAmount === undefined || (amount ?? 0) > s.minAmount)
     .map((s, i) => ({ id: s.id, name: s.name, approverId: s.approverId, status: i === 0 ? 'current' : 'waiting' }));
+}
+
+/** Put a request (back) into approval with a fresh route from its process. */
+function submitted(state: DataState, r: Request, verb: string): Request {
+  const time = now();
+  return {
+    ...r,
+    status: 'pending',
+    createdAt: r.status === 'draft' ? time : r.createdAt,
+    updatedAt: time,
+    steps: routeFor(state.processes, r.type, r.amount),
+    activity: [...r.activity, { id: uid('a'), at: time, personId: state.meId, kind: 'event', text: verb }],
+  };
 }
 
 function updateRequest(state: DataState, id: string, fn: (r: Request) => Request): DataState {
@@ -66,13 +84,27 @@ function reducer(state: DataState, action: Action): DataState {
     case 'create':
       return { ...state, requests: [action.request, ...state.requests] };
     case 'submit':
+      return updateRequest(state, action.requestId, (r) => submitted(state, r, 'submitted the request'));
+    case 'update':
+      return updateRequest(state, action.requestId, (r) => {
+        const next = { ...r, ...action.patch, updatedAt: now() };
+        if (!action.submit) return next;
+        return submitted(state, next, r.status === 'changes' ? 'made changes and resubmitted' : 'submitted the request');
+      });
+    case 'withdraw':
       return updateRequest(state, action.requestId, (r) => ({
         ...r,
-        status: 'pending',
+        status: 'withdrawn',
         updatedAt: now(),
-        steps: routeFor(state.processes, r.type, r.amount),
-        activity: [...r.activity, { id: uid('a'), at: now(), personId: state.meId, kind: 'event', text: 'submitted the request' }],
+        steps: r.steps.map((s) => (s.status === 'current' ? { ...s, status: 'waiting' as const } : s)),
+        activity: [...r.activity, { id: uid('a'), at: now(), personId: state.meId, kind: 'event', text: 'withdrew the request' }],
       }));
+    case 'createMeeting':
+      return { ...state, meetings: [...state.meetings, action.meeting] };
+    case 'switchUser':
+      return { ...state, meId: action.personId };
+    case 'markSeen':
+      return { ...state, lastSeen: { ...state.lastSeen, [state.meId]: now() } };
     case 'taskStatus':
       return { ...state, tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, status: action.status } : t)) };
     case 'addTask':
@@ -94,7 +126,7 @@ function reducer(state: DataState, action: Action): DataState {
 function load(): DataState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as DataState;
+    if (raw) return { ...seed, ...(JSON.parse(raw) as Partial<DataState>) };
   } catch {
     // Storage blocked or corrupt: start from the demo data.
   }
@@ -140,4 +172,40 @@ export function waitingOnMe(state: DataState) {
   return state.requests.filter(
     (r) => r.status === 'pending' && r.steps.some((s) => s.status === 'current' && s.approverId === state.meId),
   );
+}
+
+export interface Notification {
+  id: string;
+  at: string;
+  personId: string;
+  text: string;
+  href: string;
+}
+
+/** What the signed-in person should hear about: others acting on requests they are part of, and meeting invites. */
+export function notificationsFor(state: DataState): Notification[] {
+  const me = state.meId;
+  const fromRequests = state.requests
+    .filter((r) => r.requesterId === me || r.steps.some((s) => s.approverId === me))
+    .flatMap((r) =>
+      r.activity
+        .filter((a) => a.personId !== me)
+        .map((a) => ({
+          id: `${r.id}-${a.id}`,
+          at: a.at,
+          personId: a.personId,
+          text: a.kind === 'comment' ? `commented on ${r.title}: “${a.text}”` : `${a.text} · ${r.title}`,
+          href: `/requests/${r.id}`,
+        })),
+    );
+  const fromMeetings = state.meetings
+    .filter((m) => m.createdAt && m.attendeeIds.includes(me) && m.organizerId !== me)
+    .map((m) => ({
+      id: `m-${m.id}`,
+      at: m.createdAt ?? '',
+      personId: m.organizerId,
+      text: `invited you to ${m.title}`,
+      href: `/meetings/${m.id}`,
+    }));
+  return [...fromRequests, ...fromMeetings].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20);
 }

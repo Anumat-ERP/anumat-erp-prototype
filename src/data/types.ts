@@ -8,7 +8,7 @@ export interface Person {
 }
 
 export type RequestType = 'purchase' | 'leave' | 'expense' | 'contract';
-export type RequestStatus = 'draft' | 'pending' | 'changes' | 'approved' | 'declined';
+export type RequestStatus = 'draft' | 'pending' | 'changes' | 'approved' | 'declined' | 'withdrawn';
 export type StepStatus = 'done' | 'current' | 'waiting' | 'returned' | 'declined';
 
 export interface ApprovalStep {
@@ -69,6 +69,8 @@ export interface Meeting {
   agenda: string[];
   decisions: Decision[];
   requestIds: string[];
+  /** When the invite went out. Seeded meetings omit it. */
+  createdAt?: string;
 }
 
 export type DocumentStatus = 'draft' | 'review' | 'approved' | 'archived';
@@ -133,4 +135,6 @@ export interface DataState {
   documents: Doc[];
   tasks: Task[];
   processes: Process[];
+  /** When each person last opened their notifications. */
+  lastSeen: Record<PersonId, string>;
 }

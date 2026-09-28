@@ -1,10 +1,26 @@
-import { Banner, Button, Card, CardHeader, DatePicker, Field, Input, PageHeader, Select, Text, Textarea, useToast } from '@repo/ui';
+import {
+  Banner,
+  Button,
+  Card,
+  CardHeader,
+  DatePicker,
+  DropZone,
+  DropZoneFileList,
+  EmptyState,
+  Field,
+  Input,
+  PageHeader,
+  Select,
+  Text,
+  Textarea,
+  useToast,
+} from '@repo/ui';
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { ApprovalTimeline } from '../components/ApprovalTimeline';
 import { headerLink } from '../components/links';
 import { routeFor, uid, useStore } from '../data/store';
-import type { RequestType } from '../data/types';
+import type { Attachment, Request, RequestType } from '../data/types';
 import { typeLabel } from '../lib/format';
 
 const PREFIX: Record<RequestType, string> = { purchase: 'PR', leave: 'LV', expense: 'EX', contract: 'CT' };
@@ -12,18 +28,61 @@ const DEPARTMENTS = ['Operations', 'Finance', 'People', 'Product', 'IT', 'Legal'
 
 type Errors = Partial<Record<'title' | 'amount' | 'startDate' | 'endDate' | 'description', string>>;
 
+const toDateInput = (iso?: string) => (iso ? iso.slice(0, 10) : '');
+
+/** New request, or editing one of your drafts / a request sent back for changes. */
 export function NewRequest() {
+  const { id } = useParams();
+  const [params] = useSearchParams();
+  const { state, me } = useStore();
+  const navigate = useNavigate();
+  if (!id) return <RequestForm key={params.get('demo') ?? 'new'} />;
+  const existing = state.requests.find((r) => r.id === id);
+  const editable = existing && existing.requesterId === me.id && (existing.status === 'draft' || existing.status === 'changes');
+  if (!existing || !editable) {
+    return (
+      <EmptyState heading="You can’t edit this request" action={<Button onClick={() => navigate(existing ? `/requests/${id}` : '/requests')}>Go back</Button>}>
+        Only the requester can edit, and only while it is a draft or has been sent back for changes.
+      </EmptyState>
+    );
+  }
+  return <RequestForm key={existing.id} existing={existing} />;
+}
+
+const DEMO: Record<string, Partial<Request>> = {
+  laptops: {
+    type: 'purchase',
+    title: 'Laptops for 3 new analysts',
+    amount: 7500,
+    department: 'Operations',
+    description: 'Three laptops for the analysts starting next month. Two quotes attached; we recommend the cheaper one with the 3-year warranty.',
+    attachments: [
+      { name: 'Quote_Supplier_A.pdf', size: 312_000 },
+      { name: 'Quote_Supplier_B.pdf', size: 298_000 },
+    ],
+  },
+};
+
+function RequestForm({ existing: saved }: { existing?: Request }) {
+  const [params] = useSearchParams();
+  const demo = DEMO[params.get('demo') ?? ''];
+  const existing = saved;
+  // Starting values: the request being edited, or a demo prefill (?demo=laptops).
+  const initial: Partial<Request> | undefined = saved ?? demo;
   const { state, me, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [type, setType] = useState<RequestType>('purchase');
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [department, setDepartment] = useState(me.department);
-  const [description, setDescription] = useState('');
+  const [type, setType] = useState<RequestType>(initial?.type ?? 'purchase');
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [amount, setAmount] = useState(initial?.amount !== undefined ? String(initial.amount) : '');
+  const [startDate, setStartDate] = useState(toDateInput(initial?.startDate));
+  const [endDate, setEndDate] = useState(toDateInput(initial?.endDate));
+  const [department, setDepartment] = useState(initial?.department ?? me.department);
+  const [description, setDescription] = useState(initial?.description ?? '');
+  const [attachments, setAttachments] = useState<Attachment[]>(initial?.attachments ?? []);
+  const [fileError, setFileError] = useState<string>();
   const [errors, setErrors] = useState<Errors>({});
+  const returned = existing?.steps.find((s) => s.status === 'returned');
 
   const hasAmount = type !== 'leave';
   const amountNumber = Number(amount.replace(/,/g, ''));
@@ -47,6 +106,25 @@ export function NewRequest() {
     const e = submit ? validate() : title.trim() ? {} : { title: 'A draft needs at least a title.' };
     setErrors(e);
     if (Object.keys(e).length) return;
+    const fields = {
+      type,
+      title: title.trim(),
+      department,
+      amount: hasAmount && amountNumber > 0 ? amountNumber : undefined,
+      startDate: type === 'leave' && startDate ? new Date(startDate).toISOString() : undefined,
+      endDate: type === 'leave' && endDate ? new Date(endDate).toISOString() : undefined,
+      description: description.trim(),
+      attachments,
+    };
+    if (existing) {
+      dispatch({ type: 'update', requestId: existing.id, patch: fields, submit });
+      toast({
+        tone: 'success',
+        title: submit ? (existing.status === 'changes' ? `Resubmitted ${existing.id}` : `Submitted ${existing.id}`) : `Saved ${existing.id}`,
+      });
+      navigate(`/requests/${existing.id}`);
+      return;
+    }
     const n = Math.max(0, ...state.requests.filter((r) => r.type === type).map((r) => Number(r.id.split('-')[1]) || 0)) + 1;
     const id = `${PREFIX[type]}-${String(n).padStart(4, '0')}`;
     const time = new Date().toISOString();
@@ -54,19 +132,12 @@ export function NewRequest() {
       type: 'create',
       request: {
         id,
-        type,
-        title: title.trim(),
+        ...fields,
         requesterId: me.id,
-        department,
-        amount: hasAmount && amountNumber > 0 ? amountNumber : undefined,
-        startDate: type === 'leave' ? new Date(startDate).toISOString() : undefined,
-        endDate: type === 'leave' ? new Date(endDate).toISOString() : undefined,
-        description: description.trim(),
         status: submit ? 'pending' : 'draft',
         createdAt: time,
         updatedAt: time,
         steps: submit ? route : [],
-        attachments: [],
         activity: submit ? [{ id: uid('a'), at: time, personId: me.id, kind: 'event', text: 'submitted the request' }] : [],
       },
     });
@@ -76,16 +147,26 @@ export function NewRequest() {
 
   return (
     <>
-      <PageHeader title="New request" backAction={{ content: 'Requests', href: '/requests' }} renderLink={headerLink} />
+      <PageHeader
+        title={existing ? `Edit ${existing.id}` : 'New request'}
+        subtitle={existing?.status === 'changes' ? 'Make the changes, then resubmit. It starts the approval route again.' : undefined}
+        backAction={existing ? { content: existing.title, href: `/requests/${existing.id}` } : { content: 'Requests', href: '/requests' }}
+        renderLink={headerLink}
+      />
       <form noValidate onSubmit={save(true)} className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Card>
           <div className="flex flex-col gap-5">
+            {returned?.comment ? (
+              <Banner tone="warning" title="What the approver asked for">
+                “{returned.comment}”
+              </Banner>
+            ) : null}
             {Object.keys(errors).length > 1 ? (
               <Banner tone="critical" title={`Fix ${Object.keys(errors).length} fields to submit`}>
                 Each problem is described next to its field.
               </Banner>
             ) : null}
-            <Field label="What kind of request?" required>
+            <Field label="What kind of request?" required disabled={existing !== undefined && existing.status !== 'draft'}>
               <Select
                 value={type}
                 onChange={(e) => setType(e.target.value as RequestType)}
@@ -117,12 +198,38 @@ export function NewRequest() {
             <Field label="Description" required helpText="What it’s for and why now. Approvers read this first." error={errors.description}>
               <Textarea rows={4} autoGrow value={description} onChange={(e) => setDescription(e.target.value)} />
             </Field>
+            <div className="flex flex-col gap-2">
+              <DropZone
+                label="Attachments"
+                multiple
+                maxFiles={10}
+                maxSize={20_000_000}
+                hint="Quotes, receipts or contracts. PDF, images or spreadsheets, up to 20 MB each."
+                error={fileError}
+                size="sm"
+                onDrop={(accepted, rejected) => {
+                  setAttachments((list) => [...list, ...accepted.map((f) => ({ name: f.name, size: f.size }))]);
+                  setFileError(rejected[0]?.message);
+                }}
+              />
+              {attachments.length ? (
+                <DropZoneFileList
+                  files={attachments.map((a) => ({ id: a.name, name: a.name, size: a.size }))}
+                  onRemove={(name) => setAttachments((list) => list.filter((a) => a.name !== name))}
+                />
+              ) : null}
+              <Text variant="caption" tone="muted">
+                In this prototype only the file name and size are kept.
+              </Text>
+            </div>
             <div className="flex flex-wrap justify-end gap-2">
-              <Button type="button" onClick={save(false)}>
-                Save draft
-              </Button>
+              {existing?.status !== 'changes' ? (
+                <Button type="button" onClick={save(false)}>
+                  Save draft
+                </Button>
+              ) : null}
               <Button type="submit" variant="primary">
-                Submit for approval
+                {existing?.status === 'changes' ? 'Resubmit' : 'Submit for approval'}
               </Button>
             </div>
           </div>

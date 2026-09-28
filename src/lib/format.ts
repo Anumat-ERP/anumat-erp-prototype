@@ -52,6 +52,7 @@ export const requestStatus: Record<RequestStatus, { label: string; tone: BadgeTo
   changes: { label: 'Changes requested', tone: 'critical' },
   approved: { label: 'Approved', tone: 'success' },
   declined: { label: 'Declined', tone: 'critical' },
+  withdrawn: { label: 'Withdrawn', tone: 'neutral' },
 };
 
 export const stepStatus: Record<StepStatus, string> = {

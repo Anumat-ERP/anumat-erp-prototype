@@ -12,20 +12,27 @@ Use the account menu → **Reset demo data** to start over.
 
 ## What you can try
 
+Start with **Demo tour** in the top bar: an 8-step, 3-minute walkthrough that
+resets the data and switches people for you. The full hackathon plan and demo
+script are in [docs/HACKATHON.md](docs/HACKATHON.md).
+
 | Screen | Try this |
 |---|---|
 | Home | See what is waiting on you, upcoming meetings, your tasks |
 | Requests | Search and filter; open **PR-1042** |
-| Request detail | **Approve**, **Request changes** or **Decline**; watch the approval route move on |
-| New request | Pick a type and amount; the approval route updates live |
+| Request detail | **Approve**, **Request changes** or **Decline**; schedule a meeting about it; withdraw your own |
+| New request | Pick a type and amount; the approval route updates live. Attach files, save a draft |
+| Edit and resubmit | As Alex Tan, open **PR-1036** (changes requested) and resubmit |
 | Approvals | Select several requests and approve them in one go |
-| Meetings | Record a decision; add an action item, which becomes a task |
+| Meetings | Schedule one; record a decision; add an action item, which becomes a task |
 | Documents | Open a document to see its version history |
 | Tasks | Tick tasks off or move them between columns |
+| Insights | Time to decision, where requests wait, spend by department |
 | Process Builder | Edit a route, add a step, change thresholds; **Try it** shows which steps run |
 
-You are signed in as **Dara Sok**, Operations Manager. Light and dark themes
-follow your system; switch with the moon/sun button.
+Use the account menu to **view the prototype as** any of the eight people
+(requester, manager, finance, legal, CEO…). Each has their own queue and
+notifications. Light and dark themes follow your system.
 
 ## How it is built
 

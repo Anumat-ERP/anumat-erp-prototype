@@ -6,6 +6,7 @@ import {
   DescriptionList,
   EmptyState,
   Field,
+  Modal,
   PageHeader,
   Text,
   Textarea,
@@ -29,6 +30,7 @@ export function RequestDetail() {
   const { toast } = useToast();
   const [decision, setDecision] = useState<Decision | null>(null);
   const [comment, setComment] = useState('');
+  const [confirmWithdraw, setConfirmWithdraw] = useState(false);
 
   const r = state.requests.find((x) => x.id === id);
   if (!r) {
@@ -46,6 +48,8 @@ export function RequestDetail() {
   const current = r.steps[i];
   const next = r.steps[i + 1];
   const mine = r.status === 'pending' && current?.approverId === me.id;
+  const requester = r.requesterId === me.id;
+  const open = r.status === 'pending' || r.status === 'changes';
   const meeting = state.meetings.find((m) => m.id === r.meetingId);
   const tasks = state.tasks.filter((t) => t.source?.href === `/requests/${r.id}`);
 
@@ -83,7 +87,7 @@ export function RequestDetail() {
         primaryAction={
           mine
             ? { content: 'Approve', onAction: () => setDecision('approve') }
-            : r.status === 'draft' && r.requesterId === me.id
+            : requester && r.status === 'draft'
               ? {
                   content: 'Submit for approval',
                   onAction: () => {
@@ -91,16 +95,22 @@ export function RequestDetail() {
                     toast({ tone: 'success', title: `Submitted ${r.id}` });
                   },
                 }
-              : undefined
+              : requester && r.status === 'changes'
+                ? { content: 'Edit and resubmit', onAction: () => navigate(`/requests/${r.id}/edit`) }
+                : undefined
         }
-        secondaryActions={
-          mine
+        secondaryActions={[
+          ...(mine
             ? [
                 { content: 'Request changes', onAction: () => setDecision('changes') },
                 { content: 'Decline', destructive: true, onAction: () => setDecision('decline') },
               ]
-            : undefined
-        }
+            : []),
+          ...(requester && r.status === 'draft' ? [{ content: 'Edit draft', onAction: () => navigate(`/requests/${r.id}/edit`) }] : []),
+          ...(open ? [{ content: 'Schedule a meeting', onAction: () => navigate(`/meetings/new?request=${r.id}`) }] : []),
+          ...(requester && open ? [{ content: 'Withdraw', destructive: true, onAction: () => setConfirmWithdraw(true) }] : []),
+        ]}
+        maxVisibleSecondaryActions={mine ? 2 : 1}
       />
 
       {mine ? (
@@ -109,9 +119,15 @@ export function RequestDetail() {
           {next ? ` After you, it goes to ${person(next.approverId).name} for ${next.name.toLowerCase()}.` : ' Yours is the final step.'}
         </Banner>
       ) : r.status === 'changes' ? (
-        <Banner tone="critical" title="Changes requested">
+        <Banner
+          tone="critical"
+          title="Changes requested"
+          action={requester ? { label: 'Edit and resubmit', onAction: () => navigate(`/requests/${r.id}/edit`) } : undefined}
+        >
           {r.steps.find((s) => s.status === 'returned')?.comment ?? 'The approver asked for changes.'}
         </Banner>
+      ) : r.status === 'withdrawn' ? (
+        <Banner tone="info">{requester ? 'You' : person(r.requesterId).name} withdrew this request. Nobody needs to act on it.</Banner>
       ) : r.status === 'pending' && current ? (
         <Banner tone="info">
           Waiting on {person(current.approverId).name} for {current.name.toLowerCase()}.
@@ -228,6 +244,24 @@ export function RequestDetail() {
         onClose={() => setDecision(null)}
         onConfirm={decide}
       />
+      <Modal
+        open={confirmWithdraw}
+        onOpenChange={setConfirmWithdraw}
+        title="Withdraw this request?"
+        description={`${r.id} · ${r.title}`}
+        primaryAction={{
+          content: 'Withdraw',
+          destructive: true,
+          onAction: () => {
+            dispatch({ type: 'withdraw', requestId: r.id });
+            setConfirmWithdraw(false);
+            toast({ title: `Withdrew ${r.id}` });
+          },
+        }}
+        secondaryActions={[{ content: 'Keep it', onAction: () => setConfirmWithdraw(false) }]}
+      >
+        <Text>Approvers stop seeing it in their queue. To ask again, create a new request.</Text>
+      </Modal>
     </>
   );
 }

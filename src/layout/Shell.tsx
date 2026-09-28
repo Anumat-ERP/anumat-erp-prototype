@@ -1,8 +1,10 @@
-import { ActionMenu, AppShell, Avatar, Badge, IconButton, Navigation, SearchField, useToast, type NavigationSection } from '@repo/ui';
-import { CalendarDays, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Sun, Workflow } from 'lucide-react';
+import { ActionMenu, AppShell, Avatar, Badge, Button, IconButton, Navigation, SearchField, useToast, type NavigationSection } from '@repo/ui';
+import { BarChart3, CalendarDays, Check, Presentation, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Sun, Workflow } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { Logo } from '../components/Logo';
+import { Notifications } from '../components/Notifications';
+import { TourPanel, useTour } from '../components/DemoTour';
 import { navLink } from '../components/links';
 import { useStore, waitingOnMe } from '../data/store';
 
@@ -27,6 +29,7 @@ export function Shell() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [theme, setTheme] = useTheme();
+  const tour = useTour();
 
   const waiting = waitingOnMe(state).length;
   const myOpenTasks = state.tasks.filter((t) => t.ownerId === me.id && t.status !== 'done').length;
@@ -59,7 +62,10 @@ export function Shell() {
     },
     {
       title: 'Workspace',
-      items: [{ label: 'Process Builder', href: '/processes', icon: <Workflow />, selected: at('/processes') }],
+      items: [
+        { label: 'Insights', href: '/insights', icon: <BarChart3 />, selected: at('/insights') },
+        { label: 'Process Builder', href: '/processes', icon: <Workflow />, selected: at('/processes') },
+      ],
     },
   ];
 
@@ -74,7 +80,8 @@ export function Shell() {
       <Badge tone="primary" size="sm" className="hidden sm:inline-flex">
         Prototype
       </Badge>
-      <div className="ms-auto w-full max-w-80">
+      {/* Phones use the search on the Requests page; the top bar has no room. */}
+      <div className="ms-auto hidden w-full max-w-80 sm:block">
         <SearchField
           label="Search requests"
           labelHidden
@@ -89,6 +96,19 @@ export function Shell() {
           }}
         />
       </div>
+      <Button
+        size="sm"
+        variant="tertiary"
+        icon={<Presentation />}
+        className="ms-auto hidden sm:ms-0 md:inline-flex"
+        onClick={tour.start}
+        title="Resets the demo data and walks through a 3-minute pitch"
+      >
+        Demo tour
+      </Button>
+      <span className="ms-auto sm:ms-0">
+        <Notifications />
+      </span>
       <IconButton
         icon={theme === 'dark' ? <Sun /> : <Moon />}
         label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
@@ -99,16 +119,38 @@ export function Shell() {
         trigger={
           <button
             type="button"
-            aria-label={`Account: ${me.name}`}
-            className="rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            aria-label={`Account: ${me.name}, ${me.role}. Switch who you are viewing as.`}
+            className="flex items-center gap-2 rounded-full py-0.5 ps-0.5 pe-2 hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <Avatar name={me.name} size="sm" decorative />
+            <span className="hidden flex-col text-start leading-tight lg:flex">
+              <span className="text-sm font-medium text-fg">{me.name}</span>
+              <span className="text-xs text-fg-muted">{me.role}</span>
+            </span>
           </button>
         }
         sections={[
-          { title: `${me.name} · ${me.role}`, items: [] },
+          {
+            title: 'View the prototype as',
+            items: state.people.map((p) => ({
+              content: p.name,
+              helpText: p.role,
+              icon: p.id === me.id ? <Check /> : <span aria-hidden className="size-4" />,
+              onAction: () => {
+                if (p.id === me.id) return;
+                dispatch({ type: 'switchUser', personId: p.id });
+                toast({ title: `Now viewing as ${p.name}`, description: p.role });
+              },
+            })),
+          },
           {
             items: [
+              {
+                content: 'Start demo tour',
+                icon: <Presentation />,
+                helpText: 'Resets the demo data and walks through a 3-minute pitch.',
+                onAction: tour.start,
+              },
               {
                 content: 'Reset demo data',
                 icon: <RotateCcw />,
@@ -131,6 +173,7 @@ export function Shell() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <Outlet />
       </div>
+      <TourPanel />
     </AppShell>
   );
 }

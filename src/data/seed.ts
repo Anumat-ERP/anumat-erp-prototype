@@ -235,6 +235,7 @@ const requests: Request[] = [
 
 export const seed: DataState = {
   meId: 'dara',
+  lastSeen: { dara: at(-2, 18), alex: at(-3, 18), priya: at(-3, 18), sokha: at(-10), maria: at(-10), daniel: at(-10), lina: at(-10), omar: at(-10) },
   people: [
     { id: 'dara', name: 'Dara Sok', role: 'Operations Manager', department: 'Operations' },
     { id: 'alex', name: 'Alex Tan', role: 'Operations Lead', department: 'Operations' },

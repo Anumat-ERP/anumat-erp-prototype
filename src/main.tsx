@@ -3,6 +3,7 @@ import { StrictMode, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, MemoryRouter } from 'react-router';
 import { App } from './App';
+import { TourProvider } from './components/DemoTour';
 import { StoreProvider } from './data/store';
 import './styles/app.css';
 
@@ -22,7 +23,9 @@ createRoot(document.getElementById('root')!).render(
       <StoreProvider>
         <TooltipProvider>
           <ToastProvider>
-            <App />
+            <TourProvider>
+              <App />
+            </TourProvider>
           </ToastProvider>
         </TooltipProvider>
       </StoreProvider>

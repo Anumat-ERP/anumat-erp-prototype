@@ -1,6 +1,6 @@
 import { Badge, Card, PageHeader, Text } from '@repo/ui';
 import { MapPin } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { AvatarGroup } from '../components/Person';
 import { useStore } from '../data/store';
 import type { Meeting } from '../data/types';
@@ -44,13 +44,18 @@ function MeetingRow({ m }: { m: Meeting }) {
 
 export function Meetings() {
   const { state } = useStore();
+  const navigate = useNavigate();
   const now = Date.now();
   const upcoming = state.meetings.filter((m) => new Date(m.start).getTime() >= now).sort((a, b) => a.start.localeCompare(b.start));
   const past = state.meetings.filter((m) => new Date(m.start).getTime() < now).sort((a, b) => b.start.localeCompare(a.start));
 
   return (
     <>
-      <PageHeader title="Meetings" subtitle="Agendas, decisions and the action items that come out of them." />
+      <PageHeader
+        title="Meetings"
+        subtitle="Agendas, decisions and the action items that come out of them."
+        primaryAction={{ content: 'Schedule a meeting', onAction: () => navigate('/meetings/new') }}
+      />
       {[
         { title: 'Upcoming', list: upcoming },
         { title: 'Past', list: past },
