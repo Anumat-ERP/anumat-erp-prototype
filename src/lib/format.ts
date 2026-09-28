@@ -1,5 +1,5 @@
 import type { BadgeTone } from '@repo/ui';
-import type { DocumentStatus, RequestStatus, RequestType, StepStatus } from '../data/types';
+import type { DocumentStatus, Process, RequestStatus, RequestType, StepStatus } from '../data/types';
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 export const formatMoney = (n?: number) => (n === undefined ? '—' : money.format(n));
@@ -39,7 +39,7 @@ export function daysUntil(iso: string) {
   return Math.round((a.getTime() - b.getTime()) / 86_400_000);
 }
 
-export const typeLabel: Record<RequestType, string> = {
+export const typeLabel: Record<string, string> = {
   purchase: 'Purchase',
   leave: 'Leave',
   expense: 'Expense',
@@ -75,3 +75,10 @@ export function formatBytesShort(bytes: number) {
   if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
   return `${Math.round(bytes / 1000)} KB`;
 }
+
+/** A request type's name: the built-in label, or the name of the process that defines it. */
+export function typeName(type: RequestType, processes: Process[]) {
+  return typeLabel[type] ?? processes.find((p) => p.requestType === type)?.name ?? 'Request';
+}
+
+export const isBuiltInType = (type: RequestType) => type in typeLabel;

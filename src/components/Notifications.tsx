@@ -41,9 +41,14 @@ export function Notifications() {
           <Text as="h2" variant="label">
             Notifications
           </Text>
-          <Text as="span" variant="caption" tone="muted">
-            {unread ? `${unread} new` : 'All read'}
-          </Text>
+          <span className="flex items-center gap-3">
+            <Text as="span" variant="caption" tone="muted">
+              {unread ? `${unread} new` : 'All read'}
+            </Text>
+            <Link to="/settings/notifications" onClick={() => setOpen(false)} className="text-sm text-fg-link underline underline-offset-2">
+              Settings
+            </Link>
+          </span>
         </div>
         {items.length ? (
           <ul className="max-h-96 divide-y divide-border overflow-y-auto">

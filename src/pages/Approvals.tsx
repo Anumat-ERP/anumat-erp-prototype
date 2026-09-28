@@ -5,12 +5,12 @@ import { Person } from '../components/Person';
 import { RequestIcon } from '../components/RequestIcon';
 import { StatusBadge } from '../components/StatusBadge';
 import { useStore, waitingOnMe } from '../data/store';
-import type { Request } from '../data/types';
-import { daysUntil, formatMoney, formatRelative, stepStatus, typeLabel } from '../lib/format';
+import type { Process, Request } from '../data/types';
+import { daysUntil, formatMoney, formatRelative, stepStatus, typeLabel, typeName } from '../lib/format';
 
 const REQUESTS = { singular: 'request', plural: 'requests' };
 
-function titleCell(r: Request) {
+function titleCell(r: Request, processes: Process[]) {
   return (
     <span className="flex min-w-0 items-center gap-3">
       <RequestIcon type={r.type} className="size-8" />
@@ -19,7 +19,7 @@ function titleCell(r: Request) {
           {r.title}
         </Link>
         <Text as="span" variant="caption" tone="muted">
-          {r.id} · {typeLabel[r.type]}
+          {r.id} · {typeName(r.type, processes)}
         </Text>
       </span>
     </span>
@@ -37,7 +37,7 @@ export function Approvals() {
     .sort((a, b) => (b.step?.at ?? '').localeCompare(a.step?.at ?? ''));
 
   const waitingColumns: DataTableColumn<Request>[] = [
-    { id: 'title', header: 'Request', cell: titleCell },
+    { id: 'title', header: 'Request', cell: (r) => titleCell(r, state.processes) },
     { id: 'from', header: 'From', cell: (r) => <Person id={r.requesterId} size="xs" /> },
     { id: 'step', header: 'Your step', cell: (r) => r.steps.find((s) => s.status === 'current')?.name },
     { id: 'amount', header: 'Amount', align: 'end', numeric: true, sortable: true, sortValue: (r) => r.amount ?? -1, cell: (r) => formatMoney(r.amount) },
@@ -54,7 +54,7 @@ export function Approvals() {
   ];
 
   const decidedColumns: DataTableColumn<(typeof decided)[number]>[] = [
-    { id: 'title', header: 'Request', cell: (x) => titleCell(x.r) },
+    { id: 'title', header: 'Request', cell: (x) => titleCell(x.r, state.processes) },
     { id: 'decision', header: 'Your decision', cell: (x) => (x.step ? stepStatus[x.step.status] : '') },
     { id: 'status', header: 'Now', cell: (x) => <StatusBadge status={x.r.status} size="sm" /> },
     { id: 'when', header: 'When', cell: (x) => <span className="text-fg-muted">{x.step?.at ? formatRelative(x.step.at) : ''}</span> },

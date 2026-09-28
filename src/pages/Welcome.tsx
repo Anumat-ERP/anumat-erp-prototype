@@ -106,7 +106,9 @@ export function Welcome() {
         return p ? [[p.id, i.role as 'admin' | 'member']] : [];
       }),
     );
-    dispatch({ type: 'setupOrg', name: name.trim(), size, activeProcessIds: processIds, access });
+    // The demo tour renames the current workspace; everyone else gets a new one.
+    if (params.get('demo')) dispatch({ type: 'setupOrg', name: name.trim(), size, activeProcessIds: processIds, access });
+    else dispatch({ type: 'createWorkspace', name: name.trim(), size, activeProcessIds: processIds, access });
     toast({
       tone: 'success',
       title: `Welcome to ${name.trim()}`,

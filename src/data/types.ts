@@ -10,9 +10,14 @@ export interface Person {
   role: string;
   department: string;
   access: Access;
+  /** Members allowed to create and edit approval processes (admins always can). */
+  canBuildProcesses?: boolean;
 }
 
-export type RequestType = 'purchase' | 'leave' | 'expense' | 'contract';
+/** Built-in request types have special fields (amount, leave dates). Admins can add more. */
+export type BuiltInType = 'purchase' | 'leave' | 'expense' | 'contract';
+/** A request type: a built-in one, or the id of a process an admin created. */
+export type RequestType = string;
 export type RequestStatus = 'draft' | 'pending' | 'changes' | 'approved' | 'declined' | 'withdrawn';
 export type StepStatus = 'done' | 'current' | 'waiting' | 'returned' | 'declined';
 
@@ -55,6 +60,8 @@ export interface Request {
   attachments: Attachment[];
   activity: Activity[];
   meetingId?: string;
+  /** Answers to a process's custom form fields, by field id. */
+  fields?: Record<string, string>;
 }
 
 export interface Decision {
@@ -162,10 +169,25 @@ export interface ProcessStep {
   slaHours: number;
 }
 
+export interface FormField {
+  id: string;
+  label: string;
+  kind: 'text' | 'number' | 'date';
+  required: boolean;
+}
+
 export interface Process {
   id: string;
   name: string;
   requestType: RequestType;
+  /** ID prefix for new requests, e.g. "TR" → TR-0001. Built-in types have their own. */
+  prefix?: string;
+  /** For custom types: does the request have an amount (used by amount rules)? */
+  hasAmount?: boolean;
+  /** Extra questions on the request form. */
+  fields?: FormField[];
+  /** Departments allowed to submit. Empty or missing: everyone. */
+  submitters?: string[];
   trigger: string;
   active: boolean;
   steps: ProcessStep[];
@@ -177,6 +199,36 @@ export interface Organization {
   name: string;
   /** Head-count band chosen at sign-up, e.g. "50–199". */
   size: string;
+}
+
+export interface Feedback {
+  id: string;
+  at: string;
+  personId: PersonId;
+  kind: 'survey' | 'feedback' | 'problem';
+  /** 0–10 "how likely to recommend", for surveys. */
+  score?: number;
+  text: string;
+}
+
+export interface Lead {
+  id: string;
+  at: string;
+  name: string;
+  email: string;
+  company: string;
+  size: string;
+  deployment: 'cloud' | 'private-cloud' | 'on-premise' | 'not-sure';
+  message: string;
+}
+
+export type NotificationEvent = 'approvals' | 'requestUpdates' | 'tasks' | 'meetings';
+export type Channel = 'email' | 'telegram';
+
+export interface NotificationPrefs {
+  /** Which extra channels each event goes to; in-app is always on. */
+  events: Record<NotificationEvent, Channel[]>;
+  telegram?: { username: string; connectedAt: string };
 }
 
 export interface DataState {
@@ -191,4 +243,9 @@ export interface DataState {
   processes: Process[];
   /** When each person last opened their notifications. */
   lastSeen: Record<PersonId, string>;
+  feedback: Feedback[];
+  leads: Lead[];
+  /** When each person last answered or dismissed the survey. */
+  surveyAt: Record<PersonId, string>;
+  notificationPrefs: Record<PersonId, NotificationPrefs>;
 }

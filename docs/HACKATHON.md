@@ -26,10 +26,18 @@ Done and verified in a browser (light, dark, phone width):
 | Permissions | Task owner, assigner and admins can change a task; others view only. Per-status rules: "Needs sign-off" (Done by default) and "Ask for a reason" (Blocked by default) |
 | Landing | Marketing page at `/` following the original sketch: hero with a live product preview, problem, flow, modules, use cases, security, pilot, FAQ, closing call to action |
 | Sign-in / sign-up | Mock sign-in at `/signin` (any email; `alex@…` signs in as Alex) and "Create your workspace" at `/welcome` |
+| Workspaces | One person can belong to several companies: the switcher at the top of the sidebar moves between **Lotus Logistics** and **Mekong Freight** (each with its own people, requests and role); "Create a workspace" adds another |
+| Telegram | Notification settings (`/settings/notifications`): choose Email and Telegram per event; connect Telegram with a one-time code. The Telegram preview (`/telegram`) shows what the bot sends, and **Approve** there approves in Anumat |
+| Calendar | Every meeting has **Add to Google Calendar** and an **.ics** download for Outlook and Apple Calendar |
+| Process builder | Admins create new request types ("New process") with an ID prefix, optional amount, custom form fields and who can submit; admins can give members the "Can build processes" permission; others see processes read-only |
+| Pricing & support | Public `/pricing`: Cloud, your own cloud, or on-premise, free during the pilot, with a contact-sales form. Help menu (?) → Help & support with Telegram, Facebook and email |
+| Feedback | A short survey (0–10 score + comment) appears after someone makes decisions, at most once a month; Help menu → Send feedback / Report a problem. Admins see NPS, comments and sales enquiries under **Feedback** |
 | Demo | Guided 9-step tour (top bar → **Demo tour**) that resets data and switches people for you |
 | Brand | Anumat design system + brand tokens, accessible contrast, dark mode |
 
-Not built: real backend, real sign-in and invites, email, real file storage, AI.
+Not built: real backend, real sign-in and invites, sending email or Telegram messages, real file storage, AI. Feedback and sales enquiries are saved in the browser only.
+
+**Before demo day, fill in `src/config.ts`:** the support Telegram, Facebook page and email, the sales email, the Telegram bot username, and optionally form-service URLs so feedback and enquiries reach you. Until then those links show "Not set up yet"; never put placeholder contacts there.
 
 **Accounts model (for judge questions):** the organisation is the account. The first person creates the workspace and becomes its owner; teammates join by invite or invite code; roles are Owner, Admin and Member; who approves comes from the approval processes (the org chart), not from a role; data is kept separate per organisation. After the hackathon, use a managed service with organisations built in (Clerk, Supabase Auth or Auth0) rather than building sign-in.
 
@@ -109,7 +117,7 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 | 0:30 | Problem → one place | Dara | "Everything waiting on Dara is now in one place." | Point at "Needs your decision" and the company name |
 | 0:45 | Ask | Alex | "Alex needs laptops. One form, and Anumat already shows who approves." | Change amount 7500 → 500 → 7500, Submit |
 | 1:10 | Approve | Dara | "It's at the top of Dara's queue with everything she needs." | Open it, Approve |
-| 1:25 | Rules route it | Priya | "Over $1,000, so Finance is next. Nobody chased anyone." | Open the bell, Approve |
+| 1:25 | Approve from Telegram | Priya | "Over $1,000, so Finance is next. Priya gets it on Telegram and approves with one tap. Nobody chased anyone." | Tap **Approve** on the laptops message |
 | 1:45 | Decide together | Dara | "Bigger calls happen in meetings, recorded next to the request." | Record a decision, add an action item for Alex |
 | 2:10 | Act | Alex | "That's now Alex's task, due this week, linked to the decision." | Point at it under This week, open it, tick one off |
 | 2:25 | Change the rules | Dara | "Operations owns the process, not IT." | Raise the Finance threshold, Try it |
@@ -123,15 +131,6 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 - The chevron minimizes the panel; pages leave room at the bottom so it never
   covers their last buttons.
 
----|---|---|---|---|
-| 0:00 | Problem | Dara | "Requests live in email, chat and spreadsheets. Nobody knows who decides or what's next." | Point at "Needs your decision" |
-| 0:20 | Ask | Alex | "Alex needs laptops. One form, and Anumat already shows who approves." | Change amount 7500 → 500 → 7500, Submit |
-| 0:50 | Approve | Dara | "It's at the top of Dara's queue with everything she needs." | Open it, Approve |
-| 1:10 | Rules route it | Priya | "Over $1,000, so Finance is next. Nobody chased anyone." | Open the bell, Approve |
-| 1:35 | Decide together | Dara | "Bigger calls happen in meetings, recorded next to the request." | Record a decision, add an action item for Alex |
-| 2:00 | Act | Alex | "That's now Alex's task, linked to the decision." | "Only my tasks", tick one off |
-| 2:20 | Change the rules | Dara | "Operations owns the process, not IT." | Raise the Finance threshold, Try it |
-| 2:40 | Track | Sokha | "Leadership sees how fast decisions happen, and where they stick. Ask, approve, move forward." | Hover "Where requests are waiting" |
 
 ---
 
@@ -158,6 +157,10 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 | How do you handle permissions? | Owner, Admin and Member roles. Approving follows the approval processes. Tasks can be changed by their owner, whoever assigned them, and admins; statuses can require sign-off or a reason. Show it with "View as" Lina, then Alex. |
 | Do you support RACI? | Yes, built into tasks and requests rather than a separate matrix: the owner is Responsible, whoever assigned it is Accountable and signs off, and you add Consulted and Informed people, each of whom gets the right notifications. |
 | Why not a full workflow editor for tasks? | Strict control lives in request approvals, where auditors need it. Tasks stay light so people keep them up to date; two per-status rules cover the real needs. |
+| Can one person be in several companies? | Yes. Accounts belong to a person; each workspace is a separate company with its own data and role. Show the workspace switcher. |
+| Do people have to open the app to approve? | No. They choose Telegram or email per event and can approve straight from Telegram (shown in the tour). Meetings go to Google Calendar, Outlook or Apple Calendar. |
+| Can customers add their own processes? | Yes. Admins, or members they allow, create request types with their own fields, route and who can submit. |
+| How do you sell and deploy it? | Free during the pilot. Cloud (we host), your own cloud, or on-premise for data that must stay in the country or building; see the Pricing page. |
 | What about data security? | Planned: encryption in transit and at rest, an audit trail (already visible as request activity), version history. |
 
 ---

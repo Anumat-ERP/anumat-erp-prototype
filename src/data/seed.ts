@@ -340,12 +340,25 @@ function withRaci(state: DataState): DataState {
 
 export const seed: DataState = withRaci({
   org: { name: 'Lotus Logistics', size: '50–199' },
+  feedback: [
+    { id: 'f1', at: at(-5, 16), personId: 'alex', kind: 'survey', score: 9, text: 'Much faster than chasing approvals on Telegram. Would love reminders there too.' },
+    { id: 'f2', at: at(-4, 11), personId: 'priya', kind: 'survey', score: 7, text: 'Finance review is clear. I need to see the budget line next to the amount.' },
+    { id: 'f3', at: at(-2, 9), personId: 'daniel', kind: 'feedback', text: 'Leave requests should show who else is off that week.' },
+  ],
+  leads: [],
+  surveyAt: { alex: at(-5, 16), priya: at(-4, 11), daniel: at(-2, 9) },
+  notificationPrefs: {
+    priya: {
+      events: { approvals: ['telegram'], requestUpdates: ['email'], tasks: ['telegram'], meetings: ['telegram'] },
+      telegram: { username: 'priya_shah', connectedAt: at(-20) },
+    },
+  },
   meId: 'dara',
   lastSeen: { dara: at(-2, 18), alex: at(-3, 18), priya: at(-3, 18), sokha: at(-10), maria: at(-10), daniel: at(-10), lina: at(-10), omar: at(-10) },
   people: [
     { id: 'dara', name: 'Dara Sok', role: 'Operations Manager', department: 'Operations', access: 'owner' },
     { id: 'alex', name: 'Alex Tan', role: 'Operations Lead', department: 'Operations', access: 'member' },
-    { id: 'priya', name: 'Priya Shah', role: 'Finance Manager', department: 'Finance', access: 'member' },
+    { id: 'priya', name: 'Priya Shah', role: 'Finance Manager', department: 'Finance', access: 'member', canBuildProcesses: true },
     { id: 'sokha', name: 'Sokha Chan', role: 'Chief Executive', department: 'Leadership', access: 'admin' },
     { id: 'maria', name: 'Maria Lopez', role: 'Legal Counsel', department: 'Legal', access: 'member' },
     { id: 'daniel', name: 'Daniel Kim', role: 'Head of People', department: 'People', access: 'member' },

@@ -8,6 +8,8 @@ import { StatusBadge } from '../components/StatusBadge';
 import { at } from '../data/seed';
 import { canEditTask, firstStatus, isDone, uid, useStore } from '../data/store';
 import { useTaskMover } from '../components/useTaskMover';
+import { downloadIcs, googleCalendarUrl } from '../lib/calendar';
+import { CalendarPlus, Download } from 'lucide-react';
 import { daysUntil, formatShortDate, formatTime, formatWeekday } from '../lib/format';
 
 export function MeetingDetail() {
@@ -153,6 +155,19 @@ export function MeetingDetail() {
         </div>
 
         <div className="flex min-w-0 flex-col gap-6">
+          <Card className="flex flex-col gap-3">
+            <CardHeader title="Add to your calendar" description="Anumat keeps the agenda and decisions; your calendar keeps the time." />
+            <div className="flex flex-wrap gap-2">
+              <Button icon={<CalendarPlus />} asChild>
+                <a href={googleCalendarUrl(m)} target="_blank" rel="noopener noreferrer">
+                  Google Calendar
+                </a>
+              </Button>
+              <Button icon={<Download />} onClick={() => downloadIcs(m)}>
+                Outlook or Apple (.ics)
+              </Button>
+            </div>
+          </Card>
           <Card>
             <CardHeader title="People" />
             <ul className="mt-3 flex flex-col gap-3">

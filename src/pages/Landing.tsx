@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { ContactChannels } from '../components/ContactChannels';
 import { Logo } from '../components/Logo';
 import { useTour } from '../components/DemoTour';
 
@@ -210,6 +211,11 @@ export function Landing() {
                   </a>
                 </li>
               ))}
+              <li>
+                <Link to="/pricing" className="rounded-sm text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                  Pricing
+                </Link>
+              </li>
             </ul>
           </nav>
           <div className="ms-auto flex items-center gap-2">
@@ -383,6 +389,9 @@ export function Landing() {
                 </Button>
                 <Button onClick={tour.start}>Take the tour</Button>
               </div>
+              <Text variant="bodySm" tone="muted">
+                Need your own cloud or on-premise? <Link to="/pricing" className="text-fg-link underline">See deployment options</Link>
+              </Text>
             </Card>
           </div>
         </Section>
@@ -435,15 +444,24 @@ export function Landing() {
                 </li>
               ))}
               <li>
+                <Link to="/pricing" className="text-fg-muted hover:text-fg">
+                  Pricing &amp; deployment
+                </Link>
+              </li>
+              <li>
                 <Link to="/signin" className="text-fg-muted hover:text-fg">
                   Sign in
                 </Link>
               </li>
             </ul>
           </nav>
-          <Text variant="bodySm" tone="muted">
-            © 2026 Anumat. Prototype for demonstration.
-          </Text>
+          <div className="flex flex-col gap-2">
+            <Text variant="label">Talk to us</Text>
+            <ContactChannels compact />
+            <Text variant="bodySm" tone="muted">
+              © 2026 Anumat. Prototype for demonstration.
+            </Text>
+          </div>
         </div>
       </footer>
     </div>

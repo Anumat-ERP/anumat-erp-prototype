@@ -1,4 +1,4 @@
-import { Avatar, Badge, Banner, Card, CardHeader, PageHeader, Select, Text, useToast } from '@repo/ui';
+import { Avatar, Badge, Banner, Card, CardHeader, Checkbox, PageHeader, Select, Text, useToast } from '@repo/ui';
 import { AppLink } from '../components/links';
 import { isAdmin, useStore } from '../data/store';
 import type { Access } from '../data/types';
@@ -18,7 +18,7 @@ const ROLES: { access: Access; name: string; can: string[] }[] = [
   {
     access: 'member',
     name: 'Member',
-    can: ['Raise requests, create tasks and meetings', 'Change tasks they own or assigned', 'View everything else in the workspace'],
+    can: ['Raise requests, create tasks and meetings', 'Change tasks they own or assigned', 'Build processes, if an admin allows it'],
   },
 ];
 
@@ -101,6 +101,15 @@ export function People() {
                     'No approval steps'
                   )}
                 </span>
+                <Checkbox
+                  label="Can build processes"
+                  checked={p.access !== 'member' || Boolean(p.canBuildProcesses)}
+                  disabled={!admin || p.access !== 'member'}
+                  onCheckedChange={(c) => {
+                    dispatch({ type: 'setBuilder', personId: p.id, on: c === true });
+                    toast({ title: c === true ? `${p.name} can now build processes` : `${p.name} can no longer build processes` });
+                  }}
+                />
                 {p.access === 'owner' ? (
                   <Badge tone="primary" className="w-36 justify-center">
                     Owner

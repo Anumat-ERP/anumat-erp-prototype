@@ -1,12 +1,14 @@
 import { ActionMenu, AppShell, Avatar, Badge, Button, IconButton, Navigation, SearchField, useToast, type NavigationSection } from '@repo/ui';
-import { BarChart3, CalendarDays, Check, Presentation, UsersRound, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Sun, Workflow } from 'lucide-react';
+import { BarChart3, CalendarDays, Check, CircleHelp, MessageSquareHeart, Presentation, UsersRound, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Sun, Workflow } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { Logo } from '../components/Logo';
 import { Notifications } from '../components/Notifications';
+import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
+import { FeedbackDialog, SurveyPrompt } from '../components/Feedback';
 import { useTour } from '../components/DemoTour';
 import { navLink } from '../components/links';
-import { isDone, useStore, waitingOnMe } from '../data/store';
+import { isAdmin, isDone, useStore, waitingOnMe } from '../data/store';
 
 type Theme = 'light' | 'dark';
 
@@ -30,6 +32,7 @@ export function Shell() {
   const { toast } = useToast();
   const [theme, setTheme] = useTheme();
   const tour = useTour();
+  const [feedback, setFeedback] = useState<'feedback' | 'problem' | null>(null);
 
   const waiting = waitingOnMe(state).length;
   const myOpenTasks = state.tasks.filter((t) => t.ownerId === me.id && !isDone(state, t)).length;
@@ -37,7 +40,6 @@ export function Shell() {
 
   const sections: NavigationSection[] = [
     {
-      title: state.org.name,
       items: [
         { label: 'Home', href: '/home', icon: <Home />, selected: at('/home') },
         { label: 'Requests', href: '/requests', icon: <FileText />, selected: at('/requests') },
@@ -67,6 +69,9 @@ export function Shell() {
         { label: 'Insights', href: '/insights', icon: <BarChart3 />, selected: at('/insights') },
         { label: 'Process Builder', href: '/processes', icon: <Workflow />, selected: at('/processes') },
         { label: 'People & roles', href: '/settings/people', icon: <UsersRound />, selected: at('/settings/people') },
+        ...(isAdmin(state)
+          ? [{ label: 'Feedback', href: '/settings/feedback', icon: <MessageSquareHeart />, selected: at('/settings/feedback') }]
+          : []),
       ],
     },
   ];
@@ -111,6 +116,17 @@ export function Shell() {
       <span className="ms-auto sm:ms-0">
         <Notifications />
       </span>
+      <ActionMenu
+        align="end"
+        trigger={<IconButton icon={<CircleHelp />} label="Help" />}
+        items={[
+          { content: 'Help & support', onAction: () => navigate('/support') },
+          { content: 'Send feedback', onAction: () => setFeedback('feedback') },
+          { content: 'Report a problem', onAction: () => setFeedback('problem') },
+          { content: 'Pricing & deployment', onAction: () => navigate('/pricing') },
+          { content: 'Start demo tour', icon: <Presentation />, onAction: tour.start },
+        ]}
+      />
       <IconButton
         icon={theme === 'dark' ? <Sun /> : <Moon />}
         label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
@@ -148,6 +164,16 @@ export function Shell() {
           {
             items: [
               {
+                content: 'Notification settings',
+                helpText: 'Email and Telegram, per kind of event.',
+                onAction: () => navigate('/settings/notifications'),
+              },
+              {
+                content: 'Telegram preview',
+                helpText: 'See and act on what the bot sends you.',
+                onAction: () => navigate('/telegram'),
+              },
+              {
                 content: 'Create a new workspace',
                 helpText: 'See sign-up as a new company. Keeps the demo data.',
                 onAction: () => navigate('/welcome'),
@@ -176,10 +202,17 @@ export function Shell() {
   );
 
   return (
-    <AppShell topBar={topBar} navigation={<Navigation sections={sections} renderLink={navLink} />} mainClassName="md:p-8">
+    <AppShell topBar={topBar} navigation={
+        <>
+          <WorkspaceSwitcher />
+          <Navigation sections={sections} renderLink={navLink} />
+        </>
+      } mainClassName="md:p-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <Outlet />
       </div>
+      <SurveyPrompt />
+      <FeedbackDialog kind={feedback} onClose={() => setFeedback(null)} />
     </AppShell>
   );
 }

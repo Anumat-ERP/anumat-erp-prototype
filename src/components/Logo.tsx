@@ -13,3 +13,16 @@ export function Logo({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** The mark alone (orange tile, A and check), for avatars and small spaces. */
+export function LogoMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden>
+      <rect width="64" height="64" rx="15" fill="#F26A1B" />
+      <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 51 L32 13 L48 51" stroke="#FFFFFF" strokeWidth="6.5" />
+        <path d="M25.5 38 L30 42.5 L39 32" stroke="#1B2230" strokeWidth="4.5" />
+      </g>
+    </svg>
+  );
+}

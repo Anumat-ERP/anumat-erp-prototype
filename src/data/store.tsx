@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import { seed } from './seed';
-import type { Access, Activity, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Task, TaskStatus, TaskStatusDef } from './types';
+import { mekongSeed } from './seedMekong';
+import type { Access, Activity, Channel, Lead, NotificationEvent, NotificationPrefs, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Task, TaskStatus, TaskStatusDef } from './types';
 
-const STORAGE_KEY = 'anumat-prototype-v6';
+const STORAGE_KEY = 'anumat-prototype-v9';
 
 type Action =
   | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string }
@@ -22,9 +23,17 @@ type Action =
   | { type: 'updateTask'; taskId: string; patch: Partial<Task> }
   | { type: 'deleteTask'; taskId: string }
   | { type: 'commentTask'; taskId: string; text: string }
+  | { type: 'addFeedback'; kind: 'survey' | 'feedback' | 'problem'; score?: number; text: string }
+  | { type: 'dismissSurvey' }
+  | { type: 'addLead'; lead: Omit<Lead, 'id' | 'at'> }
+  | { type: 'setChannel'; event: NotificationEvent; channel: Channel; on: boolean }
+  | { type: 'connectTelegram'; username: string }
+  | { type: 'disconnectTelegram' }
   | { type: 'saveStatuses'; statuses: TaskStatusDef[] }
   | { type: 'addDecision'; meetingId: string; text: string }
   | { type: 'saveProcess'; process: Process }
+  | { type: 'createProcess'; process: Process }
+  | { type: 'setBuilder'; personId: string; on: boolean }
   | { type: 'reset' };
 
 const now = () => new Date().toISOString();
@@ -163,6 +172,44 @@ function reducer(state: DataState, action: Action): DataState {
             : t,
         ),
       };
+    case 'addFeedback':
+      return {
+        ...state,
+        feedback: [{ id: uid('f'), at: now(), personId: state.meId, kind: action.kind, score: action.score, text: action.text }, ...state.feedback],
+        surveyAt: action.kind === 'survey' ? { ...state.surveyAt, [state.meId]: now() } : state.surveyAt,
+      };
+    case 'dismissSurvey':
+      return { ...state, surveyAt: { ...state.surveyAt, [state.meId]: now() } };
+    case 'addLead':
+      return { ...state, leads: [{ ...action.lead, id: uid('lead'), at: now() }, ...state.leads] };
+    case 'setChannel': {
+      const prefs = prefsFor(state, state.meId);
+      const list = prefs.events[action.event].filter((c) => c !== action.channel);
+      const events = { ...prefs.events, [action.event]: action.on ? [...list, action.channel] : list };
+      return { ...state, notificationPrefs: { ...state.notificationPrefs, [state.meId]: { ...prefs, events } } };
+    }
+    case 'connectTelegram': {
+      const prefs = prefsFor(state, state.meId);
+      // Connecting turns Telegram on for approvals and meetings, the two most useful in chat.
+      const add = (e: NotificationEvent) => (prefs.events[e].includes('telegram') ? prefs.events[e] : [...prefs.events[e], 'telegram' as const]);
+      return {
+        ...state,
+        notificationPrefs: {
+          ...state.notificationPrefs,
+          [state.meId]: {
+            events: { ...prefs.events, approvals: add('approvals'), meetings: add('meetings') },
+            telegram: { username: action.username, connectedAt: now() },
+          },
+        },
+      };
+    }
+    case 'disconnectTelegram': {
+      const prefs = prefsFor(state, state.meId);
+      const events = Object.fromEntries(
+        Object.entries(prefs.events).map(([k, v]) => [k, v.filter((c) => c !== 'telegram')]),
+      ) as NotificationPrefs['events'];
+      return { ...state, notificationPrefs: { ...state.notificationPrefs, [state.meId]: { events } } };
+    }
     case 'deleteTask':
       return { ...state, tasks: state.tasks.filter((t) => t.id !== action.taskId) };
     case 'saveStatuses': {
@@ -184,6 +231,10 @@ function reducer(state: DataState, action: Action): DataState {
           m.id === action.meetingId ? { ...m, decisions: [...m.decisions, { id: uid('d'), text: action.text }] } : m,
         ),
       };
+    case 'createProcess':
+      return { ...state, processes: [...state.processes, action.process] };
+    case 'setBuilder':
+      return { ...state, people: state.people.map((p) => (p.id === action.personId ? { ...p, canBuildProcesses: action.on } : p)) };
     case 'saveProcess':
       return { ...state, processes: state.processes.map((p) => (p.id === action.process.id ? action.process : p)) };
     case 'reset':
@@ -191,41 +242,102 @@ function reducer(state: DataState, action: Action): DataState {
   }
 }
 
-function load(): DataState {
+/** Everything, across workspaces: one person can belong to several companies. */
+interface Root {
+  active: string;
+  spaces: Record<string, DataState>;
+}
+
+type WorkspaceAction =
+  | { type: 'switchWorkspace'; id: string }
+  | { type: 'createWorkspace'; name: string; size: string; activeProcessIds: string[]; access?: Record<string, Access> };
+
+export type StoreAction = Action | WorkspaceAction;
+
+const initialRoot = (): Root => ({ active: 'lotus', spaces: { lotus: seed, mekong: mekongSeed } });
+
+function rootReducer(root: Root, action: StoreAction): Root {
+  switch (action.type) {
+    case 'switchWorkspace':
+      return root.spaces[action.id] ? { ...root, active: action.id } : root;
+    case 'createWorkspace': {
+      // A new company starts from the demo data, renamed and set up as chosen.
+      const id = uid('ws');
+      const me = root.spaces[root.active]?.meId ?? 'dara';
+      const base: DataState = { ...seed, meId: me, people: seed.people.map((p) => (p.id === me ? { ...p, access: 'owner' as const } : p.access === 'owner' ? { ...p, access: 'admin' as const } : p)) };
+      const space = reducer(base, { type: 'setupOrg', name: action.name, size: action.size, activeProcessIds: action.activeProcessIds, access: action.access });
+      return { active: id, spaces: { ...root.spaces, [id]: space } };
+    }
+    case 'reset':
+      return initialRoot();
+    default: {
+      const current = root.spaces[root.active];
+      if (!current) return root;
+      return { ...root, spaces: { ...root.spaces, [root.active]: reducer(current, action) } };
+    }
+  }
+}
+
+function load(): Root {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...seed, ...(JSON.parse(raw) as Partial<DataState>) };
+    if (raw) {
+      const saved = JSON.parse(raw) as Root;
+      if (saved.spaces?.[saved.active]) return saved;
+    }
   } catch {
     // Storage blocked or corrupt: start from the demo data.
   }
-  return seed;
+  return initialRoot();
+}
+
+export interface WorkspaceSummary {
+  id: string;
+  name: string;
+  access: Access | undefined;
 }
 
 interface Store {
   state: DataState;
-  dispatch: (action: Action) => void;
+  dispatch: (action: StoreAction) => void;
   person: (id: string) => DataState['people'][number];
   me: DataState['people'][number];
+  workspaces: WorkspaceSummary[];
+  activeWorkspace: string;
 }
 
 const StoreContext = createContext<Store | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, undefined, load);
+  const [root, dispatch] = useReducer(rootReducer, undefined, load);
+  const state = root.spaces[root.active] as DataState;
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(root));
     } catch {
       // Not saved; the demo still works for this visit.
     }
-  }, [state]);
+  }, [root]);
+
+  const workspaces = useMemo(
+    () =>
+      Object.entries(root.spaces).map(([id, s]) => ({
+        id,
+        name: s.org.name,
+        access: s.people.find((p) => p.id === s.meId)?.access,
+      })),
+    [root.spaces],
+  );
 
   const person = useCallback(
     (id: string) => state.people.find((p) => p.id === id) ?? { id, name: 'Unknown', role: '', department: '', access: 'member' as const },
     [state.people],
   );
-  const value = useMemo(() => ({ state, dispatch, person, me: person(state.meId) }), [state, person]);
+  const value = useMemo(
+    () => ({ state, dispatch, person, me: person(state.meId), workspaces, activeWorkspace: root.active }),
+    [state, person, workspaces, root.active],
+  );
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 
@@ -366,4 +478,32 @@ export function planMove(state: DataState, task: Task, statusId: TaskStatus): Mo
 /** Consulted people may comment on a task they can't edit; informed people only read. */
 export function canCommentOnTask(state: DataState, task: Task) {
   return canEditTask(state, task) || Boolean(task.consultedIds?.includes(state.meId));
+}
+
+const NO_EXTRA_CHANNELS: NotificationPrefs = { events: { approvals: [], requestUpdates: [], tasks: [], meetings: [] } };
+
+export function prefsFor(state: DataState, personId: string): NotificationPrefs {
+  return state.notificationPrefs[personId] ?? NO_EXTRA_CHANNELS;
+}
+
+/**
+ * Ask for survey feedback once someone has made a decision, and at most once
+ * every 30 days (answering or dismissing both count).
+ */
+export function surveyDue(state: DataState) {
+  const me = state.meId;
+  const decided = state.requests.some((r) => r.steps.some((s) => s.approverId === me && s.at && s.status !== 'current'));
+  const last = state.surveyAt[me];
+  return decided && (!last || Date.now() - new Date(last).getTime() > 30 * 86_400_000);
+}
+
+/** Admins, and members an admin allowed, can create and edit approval processes. */
+export function canBuildProcesses(state: DataState, personId = state.meId) {
+  return isAdmin(state, personId) || Boolean(state.people.find((p) => p.id === personId)?.canBuildProcesses);
+}
+
+/** Can the signed-in person raise requests of this process's type? */
+export function canSubmit(state: DataState, process: Process) {
+  const dept = state.people.find((p) => p.id === state.meId)?.department;
+  return !process.submitters?.length || (dept !== undefined && process.submitters.includes(dept));
 }

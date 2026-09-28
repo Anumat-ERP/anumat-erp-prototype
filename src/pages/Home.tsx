@@ -6,7 +6,7 @@ import { AvatarGroup } from '../components/Person';
 import { RequestIcon } from '../components/RequestIcon';
 import { firstStatus, isDone, useStore, waitingOnMe } from '../data/store';
 import { useTaskMover } from '../components/useTaskMover';
-import { daysUntil, formatMoney, formatRelative, formatTime, formatWeekday, typeLabel } from '../lib/format';
+import { daysUntil, formatMoney, formatRelative, formatTime, formatWeekday, typeLabel, typeName } from '../lib/format';
 
 function greeting() {
   const h = new Date().getHours();
@@ -96,7 +96,7 @@ export function Home() {
                           {r.title}
                         </Text>
                         <Text as="span" variant="bodySm" tone="muted" truncate>
-                          {typeLabel[r.type]} · {r.id} · {person(r.requesterId).name} · {formatRelative(r.createdAt)}
+                          {typeName(r.type, state.processes)} · {r.id} · {person(r.requesterId).name} · {formatRelative(r.createdAt)}
                         </Text>
                       </span>
                       {r.amount !== undefined ? (

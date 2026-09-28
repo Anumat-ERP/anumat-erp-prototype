@@ -7,16 +7,16 @@ import { RequestIcon } from '../components/RequestIcon';
 import { StatusBadge } from '../components/StatusBadge';
 import { useStore } from '../data/store';
 import type { Request, RequestStatus, RequestType } from '../data/types';
-import { formatMoney, formatRelative, requestStatus, typeLabel } from '../lib/format';
+import { formatMoney, formatRelative, requestStatus, typeLabel, typeName } from '../lib/format';
 
 const STATUS_OPTIONS = (Object.keys(requestStatus) as RequestStatus[]).map((s) => ({ value: s, label: requestStatus[s].label }));
-const TYPE_OPTIONS = (Object.keys(typeLabel) as RequestType[]).map((t) => ({ value: t, label: typeLabel[t] }));
 
 export function Requests() {
   const { state, me } = useStore();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [scope, setScope] = useState<'all' | 'mine'>('all');
+  const TYPE_OPTIONS = state.processes.map((p) => ({ value: p.requestType, label: typeName(p.requestType, state.processes) }));
   const query = params.get('q') ?? '';
   const statuses = (params.get('status')?.split(',').filter(Boolean) ?? []) as RequestStatus[];
   const types = (params.get('type')?.split(',').filter(Boolean) ?? []) as RequestType[];
@@ -61,7 +61,7 @@ export function Requests() {
               {r.title}
             </Link>
             <Text as="span" variant="caption" tone="muted">
-              {r.id} · {typeLabel[r.type]}
+              {r.id} · {typeName(r.type, state.processes)}
             </Text>
           </span>
         </span>
@@ -134,7 +134,7 @@ export function Requests() {
             ...(statuses.length
               ? [{ key: 'status', label: `Status: ${statuses.map((s) => requestStatus[s].label).join(', ')}`, onRemove: () => set('status', '') }]
               : []),
-            ...(types.length ? [{ key: 'type', label: `Type: ${types.map((t) => typeLabel[t]).join(', ')}`, onRemove: () => set('type', '') }] : []),
+            ...(types.length ? [{ key: 'type', label: `Type: ${types.map((t) => typeName(t, state.processes)).join(', ')}`, onRemove: () => set('type', '') }] : []),
           ],
         }}
         emptyState={

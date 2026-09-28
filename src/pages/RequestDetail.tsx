@@ -21,7 +21,7 @@ import { AppLink, headerLink } from '../components/links';
 import { Person } from '../components/Person';
 import { StatusBadge } from '../components/StatusBadge';
 import { useStore } from '../data/store';
-import { formatBytesShort, formatDate, formatDateTime, formatMoney, formatRelative, typeLabel } from '../lib/format';
+import { formatBytesShort, formatDate, formatDateTime, formatMoney, formatRelative, typeLabel, typeName } from '../lib/format';
 
 export function RequestDetail() {
   const { id } = useParams();
@@ -68,11 +68,12 @@ export function RequestDetail() {
 
   const details = [
     { term: 'Request ID', description: <span className="font-mono text-sm">{r.id}</span> },
-    { term: 'Type', description: typeLabel[r.type] },
+    { term: 'Type', description: typeName(r.type, state.processes) },
     { term: 'Requested by', description: <Person id={r.requesterId} showRole /> },
     { term: 'Department', description: r.department },
     ...(r.amount !== undefined ? [{ term: 'Amount', description: <span className="font-semibold tabular-nums">{formatMoney(r.amount)}</span> }] : []),
     ...(r.startDate && r.endDate ? [{ term: 'Dates', description: `${formatDate(r.startDate)} – ${formatDate(r.endDate)}` }] : []),
+    ...(state.processes.find((p) => p.requestType === r.type)?.fields ?? []).map((f) => ({ term: f.label, description: r.fields?.[f.id] || '—' })),
     { term: 'Submitted', description: r.status === 'draft' ? 'Not yet' : formatDateTime(r.createdAt) },
   ];
 
@@ -81,7 +82,7 @@ export function RequestDetail() {
       <PageHeader
         title={r.title}
         titleMetadata={<StatusBadge status={r.status} />}
-        subtitle={`${typeLabel[r.type]} request from ${person(r.requesterId).name} · updated ${formatRelative(r.updatedAt)}`}
+        subtitle={`${typeName(r.type, state.processes)} request from ${person(r.requesterId).name} · updated ${formatRelative(r.updatedAt)}`}
         backAction={{ content: 'Requests', href: '/requests' }}
         renderLink={headerLink}
         primaryAction={

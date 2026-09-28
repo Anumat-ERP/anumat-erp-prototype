@@ -35,6 +35,13 @@ script are in [docs/HACKATHON.md](docs/HACKATHON.md).
 | Process Builder | Edit a route, add a step, change thresholds; **Try it** shows which steps run |
 | People & roles (`/settings/people`) | Owner / Admin / Member, and where each person approves. Admins change roles |
 | RACI | Open a task: **R** owner and **A** assigner are shown; add **C**onsulted and **I**nformed people. As **Priya**, filter *Where I’m consulted* and comment. Each request page shows a RACI worked out from its approval route |
+| Workspaces | The switcher at the top of the sidebar moves between **Lotus Logistics** and **Mekong Freight**; each has its own people, data and your role there |
+| Notifications (`/settings/notifications`) | Pick Email or Telegram per event; **Connect Telegram** with a one-time code |
+| Telegram preview (`/telegram`) | As **Priya**, see what the bot sends and tap **Approve**: the request is approved in Anumat |
+| Add to calendar | Open a meeting: **Add to Google Calendar** or download an **.ics** for Outlook and Apple |
+| New process | As an admin (or a member with *Can build processes*), Processes → **New process**: name, ID prefix, amount on or off, form fields, who can submit |
+| Pricing (`/pricing`) | Cloud, your own cloud or on-premise; **Contact sales** form |
+| Help & support | The **?** menu: contact channels, send feedback, report a problem. Admins see scores and enquiries under **Feedback** |
 | Permissions | As **Lina**, Alex's tasks are view only. As **Alex**, ticking a task Dara assigned sends it to her for sign-off; moving to Blocked asks why. As **Dara**, sign it off from the list or the bell |
 
 Use the account menu to **view the prototype as** any of the eight people
@@ -53,8 +60,13 @@ notifications. Light and dark themes follow your system.
   [anumat-erp-branding](https://github.com/Anumat-ERP/anumat-erp-branding):
   Anumat Orange with Ink text, warm Paper background, Plus Jakarta Sans and
   JetBrains Mono.
-- **Data:** `src/data/seed.ts` (demo data, dates relative to today) and
-  `src/data/store.tsx` (reducer, saved to `localStorage`).
+- **Data:** `src/data/seed.ts` and `src/data/seedMekong.ts` (two demo
+  workspaces, dates relative to today) and `src/data/store.tsx` (reducer, saved
+  to `localStorage`).
+- **Contact details:** `src/config.ts` holds the support Telegram, Facebook and
+  email, the sales email, the Telegram bot and optional form-service URLs. They
+  are empty until you fill them in, and the app shows "Not set up yet" instead
+  of a made-up link.
 
 ```
 src/

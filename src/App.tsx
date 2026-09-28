@@ -14,7 +14,12 @@ import { NewMeeting } from './pages/NewMeeting';
 import { NewRequest } from './pages/NewRequest';
 import { NotFound } from './pages/NotFound';
 import { ProcessEditor } from './pages/ProcessEditor';
+import { FeedbackAdmin } from './pages/FeedbackAdmin';
+import { NotificationSettings } from './pages/NotificationSettings';
 import { People } from './pages/People';
+import { TelegramPreview } from './pages/TelegramPreview';
+import { Pricing } from './pages/Pricing';
+import { Support } from './pages/Support';
 import { Processes } from './pages/Processes';
 import { RequestDetail } from './pages/RequestDetail';
 import { Requests } from './pages/Requests';
@@ -38,6 +43,7 @@ export function App() {
       <Routes>
         <Route index element={<Landing />} />
         <Route path="signin" element={<SignIn />} />
+        <Route path="pricing" element={<Pricing />} />
         <Route path="welcome" element={<Welcome />} />
         <Route element={<Shell />}>
           <Route path="home" element={<Home />} />
@@ -53,6 +59,10 @@ export function App() {
           <Route path="tasks" element={<Tasks />} />
           <Route path="insights" element={<Insights />} />
           <Route path="settings/people" element={<People />} />
+          <Route path="settings/feedback" element={<FeedbackAdmin />} />
+          <Route path="support" element={<Support />} />
+          <Route path="settings/notifications" element={<NotificationSettings />} />
+          <Route path="telegram" element={<TelegramPreview />} />
           <Route path="processes" element={<Processes />} />
           <Route path="processes/:id" element={<ProcessEditor />} />
           <Route path="*" element={<NotFound />} />
