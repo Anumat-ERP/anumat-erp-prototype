@@ -100,6 +100,21 @@ function TaskRow({ task, state, onOpen, move }: { task: Task; state: DataState; 
               <span>Has notes</span>
             </>
           ) : null}
+          {task.comments?.length ? (
+            <>
+              <span aria-hidden>·</span>
+              <span>
+                {task.comments.length} {task.comments.length === 1 ? 'comment' : 'comments'}
+              </span>
+            </>
+          ) : null}
+          {task.consultedIds?.includes(state.meId) ? (
+            <Badge size="sm" tone="info">
+              You’re consulted
+            </Badge>
+          ) : task.informedIds?.includes(state.meId) ? (
+            <Badge size="sm">You’re informed</Badge>
+          ) : null}
           {!editable ? (
             <>
               <span aria-hidden>·</span>
@@ -205,7 +220,12 @@ export function Tasks() {
   const tasks = useMemo(() => {
     const q = query.trim().toLowerCase();
     return state.tasks
-      .filter((t) => owner === 'all' || t.ownerId === ownerId)
+      .filter((t) => {
+        if (owner === 'all') return true;
+        if (owner === 'consulted') return t.consultedIds?.includes(me.id);
+        if (owner === 'informed') return t.informedIds?.includes(me.id);
+        return t.ownerId === ownerId;
+      })
       .filter((t) => {
         if (source === 'any') return true;
         if (source === 'none') return !t.source;
@@ -213,7 +233,7 @@ export function Tasks() {
       })
       .filter((t) => !q || t.title.toLowerCase().includes(q) || t.notes?.toLowerCase().includes(q) || t.source?.label.toLowerCase().includes(q))
       .sort((a, b) => a.due.localeCompare(b.due));
-  }, [state.tasks, owner, ownerId, source, query]);
+  }, [state.tasks, owner, ownerId, source, query, me.id]);
 
   const open = tasks.filter((t) => !isDone(state, t));
   const done = tasks.filter((t) => isDone(state, t)).sort((a, b) => (b.doneAt ?? '').localeCompare(a.doneAt ?? ''));
@@ -257,10 +277,12 @@ export function Tasks() {
             onChange={(e) => setOwner(e.target.value)}
             options={[
               { value: 'me', label: 'My tasks' },
+              { value: 'consulted', label: 'Where I’m consulted' },
+              { value: 'informed', label: 'Where I’m informed' },
               { value: 'all', label: 'Everyone' },
               { label: 'People', options: state.people.filter((p) => p.id !== me.id).map((p) => ({ value: p.id, label: p.name })) },
             ]}
-            className="w-36"
+            className="w-48"
           />
           <Select
             size="sm"
@@ -288,7 +310,9 @@ export function Tasks() {
           ) : (
             <EmptyState
               size="card"
-              heading={owner === 'me' ? 'Nothing on your plate' : 'No tasks yet'}
+              heading={
+                owner === 'consulted' ? 'Nobody needs your input' : owner === 'informed' ? 'Nothing to follow' : owner === 'me' ? 'Nothing on your plate' : 'No tasks yet'
+              }
               action={<Button onClick={() => setCreating(true)}>New task</Button>}
             >
               Action items from meetings and requests show up here.
@@ -299,7 +323,8 @@ export function Tasks() {
         <Card flush>
           {open.length === 0 ? (
             <Text tone="muted" className="px-4 pt-4">
-              All caught up. Nothing open{owner === 'me' ? '' : ` for ${owner === 'all' ? 'anyone' : person(owner).name}`}.
+              All caught up. Nothing open
+              {owner === 'me' || owner === 'consulted' || owner === 'informed' ? '' : ` for ${owner === 'all' ? 'anyone' : person(owner).name}`}.
             </Text>
           ) : null}
           <Group title="Overdue" tone="critical" tasks={groups.overdue} state={state} onOpen={openDrawer} move={move} />

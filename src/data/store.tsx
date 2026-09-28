@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
 import { seed } from './seed';
 import type { Access, Activity, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Task, TaskStatus, TaskStatusDef } from './types';
 
-const STORAGE_KEY = 'anumat-prototype-v5';
+const STORAGE_KEY = 'anumat-prototype-v6';
 
 type Action =
   | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string }
@@ -21,6 +21,7 @@ type Action =
   | { type: 'addTask'; task: Task }
   | { type: 'updateTask'; taskId: string; patch: Partial<Task> }
   | { type: 'deleteTask'; taskId: string }
+  | { type: 'commentTask'; taskId: string; text: string }
   | { type: 'saveStatuses'; statuses: TaskStatusDef[] }
   | { type: 'addDecision'; meetingId: string; text: string }
   | { type: 'saveProcess'; process: Process }
@@ -130,6 +131,7 @@ function reducer(state: DataState, action: Action): DataState {
           if (action.patch.status !== undefined && action.patch.status !== t.status) {
             const done = statusDef(state, next.status).category === 'done';
             next.doneAt = done ? (t.doneAt ?? now()) : undefined;
+            next.statusChangedAt = now();
           }
           return next;
         }),
@@ -152,6 +154,15 @@ function reducer(state: DataState, action: Action): DataState {
     }
     case 'setAccess':
       return { ...state, people: state.people.map((p) => (p.id === action.personId ? { ...p, access: action.access } : p)) };
+    case 'commentTask':
+      return {
+        ...state,
+        tasks: state.tasks.map((t) =>
+          t.id === action.taskId
+            ? { ...t, comments: [...(t.comments ?? []), { id: uid('c'), at: now(), personId: state.meId, text: action.text }] }
+            : t,
+        ),
+      };
     case 'deleteTask':
       return { ...state, tasks: state.tasks.filter((t) => t.id !== action.taskId) };
     case 'saveStatuses': {
@@ -273,7 +284,25 @@ export function notificationsFor(state: DataState): Notification[] {
       text: `finished “${t.title}” and asked you to sign off`,
       href: '/tasks',
     }));
-  return [...fromRequests, ...fromMeetings, ...fromTasks].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20);
+  // RACI: consulted people are asked for input before sign-off; informed people hear when it's done or blocked.
+  const fromRaci = state.tasks.flatMap((t) => {
+    const status = statusDef(state, t.status);
+    const out: Notification[] = [];
+    if (t.consultedIds?.includes(me) && t.signOffRequestedAt) {
+      out.push({ id: `c-${t.id}`, at: t.signOffRequestedAt, personId: t.ownerId, text: `asked for your input on “${t.title}” before sign-off`, href: '/tasks' });
+    }
+    if (t.informedIds?.includes(me) && t.statusChangedAt && (status.category === 'done' || status.requireNote)) {
+      out.push({
+        id: `i-${t.id}-${t.statusChangedAt}`,
+        at: t.statusChangedAt,
+        personId: t.ownerId,
+        text: status.category === 'done' ? `finished “${t.title}”` : `marked “${t.title}” ${status.name.toLowerCase()}${t.statusNote ? `: ${t.statusNote}` : ''}`,
+        href: '/tasks',
+      });
+    }
+    return out;
+  });
+  return [...fromRequests, ...fromMeetings, ...fromTasks, ...fromRaci].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20);
 }
 
 const UNKNOWN_STATUS: TaskStatusDef = { id: 'unknown', name: 'Unknown', category: 'todo', tone: 'neutral' };
@@ -332,4 +361,9 @@ export function planMove(state: DataState, task: Task, statusId: TaskStatus): Mo
   }
   if (target.requireNote) return { kind: 'note' };
   return { kind: 'move' };
+}
+
+/** Consulted people may comment on a task they can't edit; informed people only read. */
+export function canCommentOnTask(state: DataState, task: Task) {
+  return canEditTask(state, task) || Boolean(task.consultedIds?.includes(state.meId));
 }

@@ -22,6 +22,7 @@ Done and verified in a browser (light, dark, phone width):
 | Tasks | List grouped by due date, or board by status; filters by person, source and search; task detail panel; new task; workspace-defined statuses (e.g. Blocked, In review) in three fixed categories |
 | Insights | Time to decision vs target, where requests wait, spend by department, weekly volume |
 | People | "View as" any of 8 people; notifications bell per person; People & roles page (Owner / Admin / Member) |
+| RACI | Tasks: R = owner, A = assigner (signs off), plus Consulted (can comment, asked for input before sign-off) and Informed (told when done or blocked); filters for *Where I’m consulted / informed*; meeting attendees and request approvers are informed by default. Requests show a derived RACI card |
 | Permissions | Task owner, assigner and admins can change a task; others view only. Per-status rules: "Needs sign-off" (Done by default) and "Ask for a reason" (Blocked by default) |
 | Landing | Marketing page at `/` following the original sketch: hero with a live product preview, problem, flow, modules, use cases, security, pilot, FAQ, closing call to action |
 | Sign-in / sign-up | Mock sign-in at `/signin` (any email; `alex@…` signs in as Alex) and "Create your workspace" at `/welcome` |
@@ -155,6 +156,7 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 | How do people sign up? | A company creates a workspace; teammates join by invite or code with a role (the sign-up step of the demo). |
 | Can teams use their own task statuses? | Yes. Each workspace defines its statuses (Blocked, In review…), each in a To do / In progress / Done category, so reports and due dates keep working. |
 | How do you handle permissions? | Owner, Admin and Member roles. Approving follows the approval processes. Tasks can be changed by their owner, whoever assigned them, and admins; statuses can require sign-off or a reason. Show it with "View as" Lina, then Alex. |
+| Do you support RACI? | Yes, built into tasks and requests rather than a separate matrix: the owner is Responsible, whoever assigned it is Accountable and signs off, and you add Consulted and Informed people, each of whom gets the right notifications. |
 | Why not a full workflow editor for tasks? | Strict control lives in request approvals, where auditors need it. Tasks stay light so people keep them up to date; two per-status rules cover the real needs. |
 | What about data security? | Planned: encryption in transit and at rest, an audit trail (already visible as request activity), version history. |
 

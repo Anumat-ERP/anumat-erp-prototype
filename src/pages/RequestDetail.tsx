@@ -206,6 +206,39 @@ export function RequestDetail() {
 
         <div className="flex min-w-0 flex-col gap-6">
           <Card>
+            <CardHeader title="RACI" description="Worked out from the approval route and the linked meeting." />
+            {(() => {
+              const approvers = [...new Set(r.steps.map((s) => s.approverId))];
+              const accountable = r.steps[r.steps.length - 1]?.approverId;
+              const consulted = approvers.filter((id) => id !== accountable && id !== r.requesterId);
+              const informed = (meeting?.attendeeIds ?? []).filter((id) => id !== r.requesterId && !approvers.includes(id));
+              const rows: [string, string, string[], string][] = [
+                ['R', 'Responsible', [r.requesterId], 'raised it and does the work'],
+                ['A', 'Accountable', accountable ? [accountable] : [], 'makes the final call'],
+                ['C', 'Consulted', consulted, 'review it on the way'],
+                ['I', 'Informed', informed, 'follow it from the meeting'],
+              ];
+              return (
+                <dl className="mt-3 grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-3 gap-y-2.5 text-md">
+                  {rows.map(([letter, word, ids, hint]) => (
+                    <div key={letter} className="contents">
+                      <dt className="pt-0.5 font-mono text-sm font-semibold text-fg-muted" title={word}>
+                        {letter}
+                        <span className="sr-only">{word.slice(1)}</span>
+                      </dt>
+                      <dd className="flex flex-col">
+                        <span>{ids.length ? ids.map((id) => (id === me.id ? 'You' : person(id).name)).join(', ') : '—'}</span>
+                        <Text as="span" variant="caption" tone="muted">
+                          {ids.length ? hint : r.status === 'draft' ? 'Set when submitted' : 'Nobody'}
+                        </Text>
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              );
+            })()}
+          </Card>
+          <Card>
             <CardHeader title="Approval route" />
             <div className="mt-4">
               <ApprovalTimeline steps={r.steps} />

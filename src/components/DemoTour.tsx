@@ -62,7 +62,7 @@ export const TOUR: Step[] = [
     title: 'Act',
     as: 'alex',
     to: '/tasks',
-    say: 'That action item is now Alex’s task, due this week, linked to the decision. When he finishes it, Dara signs it off.',
+    say: 'That action item is now Alex’s task, due this week, linked to the decision. RACI is built in: Alex is responsible, Dara accountable, and the rest of the meeting is kept informed.',
     doThis: 'Point at it under “This week”, open it to show where it came from, then tick it: it goes to Dara for sign-off.',
   },
   {

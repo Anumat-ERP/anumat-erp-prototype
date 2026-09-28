@@ -313,7 +313,32 @@ function withAssigners(tasks: Task[]): Task[] {
   });
 }
 
-export const seed: DataState = {
+/** Example consulted people, so the RACI view has something to show. */
+const CONSULTED: Record<string, string[]> = { t3: ['omar', 'priya'], m8: ['priya'], m9: ['dara'], t1: ['priya'] };
+
+/**
+ * RACI defaults for demo tasks: other meeting attendees, or the request's
+ * approvers, are kept informed. R (owner) and A (assigner) are already set.
+ */
+function withRaci(state: DataState): DataState {
+  const informedFor = (t: Task) => {
+    const href = t.source?.href ?? '';
+    const meeting = state.meetings.find((m) => href === `/meetings/${m.id}`);
+    const request = state.requests.find((r) => href === `/requests/${r.id}`);
+    const ids = meeting ? meeting.attendeeIds : request ? request.steps.map((s) => s.approverId) : [];
+    return [...new Set(ids)].filter((id) => id !== t.ownerId && id !== t.assignedById);
+  };
+  return {
+    ...state,
+    tasks: state.tasks.map((t) => ({
+      ...t,
+      consultedIds: CONSULTED[t.id] ?? [],
+      informedIds: informedFor(t).filter((id) => !(CONSULTED[t.id] ?? []).includes(id)),
+    })),
+  };
+}
+
+export const seed: DataState = withRaci({
   org: { name: 'Lotus Logistics', size: '50–199' },
   meId: 'dara',
   lastSeen: { dara: at(-2, 18), alex: at(-3, 18), priya: at(-3, 18), sokha: at(-10), maria: at(-10), daniel: at(-10), lina: at(-10), omar: at(-10) },
@@ -544,4 +569,4 @@ export const seed: DataState = {
       ],
     },
   ],
-};
+});

@@ -34,6 +34,7 @@ script are in [docs/HACKATHON.md](docs/HACKATHON.md).
 | Insights | Time to decision, where requests wait, spend by department |
 | Process Builder | Edit a route, add a step, change thresholds; **Try it** shows which steps run |
 | People & roles (`/settings/people`) | Owner / Admin / Member, and where each person approves. Admins change roles |
+| RACI | Open a task: **R** owner and **A** assigner are shown; add **C**onsulted and **I**nformed people. As **Priya**, filter *Where I’m consulted* and comment. Each request page shows a RACI worked out from its approval route |
 | Permissions | As **Lina**, Alex's tasks are view only. As **Alex**, ticking a task Dara assigned sends it to her for sign-off; moving to Blocked asks why. As **Dara**, sign it off from the list or the bell |
 
 Use the account menu to **view the prototype as** any of the eight people

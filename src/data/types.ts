@@ -135,6 +135,19 @@ export interface Task {
   statusNote?: string;
   /** Set when the owner finished it and it waits for the assigner's sign-off. */
   signOffRequestedAt?: string;
+  /** RACI: R is the owner and A the assigner; these are C and I. */
+  consultedIds?: PersonId[];
+  informedIds?: PersonId[];
+  comments?: TaskComment[];
+  /** When the status last changed; used to tell informed people. */
+  statusChangedAt?: string;
+}
+
+export interface TaskComment {
+  id: string;
+  at: string;
+  personId: PersonId;
+  text: string;
 }
 
 export interface ProcessStep {

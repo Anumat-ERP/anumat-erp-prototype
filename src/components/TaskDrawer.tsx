@@ -1,7 +1,9 @@
-import { Banner, DatePicker, Drawer, Field, Select, Text, Textarea, useToast } from '@repo/ui';
+import { Avatar, Banner, Button, DatePicker, Drawer, Field, Select, Text, Textarea, useToast } from '@repo/ui';
 import { useEffect, useState } from 'react';
 import { at } from '../data/seed';
-import { canEditTask, firstStatus, isAdmin, planMove, statusDef, uid, useStore } from '../data/store';
+import { canCommentOnTask, canEditTask, firstStatus, isAdmin, planMove, statusDef, uid, useStore } from '../data/store';
+import { formatRelative } from '../lib/format';
+import { PeoplePicker } from './PeoplePicker';
 import type { Task } from '../data/types';
 import { AppLink } from './links';
 
@@ -20,6 +22,7 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
   const [draft, setDraft] = useState<Task>(task ?? blank());
   const [error, setError] = useState<string>();
   const [statusError, setStatusError] = useState<string>();
+  const [comment, setComment] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Reset the form whenever a different task (or a new one) is opened.
@@ -27,6 +30,7 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
     setDraft(task ?? blank());
     setError(undefined);
     setStatusError(undefined);
+    setComment('');
     setConfirmDelete(false);
   }, [task?.id, creating]);
 
@@ -109,7 +113,7 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
             {planMove(state, task, task.status).kind === 'denied'
               ? (planMove(state, task, task.status) as { reason: string }).reason
               : 'You can’t change this task.'}{' '}
-            You can still see where it came from.
+            {task.consultedIds?.includes(me.id) ? 'You’re consulted, so you can comment.' : 'You can still see where it came from.'}
           </Banner>
         ) : null}
         {task?.signOffRequestedAt ? (
@@ -159,6 +163,67 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
             <Text>“{task.statusNote}”</Text>
           </div>
         ) : null}
+        <section aria-labelledby="raci-title" className="flex flex-col gap-3 rounded-lg border border-border p-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <Text as="h3" id="raci-title" variant="label">
+              RACI
+            </Text>
+            <Text as="span" variant="caption" tone="muted">
+              Who does it, who answers for it, who to ask, who to tell
+            </Text>
+          </div>
+          <dl className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-x-3 gap-y-3 text-md">
+            <dt className="pt-0.5 font-mono text-sm font-semibold text-fg-muted" title="Responsible">
+              R<span className="sr-only">esponsible</span>
+            </dt>
+            <dd className="flex items-center gap-2">
+              <Avatar name={person(draft.ownerId).name} size="xs" decorative />
+              {person(draft.ownerId).name}
+              <Text as="span" variant="caption" tone="muted">
+                does the work (owner)
+              </Text>
+            </dd>
+            <dt className="pt-0.5 font-mono text-sm font-semibold text-fg-muted" title="Accountable">
+              A<span className="sr-only">ccountable</span>
+            </dt>
+            <dd className="flex items-center gap-2">
+              <Avatar name={person(draft.assignedById ?? draft.ownerId).name} size="xs" decorative />
+              {person(draft.assignedById ?? draft.ownerId).name}
+              <Text as="span" variant="caption" tone="muted">
+                assigned it, signs it off
+              </Text>
+            </dd>
+            <dt className="pt-1.5 font-mono text-sm font-semibold text-fg-muted" title="Consulted">
+              C<span className="sr-only">onsulted</span>
+            </dt>
+            <dd>
+              <PeoplePicker
+                label="Consulted"
+                value={draft.consultedIds ?? []}
+                onChange={(ids) => setDraft({ ...draft, consultedIds: ids, informedIds: (draft.informedIds ?? []).filter((i) => !ids.includes(i)) })}
+                exclude={[draft.ownerId, draft.assignedById ?? draft.ownerId]}
+                disabled={!editable}
+                emptyText="Nobody to consult"
+              />
+            </dd>
+            <dt className="pt-1.5 font-mono text-sm font-semibold text-fg-muted" title="Informed">
+              I<span className="sr-only">nformed</span>
+            </dt>
+            <dd>
+              <PeoplePicker
+                label="Informed"
+                value={draft.informedIds ?? []}
+                onChange={(ids) => setDraft({ ...draft, informedIds: ids })}
+                exclude={[draft.ownerId, draft.assignedById ?? draft.ownerId, ...(draft.consultedIds ?? [])]}
+                disabled={!editable}
+                emptyText="Nobody to inform"
+              />
+            </dd>
+          </dl>
+          <Text variant="caption" tone="muted">
+            Consulted people can comment and are asked for input before sign-off. Informed people hear when it’s done or blocked.
+          </Text>
+        </section>
         <DatePicker
           disabled={!editable}
           label="Due"
@@ -172,6 +237,51 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
           <Text variant="bodySm" tone="muted">
             Assigned by {task.assignedById === me.id ? 'you' : person(task.assignedById).name}
           </Text>
+        ) : null}
+        {task && !creating ? (
+          <section aria-labelledby="comments-title" className="flex flex-col gap-3">
+            <Text as="h3" id="comments-title" variant="label">
+              Comments{task.comments?.length ? ` (${task.comments.length})` : ''}
+            </Text>
+            {task.comments?.length ? (
+              <ol className="flex flex-col gap-3">
+                {task.comments.map((c) => (
+                  <li key={c.id} className="flex gap-2">
+                    <Avatar name={person(c.personId).name} size="xs" decorative />
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <Text as="span" variant="bodySm">
+                        <span className="font-medium">{c.personId === me.id ? 'You' : person(c.personId).name}</span>
+                        <span className="text-fg-subtle"> · {formatRelative(c.at)}</span>
+                      </Text>
+                      <p className="rounded-md bg-surface-sunken px-3 py-2 text-md">{c.text}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+            {canCommentOnTask(state, task) ? (
+              <div className="flex flex-col gap-2">
+                <Field label="Add a comment" labelHidden>
+                  <Textarea rows={2} autoGrow placeholder="Add a comment…" value={comment} onChange={(e) => setComment(e.target.value)} />
+                </Field>
+                <Button
+                  size="sm"
+                  className="self-start"
+                  disabled={!comment.trim()}
+                  onClick={() => {
+                    dispatch({ type: 'commentTask', taskId: task.id, text: comment.trim() });
+                    setComment('');
+                  }}
+                >
+                  Comment
+                </Button>
+              </div>
+            ) : (
+              <Text variant="bodySm" tone="muted">
+                Only people working on it or consulted can comment.
+              </Text>
+            )}
+          </section>
         ) : null}
         {draft.source ? (
           <div className="flex flex-col gap-1">

@@ -134,7 +134,7 @@ export function MeetingDetail() {
                 }
                 dispatch({
                   type: 'addTask',
-                  task: { id: uid('t'), title: task.trim(), ownerId, due: at(7), status: firstStatus(state, 'todo'), assignedById: state.meId, source: { label: m.title, href } },
+                  task: { id: uid('t'), title: task.trim(), ownerId, due: at(7), status: firstStatus(state, 'todo'), assignedById: state.meId, informedIds: m.attendeeIds.filter((a) => a !== ownerId && a !== state.meId), consultedIds: [], source: { label: m.title, href } },
                 });
                 setTask('');
                 setTaskError(undefined);
