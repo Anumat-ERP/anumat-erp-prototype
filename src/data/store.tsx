@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import { seed } from './seed';
-import type { Activity, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Task, TaskStatus } from './types';
+import type { Activity, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Task, TaskStatus, TaskStatusDef } from './types';
 
-const STORAGE_KEY = 'anumat-prototype-v3';
+const STORAGE_KEY = 'anumat-prototype-v4';
 
 type Action =
   | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string }
@@ -17,6 +17,9 @@ type Action =
   | { type: 'setupOrg'; name: string; size: string; activeProcessIds: string[] }
   | { type: 'taskStatus'; taskId: string; status: TaskStatus }
   | { type: 'addTask'; task: Task }
+  | { type: 'updateTask'; taskId: string; patch: Partial<Task> }
+  | { type: 'deleteTask'; taskId: string }
+  | { type: 'saveStatuses'; statuses: TaskStatusDef[] }
   | { type: 'addDecision'; meetingId: string; text: string }
   | { type: 'saveProcess'; process: Process }
   | { type: 'reset' };
@@ -114,7 +117,32 @@ function reducer(state: DataState, action: Action): DataState {
     case 'markSeen':
       return { ...state, lastSeen: { ...state.lastSeen, [state.meId]: now() } };
     case 'taskStatus':
-      return { ...state, tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, status: action.status } : t)) };
+      return reducer(state, { type: 'updateTask', taskId: action.taskId, patch: { status: action.status } });
+    case 'updateTask':
+      return {
+        ...state,
+        tasks: state.tasks.map((t) => {
+          if (t.id !== action.taskId) return t;
+          const next = { ...t, ...action.patch };
+          if (action.patch.status !== undefined && action.patch.status !== t.status) {
+            const done = statusDef(state, next.status).category === 'done';
+            next.doneAt = done ? (t.doneAt ?? now()) : undefined;
+          }
+          return next;
+        }),
+      };
+    case 'deleteTask':
+      return { ...state, tasks: state.tasks.filter((t) => t.id !== action.taskId) };
+    case 'saveStatuses': {
+      // Tasks in a removed status go back to the first "to do" status.
+      const ids = new Set(action.statuses.map((s) => s.id));
+      const fallback = action.statuses.find((s) => s.category === 'todo')?.id ?? 'todo';
+      return {
+        ...state,
+        taskStatuses: action.statuses,
+        tasks: state.tasks.map((t) => (ids.has(t.status) ? t : { ...t, status: fallback, doneAt: undefined })),
+      };
+    }
     case 'addTask':
       return { ...state, tasks: [action.task, ...state.tasks] };
     case 'addDecision':
@@ -216,4 +244,20 @@ export function notificationsFor(state: DataState): Notification[] {
       href: `/meetings/${m.id}`,
     }));
   return [...fromRequests, ...fromMeetings].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20);
+}
+
+const UNKNOWN_STATUS: TaskStatusDef = { id: 'unknown', name: 'Unknown', category: 'todo', tone: 'neutral' };
+
+/** The definition of a task status, falling back to a neutral "to do" if it was removed. */
+export function statusDef(state: DataState, id: string): TaskStatusDef {
+  return state.taskStatuses.find((s) => s.id === id) ?? UNKNOWN_STATUS;
+}
+
+export function isDone(state: DataState, task: Task) {
+  return statusDef(state, task.status).category === 'done';
+}
+
+/** The first status in a category: where checkboxes send a task. */
+export function firstStatus(state: DataState, category: TaskStatusDef['category']) {
+  return state.taskStatuses.find((s) => s.category === category)?.id ?? category;
 }

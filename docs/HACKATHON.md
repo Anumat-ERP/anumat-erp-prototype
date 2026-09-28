@@ -19,7 +19,7 @@ Done and verified in a browser (light, dark, phone width):
 | Routing | Rules by type and amount; Process Builder edits steps, approvers, thresholds, SLAs with a "Try it" preview |
 | Meetings | List, schedule (also from a request, with suggested invitees), decisions, action items that become tasks |
 | Documents | List with filters, version history drawer |
-| Tasks | Board by status, "only my tasks", overdue flags |
+| Tasks | List grouped by due date, or board by status; filters by person, source and search; task detail panel; new task; workspace-defined statuses (e.g. Blocked, In review) in three fixed categories |
 | Insights | Time to decision vs target, where requests wait, spend by department, weekly volume |
 | People | "View as" any of 8 people; notifications bell per person |
 | Landing | Marketing page at `/` following the original sketch: hero with a live product preview, problem, flow, modules, use cases, security, pilot, FAQ, closing call to action |
@@ -109,7 +109,7 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 | 1:10 | Approve | Dara | "It's at the top of Dara's queue with everything she needs." | Open it, Approve |
 | 1:25 | Rules route it | Priya | "Over $1,000, so Finance is next. Nobody chased anyone." | Open the bell, Approve |
 | 1:45 | Decide together | Dara | "Bigger calls happen in meetings, recorded next to the request." | Record a decision, add an action item for Alex |
-| 2:10 | Act | Alex | "That's now Alex's task, linked to the decision." | "Only my tasks", tick one off |
+| 2:10 | Act | Alex | "That's now Alex's task, due this week, linked to the decision." | Point at it under This week, open it, tick one off |
 | 2:25 | Change the rules | Dara | "Operations owns the process, not IT." | Raise the Finance threshold, Try it |
 | 2:45 | Track | Sokha | "Leadership sees how fast decisions happen, and where they stick. Ask, approve, move forward." | Hover "Where requests are waiting" |
 
@@ -152,6 +152,7 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 | How is this different from Kissflow or Odoo? | Focused on decisions, not a full ERP: request, meeting, decision and task are one linked record. |
 | Who buys it? | Operations leads at 50–500 person companies who approve spend and time off in email today. |
 | How do people sign up? | A company creates a workspace; teammates join by invite or code with a role (the sign-up step of the demo). |
+| Can teams use their own task statuses? | Yes. Each workspace defines its statuses (Blocked, In review…), each in a To do / In progress / Done category, so reports and due dates keep working. |
 | How do you handle permissions? | Admin, Approver and Member roles; the prototype shows each person's view through "View as". |
 | What about data security? | Planned: encryption in transit and at rest, an audit trail (already visible as request activity), version history. |
 

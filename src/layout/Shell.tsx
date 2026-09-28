@@ -6,7 +6,7 @@ import { Logo } from '../components/Logo';
 import { Notifications } from '../components/Notifications';
 import { useTour } from '../components/DemoTour';
 import { navLink } from '../components/links';
-import { useStore, waitingOnMe } from '../data/store';
+import { isDone, useStore, waitingOnMe } from '../data/store';
 
 type Theme = 'light' | 'dark';
 
@@ -32,7 +32,7 @@ export function Shell() {
   const tour = useTour();
 
   const waiting = waitingOnMe(state).length;
-  const myOpenTasks = state.tasks.filter((t) => t.ownerId === me.id && t.status !== 'done').length;
+  const myOpenTasks = state.tasks.filter((t) => t.ownerId === me.id && !isDone(state, t)).length;
   const at = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   const sections: NavigationSection[] = [

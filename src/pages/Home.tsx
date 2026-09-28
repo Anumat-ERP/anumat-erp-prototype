@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router';
 import { AppLink } from '../components/links';
 import { AvatarGroup } from '../components/Person';
 import { RequestIcon } from '../components/RequestIcon';
-import { useStore, waitingOnMe } from '../data/store';
+import { firstStatus, isDone, useStore, waitingOnMe } from '../data/store';
 import { daysUntil, formatMoney, formatRelative, formatTime, formatWeekday, typeLabel } from '../lib/format';
 
 function greeting() {
@@ -37,8 +37,11 @@ export function Home() {
   const waiting = waitingOnMe(state);
   const inFlight = state.requests.filter((r) => r.status === 'pending').length;
   const approved30 = state.requests.filter((r) => r.status === 'approved' && daysUntil(r.updatedAt) > -30).length;
-  const myTasks = state.tasks.filter((t) => t.ownerId === me.id && t.status !== 'done');
-  const overdue = state.tasks.filter((t) => t.status !== 'done' && daysUntil(t.due) < 0).length;
+  const myTasks = state.tasks
+    .filter((t) => t.ownerId === me.id && !isDone(state, t))
+    .sort((a, b) => a.due.localeCompare(b.due))
+    .slice(0, 5);
+  const overdue = state.tasks.filter((t) => !isDone(state, t) && daysUntil(t.due) < 0).length;
   const upcoming = state.meetings
     .filter((m) => new Date(m.start).getTime() > Date.now())
     .sort((a, b) => a.start.localeCompare(b.start))
@@ -175,7 +178,7 @@ export function Home() {
                     <li key={t.id}>
                       <Checkbox
                         checked={false}
-                        onCheckedChange={() => dispatch({ type: 'taskStatus', taskId: t.id, status: 'done' })}
+                        onCheckedChange={() => dispatch({ type: 'taskStatus', taskId: t.id, status: firstStatus(state, 'done') })}
                         label={t.title}
                         helpText={d < 0 ? `Overdue by ${-d} ${-d === 1 ? 'day' : 'days'}` : d === 0 ? 'Due today' : `Due in ${d} ${d === 1 ? 'day' : 'days'}`}
                       />

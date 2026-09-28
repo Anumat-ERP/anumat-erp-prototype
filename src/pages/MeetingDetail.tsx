@@ -6,7 +6,7 @@ import { AppLink, headerLink } from '../components/links';
 import { Person } from '../components/Person';
 import { StatusBadge } from '../components/StatusBadge';
 import { at } from '../data/seed';
-import { uid, useStore } from '../data/store';
+import { firstStatus, isDone, uid, useStore } from '../data/store';
 import { daysUntil, formatShortDate, formatTime, formatWeekday } from '../lib/format';
 
 export function MeetingDetail() {
@@ -102,12 +102,14 @@ export function MeetingDetail() {
                   return (
                     <li key={t.id} className="flex flex-wrap items-start justify-between gap-2">
                       <Checkbox
-                        checked={t.status === 'done'}
-                        onCheckedChange={(c) => dispatch({ type: 'taskStatus', taskId: t.id, status: c === true ? 'done' : 'todo' })}
+                        checked={isDone(state, t)}
+                        onCheckedChange={(c) =>
+                          dispatch({ type: 'taskStatus', taskId: t.id, status: firstStatus(state, c === true ? 'done' : 'todo') })
+                        }
                         label={t.title}
                         helpText={`${person(t.ownerId).name} · due ${formatShortDate(t.due)}`}
                       />
-                      {t.status !== 'done' && d < 0 ? (
+                      {!isDone(state, t) && d < 0 ? (
                         <Badge tone="critical" size="sm">
                           Overdue
                         </Badge>
@@ -131,7 +133,7 @@ export function MeetingDetail() {
                 }
                 dispatch({
                   type: 'addTask',
-                  task: { id: uid('t'), title: task.trim(), ownerId, due: at(7), status: 'todo', source: { label: m.title, href } },
+                  task: { id: uid('t'), title: task.trim(), ownerId, due: at(7), status: firstStatus(state, 'todo'), source: { label: m.title, href } },
                 });
                 setTask('');
                 setTaskError(undefined);

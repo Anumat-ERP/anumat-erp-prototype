@@ -1,5 +1,5 @@
 import type { BadgeTone } from '@repo/ui';
-import type { DocumentStatus, RequestStatus, RequestType, StepStatus, TaskStatus } from '../data/types';
+import type { DocumentStatus, RequestStatus, RequestType, StepStatus } from '../data/types';
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 export const formatMoney = (n?: number) => (n === undefined ? '—' : money.format(n));
@@ -63,11 +63,6 @@ export const stepStatus: Record<StepStatus, string> = {
   declined: 'Declined',
 };
 
-export const taskStatus: Record<TaskStatus, { label: string; tone: BadgeTone }> = {
-  todo: { label: 'To do', tone: 'neutral' },
-  doing: { label: 'In progress', tone: 'info' },
-  done: { label: 'Done', tone: 'success' },
-};
 
 export const docStatus: Record<DocumentStatus, { label: string; tone: BadgeTone }> = {
   draft: { label: 'Draft', tone: 'neutral' },

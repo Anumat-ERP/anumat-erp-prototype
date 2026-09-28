@@ -1,4 +1,4 @@
-import type { DataState, Request, StepStatus } from './types';
+import type { DataState, Request, StepStatus, Task } from './types';
 
 /** An ISO timestamp `days` from now (negative = past) at `hour`:`minute`. */
 export function at(days: number, hour = 9, minute = 0) {
@@ -233,6 +233,61 @@ const requests: Request[] = [
   },
 ];
 
+
+const SRC = {
+  pr1042: { label: 'PR-1042', href: '/requests/PR-1042' },
+  ct0412: { label: 'CT-0412', href: '/requests/CT-0412' },
+  ops: { label: 'Operations weekly', href: '/meetings/ops-weekly' },
+  budget: { label: 'Q4 budget review', href: '/meetings/q4-budget' },
+  hiring: { label: 'Hiring sync', href: '/meetings/hiring-sync' },
+  vendor: { label: 'Cloud hosting vendor review', href: '/meetings/vendor-review' },
+};
+
+// [title, owner, due (days from today), status, source, notes]
+const MORE: [string, string, number, string, keyof typeof SRC | null, string?][] = [
+  ['Set up accounts for the five new analysts', 'omar', 3, 'todo', 'hiring'],
+  ['Order access badges for new starters', 'daniel', 1, 'doing', 'hiring'],
+  ['Book onboarding sessions with each team lead', 'daniel', 6, 'todo', 'hiring'],
+  ['Prepare the week-one schedule for new analysts', 'alex', 8, 'todo', 'hiring'],
+  ['Collect bank details for payroll', 'daniel', -1, 'blocked', 'hiring', 'Waiting on two of the five starters to reply.'],
+  ['Check warranty terms on the recommended laptops', 'alex', 0, 'review', 'pr1042'],
+  ['Reserve desks on the third floor for the analysts', 'lina', 4, 'todo', 'pr1042'],
+  ['Confirm data-processing terms meet our customer contracts, including the EU clauses and the subprocessor list', 'maria', 2, 'doing', 'ct0412', 'Two customer contracts require 30 days’ notice of new subprocessors.'],
+  ['Compare the two-year price against a one-year renewal with the current discount', 'priya', 5, 'todo', 'ct0412'],
+  ['Draft the migration risk summary', 'omar', 9, 'todo', 'vendor'],
+  ['Ask the vendor for their uptime history', 'omar', -3, 'blocked', 'vendor', 'Vendor contact is out until Monday.'],
+  ['Map warehouse zones for the stock-count pilot', 'dara', 2, 'doing', 'ops'],
+  ['Pick two shifts to trial the new count process', 'alex', 5, 'todo', 'ops'],
+  ['Write the stock-count checklist', 'alex', 12, 'todo', 'ops'],
+  ['Share the pilot plan with the warehouse leads', 'dara', 7, 'todo', 'ops'],
+  ['Update the department budget tracker with Q4 lines', 'priya', 1, 'review', 'budget'],
+  ['Tell department heads the events budget is frozen until Q1', 'priya', -2, 'done', 'budget'],
+  ['Move the December offsite deposit request to Q1', 'daniel', 20, 'todo', 'budget'],
+  ['Renew the design tool licences before they lapse', 'lina', 10, 'todo', null],
+  ['Review the travel policy per-diem rates', 'daniel', 15, 'todo', null],
+  ['Archive last year’s expense policy', 'priya', -8, 'done', null],
+  ['Fix the printer on the second floor', 'omar', -5, 'done', null],
+  ['Plan the quarterly operations review', 'dara', 14, 'todo', null],
+  ['Send the monthly ops report to leadership', 'dara', -4, 'done', null],
+  ['Clean up duplicate supplier records', 'alex', -6, 'doing', null, 'About 40 duplicates left.'],
+  ['Get signatures on the Acme NDA renewal', 'maria', 25, 'todo', null],
+  ['Prepare the board pack for next month', 'sokha', 18, 'todo', null],
+  ['Review team goals with each department head', 'sokha', 3, 'doing', null],
+  ['Approve the updated org chart', 'sokha', -1, 'review', null],
+  ['Replace the meeting room screen', 'omar', 30, 'todo', null],
+];
+
+const MORE_TASKS: Task[] = MORE.map(([title, ownerId, days, status, source, notes], i) => ({
+  id: `m${i + 1}`,
+  title,
+  ownerId,
+  due: at(days),
+  status,
+  source: source ? SRC[source] : undefined,
+  notes,
+  doneAt: status === 'done' ? at(Math.min(days, -1), 15) : undefined,
+}));
+
 export const seed: DataState = {
   org: { name: 'Lotus Logistics', size: '50–199' },
   meId: 'dara',
@@ -391,16 +446,24 @@ export const seed: DataState = {
       versions: [{ version: 'v3', at: at(-280, 9, 0), authorId: 'priya', note: 'Replaced by the 2026 policy' }],
     },
   ],
+  taskStatuses: [
+    { id: 'todo', name: 'To do', category: 'todo', tone: 'neutral', locked: true },
+    { id: 'doing', name: 'In progress', category: 'active', tone: 'info' },
+    { id: 'blocked', name: 'Blocked', category: 'active', tone: 'critical' },
+    { id: 'review', name: 'In review', category: 'active', tone: 'warning' },
+    { id: 'done', name: 'Done', category: 'done', tone: 'success', locked: true },
+  ],
   tasks: [
     { id: 't1', title: 'Confirm laptop delivery date with supplier', ownerId: 'alex', due: at(2), status: 'doing', source: { label: 'PR-1042', href: '/requests/PR-1042' } },
     { id: 't2', title: 'Send onboarding checklist to new analysts', ownerId: 'daniel', due: at(5), status: 'todo', source: { label: 'Hiring sync', href: '/meetings/hiring-sync' } },
     { id: 't3', title: 'Review data-processing annex', ownerId: 'maria', due: at(1), status: 'doing', source: { label: 'CT-0412', href: '/requests/CT-0412' } },
     { id: 't4', title: 'Get a second quote for ergonomic chairs', ownerId: 'alex', due: at(-2), status: 'todo', source: { label: 'PR-1036', href: '/requests/PR-1036' } },
-    { id: 't5', title: 'Share Q4 budget with department heads', ownerId: 'priya', due: at(-3), status: 'done', source: { label: 'Q4 budget review', href: '/meetings/q4-budget' } },
+    { id: 't5', title: 'Share Q4 budget with department heads', ownerId: 'priya', due: at(-3), status: 'done', doneAt: at(-3, 16), source: { label: 'Q4 budget review', href: '/meetings/q4-budget' } },
     { id: 't6', title: 'Draft stock-count pilot plan', ownerId: 'dara', due: at(4), status: 'todo', source: { label: 'Operations weekly', href: '/meetings/ops-weekly' } },
     { id: 't7', title: 'Finish the barcode scanner request', ownerId: 'dara', due: at(-1), status: 'todo', source: { label: 'PR-1045', href: '/requests/PR-1045' } },
     { id: 't8', title: 'Update the vendor comparison with support SLAs', ownerId: 'omar', due: at(2), status: 'todo', source: { label: 'Cloud hosting vendor review', href: '/meetings/vendor-review' } },
-    { id: 't9', title: 'Approve Q4 team goals', ownerId: 'dara', due: at(-6), status: 'done' },
+    { id: 't9', title: 'Approve Q4 team goals', ownerId: 'dara', due: at(-6), status: 'done', doneAt: at(-6, 11) },
+    ...MORE_TASKS,
   ],
   processes: [
     {

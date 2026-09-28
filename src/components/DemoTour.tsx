@@ -62,8 +62,8 @@ export const TOUR: Step[] = [
     title: 'Act',
     as: 'alex',
     to: '/tasks',
-    say: 'That action item is now Alex’s task, with a deadline and a link back to the decision.',
-    doThis: 'Turn on “Only my tasks” and tick one off.',
+    say: 'That action item is now Alex’s task, due this week, with a link back to the decision.',
+    doThis: 'Point at it under “This week”, open it to show where it came from, then tick one off.',
   },
   {
     title: 'Change the rules',

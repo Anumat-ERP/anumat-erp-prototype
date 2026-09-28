@@ -30,7 +30,7 @@ script are in [docs/HACKATHON.md](docs/HACKATHON.md).
 | Approvals | Select several requests and approve them in one go |
 | Meetings | Schedule one; record a decision; add an action item, which becomes a task |
 | Documents | Open a document to see its version history |
-| Tasks | Tick tasks off or move them between columns |
+| Tasks | **List** grouped by due date (Overdue, Today, This week, Later, Done in the last 7 days) or **Board** by status. Filter by person, source or search; open a task to edit it; **Manage statuses** to add your own, like “QA check” |
 | Insights | Time to decision, where requests wait, spend by department |
 | Process Builder | Edit a route, add a step, change thresholds; **Try it** shows which steps run |
 

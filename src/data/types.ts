@@ -93,7 +93,22 @@ export interface Doc {
   versions: DocVersion[];
 }
 
-export type TaskStatus = 'todo' | 'doing' | 'done';
+/** Every status belongs to one fixed category; logic (done, overdue) looks at the category. */
+export type StatusCategory = 'todo' | 'active' | 'done';
+export type StatusTone = 'neutral' | 'info' | 'warning' | 'critical' | 'success' | 'primary';
+
+/** A task status the workspace defines, e.g. "Blocked" in the "active" category. */
+export interface TaskStatusDef {
+  id: string;
+  name: string;
+  category: StatusCategory;
+  tone: StatusTone;
+  /** "To do" and "Done" can be renamed but not removed. */
+  locked?: boolean;
+}
+
+/** The id of a TaskStatusDef. */
+export type TaskStatus = string;
 
 export interface Task {
   id: string;
@@ -102,6 +117,9 @@ export interface Task {
   due: string;
   status: TaskStatus;
   source?: { label: string; href: string };
+  notes?: string;
+  /** When it moved into a done-category status. */
+  doneAt?: string;
 }
 
 export interface ProcessStep {
@@ -141,6 +159,7 @@ export interface DataState {
   meetings: Meeting[];
   documents: Doc[];
   tasks: Task[];
+  taskStatuses: TaskStatusDef[];
   processes: Process[];
   /** When each person last opened their notifications. */
   lastSeen: Record<PersonId, string>;

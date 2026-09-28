@@ -1,93 +1,372 @@
-import { Badge, Card, Checkbox, PageHeader, Select, Switch, Text } from '@repo/ui';
-import { useState } from 'react';
-import { AppLink } from '../components/links';
-import { Person } from '../components/Person';
-import { useStore } from '../data/store';
-import type { TaskStatus } from '../data/types';
-import { daysUntil, formatShortDate, taskStatus } from '../lib/format';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  EmptyState,
+  PageHeader,
+  SearchField,
+  Select,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  Text,
+  cn,
+} from '@repo/ui';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useMemo, useState, type ReactNode } from 'react';
+import { StatusManager } from '../components/StatusManager';
+import { TaskDrawer } from '../components/TaskDrawer';
+import { firstStatus, isDone, statusDef, useStore } from '../data/store';
+import type { DataState, Task } from '../data/types';
+import { daysUntil, formatShortDate } from '../lib/format';
 
-const COLUMNS: TaskStatus[] = ['todo', 'doing', 'done'];
+type View = 'list' | 'board';
+type Source = 'any' | 'meeting' | 'request' | 'none';
+
+const RECENT_DONE_DAYS = 7;
+
+function dueLabel(task: Task, done: boolean) {
+  if (done) return task.doneAt ? `Done ${formatShortDate(task.doneAt)}` : 'Done';
+  const d = daysUntil(task.due);
+  if (d < 0) return `${-d} ${d === -1 ? 'day' : 'days'} overdue`;
+  if (d === 0) return 'Due today';
+  if (d === 1) return 'Due tomorrow';
+  return `Due ${formatShortDate(task.due)}`;
+}
+
+function recentlyDone(t: Task) {
+  return !t.doneAt || daysUntil(t.doneAt) >= -RECENT_DONE_DAYS;
+}
+
+/** One line per task: checkbox, title, then status, due and source in a quiet meta line. */
+function TaskRow({ task, state, onOpen }: { task: Task; state: DataState; onOpen: () => void }) {
+  const { person, dispatch } = useStore();
+  const done = isDone(state, task);
+  const status = statusDef(state, task.status);
+  const overdue = !done && daysUntil(task.due) < 0;
+  const owner = person(task.ownerId);
+  return (
+    <li className="flex items-start gap-3 px-4 py-2.5 hover:bg-surface-hover">
+      <Checkbox
+        className="mt-0.5"
+        labelHidden
+        label={done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}
+        checked={done}
+        onCheckedChange={(c) => dispatch({ type: 'taskStatus', taskId: task.id, status: firstStatus(state, c === true ? 'done' : 'todo') })}
+      />
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <button
+          type="button"
+          onClick={onOpen}
+          className={cn(
+            'truncate rounded-sm text-start text-md font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+            done ? 'text-fg-muted line-through' : 'text-fg',
+          )}
+          title={task.title}
+        >
+          {task.title}
+        </button>
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-muted">
+          {status.category === 'active' ? (
+            <Badge size="sm" tone={status.tone}>
+              {status.name}
+            </Badge>
+          ) : null}
+          <span className={overdue ? 'font-medium text-critical-subtle-fg' : undefined}>{dueLabel(task, done)}</span>
+          {task.source ? (
+            <>
+              <span aria-hidden>·</span>
+              <span className="truncate">{task.source.label}</span>
+            </>
+          ) : null}
+          {task.notes ? (
+            <>
+              <span aria-hidden>·</span>
+              <span>Has notes</span>
+            </>
+          ) : null}
+        </span>
+      </div>
+      <span className="flex shrink-0 items-center gap-2">
+        <Avatar name={owner.name} size="xs" decorative />
+        <span className="hidden w-24 truncate text-sm text-fg-muted md:inline">{owner.name}</span>
+        <span className="sr-only md:hidden">{owner.name}</span>
+      </span>
+    </li>
+  );
+}
+
+function Group({
+  title,
+  tone,
+  tasks,
+  state,
+  onOpen,
+  collapsible,
+  children,
+}: {
+  title: string;
+  tone?: 'critical';
+  tasks: Task[];
+  state: DataState;
+  onOpen: (t: Task) => void;
+  collapsible?: boolean;
+  children?: ReactNode;
+}) {
+  const [open, setOpen] = useState(!collapsible);
+  if (!tasks.length && !children) return null;
+  const id = `group-${title.toLowerCase().replace(/\s+/g, '-')}`;
+  const heading = (
+    <span className="flex items-center gap-2">
+      <span className={cn('text-md font-semibold', tone === 'critical' ? 'text-critical-subtle-fg' : 'text-fg')}>{title}</span>
+      <Badge size="sm" tone={tone ?? 'neutral'}>
+        {tasks.length}
+      </Badge>
+    </span>
+  );
+  return (
+    <section aria-labelledby={id} className="flex flex-col">
+      <h2 id={id} className="px-4 pt-4 pb-2">
+        {collapsible ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+            className="-ms-1 flex items-center gap-1 rounded-sm focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            {open ? <ChevronDown aria-hidden className="size-4" /> : <ChevronRight aria-hidden className="size-4" />}
+            {heading}
+          </button>
+        ) : (
+          heading
+        )}
+      </h2>
+      {open ? (
+        <>
+          <ul className="divide-y divide-border-subtle">
+            {tasks.map((t) => (
+              <TaskRow key={t.id} task={t} state={state} onOpen={() => onOpen(t)} />
+            ))}
+          </ul>
+          {children}
+        </>
+      ) : null}
+    </section>
+  );
+}
 
 export function Tasks() {
-  const { state, me, dispatch } = useStore();
-  const [mineOnly, setMineOnly] = useState(false);
-  const tasks = state.tasks
-    .filter((t) => !mineOnly || t.ownerId === me.id)
-    .sort((a, b) => a.due.localeCompare(b.due));
+  const { state, me, person, dispatch } = useStore();
+  const [view, setView] = useState<View>('list');
+  const [owner, setOwner] = useState('me');
+  const [source, setSource] = useState<Source>('any');
+  const [query, setQuery] = useState('');
+  const [showAllDone, setShowAllDone] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [managing, setManaging] = useState(false);
+
+  const openTask = state.tasks.find((t) => t.id === openId) ?? null;
+  const ownerId = owner === 'me' ? me.id : owner;
+
+  const tasks = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return state.tasks
+      .filter((t) => owner === 'all' || t.ownerId === ownerId)
+      .filter((t) => {
+        if (source === 'any') return true;
+        if (source === 'none') return !t.source;
+        return t.source?.href.startsWith(source === 'meeting' ? '/meetings/' : '/requests/');
+      })
+      .filter((t) => !q || t.title.toLowerCase().includes(q) || t.notes?.toLowerCase().includes(q) || t.source?.label.toLowerCase().includes(q))
+      .sort((a, b) => a.due.localeCompare(b.due));
+  }, [state.tasks, owner, ownerId, source, query]);
+
+  const open = tasks.filter((t) => !isDone(state, t));
+  const done = tasks.filter((t) => isDone(state, t)).sort((a, b) => (b.doneAt ?? '').localeCompare(a.doneAt ?? ''));
+  const shownDone = showAllDone ? done : done.filter(recentlyDone);
+  const hiddenDone = done.length - shownDone.length;
+  const groups = {
+    overdue: open.filter((t) => daysUntil(t.due) < 0),
+    today: open.filter((t) => daysUntil(t.due) === 0),
+    week: open.filter((t) => daysUntil(t.due) > 0 && daysUntil(t.due) <= 7),
+    later: open.filter((t) => daysUntil(t.due) > 7),
+  };
+  const filtered = Boolean(query || source !== 'any');
+  const clear = () => {
+    setQuery('');
+    setSource('any');
+    setOwner('all');
+  };
+  const openDrawer = (t: Task) => setOpenId(t.id);
 
   return (
     <>
-      <PageHeader title="Tasks" subtitle="Decisions turned into work, with an owner and a deadline." />
-      <Switch checked={mineOnly} onCheckedChange={setMineOnly} label="Only my tasks" />
-      <div className="grid gap-4 md:grid-cols-3">
-        {COLUMNS.map((col) => {
-          const list = tasks.filter((t) => t.status === col);
-          return (
-            <section key={col} aria-labelledby={`col-${col}`} className="flex min-w-0 flex-col gap-3 rounded-lg bg-surface-sunken p-3">
-              <div className="flex items-center justify-between px-1">
-                <Text as="h2" id={`col-${col}`} variant="label">
-                  {taskStatus[col].label}
-                </Text>
-                <Badge size="sm">{list.length}</Badge>
-              </div>
-              {list.length ? (
-                <ul className="flex flex-col gap-2">
-                  {list.map((t) => {
-                    const d = daysUntil(t.due);
-                    const overdue = t.status !== 'done' && d < 0;
-                    return (
-                      <li key={t.id}>
-                        <Card className="flex flex-col gap-3 p-3">
-                          <Checkbox
-                            checked={t.status === 'done'}
-                            onCheckedChange={(c) => dispatch({ type: 'taskStatus', taskId: t.id, status: c === true ? 'done' : 'todo' })}
-                            label={<span className={t.status === 'done' ? 'text-fg-muted line-through' : undefined}>{t.title}</span>}
-                          />
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <Person id={t.ownerId} size="xs" />
-                            {overdue ? (
-                              <Badge tone="critical" size="sm">
-                                Overdue · {formatShortDate(t.due)}
-                              </Badge>
-                            ) : (
-                              <Text as="span" variant="caption" tone="muted">
-                                Due {formatShortDate(t.due)}
-                              </Text>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            {t.source ? (
-                              <span className="text-sm">
-                                <AppLink to={t.source.href} tone="muted">
-                                  {t.source.label}
-                                </AppLink>
-                              </span>
-                            ) : (
-                              <span />
-                            )}
-                            <Select
-                              size="sm"
-                              aria-label={`Status of “${t.title}”`}
-                              value={t.status}
-                              onChange={(e) => dispatch({ type: 'taskStatus', taskId: t.id, status: e.target.value as TaskStatus })}
-                              options={COLUMNS.map((s) => ({ value: s, label: taskStatus[s].label }))}
-                              className="w-32"
-                            />
-                          </div>
-                        </Card>
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <Text tone="muted" variant="bodySm" className="px-1 pb-2">
-                  {col === 'done' ? 'Nothing finished yet.' : 'Nothing here.'}
-                </Text>
-              )}
-            </section>
-          );
-        })}
+      <PageHeader
+        title="Tasks"
+        subtitle="Decisions turned into work, with an owner and a deadline."
+        primaryAction={{ content: 'New task', onAction: () => setCreating(true) }}
+        secondaryActions={[{ content: 'Manage statuses', onAction: () => setManaging(true) }]}
+      />
+
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <Tabs value={view} onValueChange={(v) => setView(v as View)}>
+          <TabsList aria-label="Task view">
+            <TabsTrigger value="list">List</TabsTrigger>
+            <TabsTrigger value="board">Board</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            size="sm"
+            aria-label="Whose tasks"
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            options={[
+              { value: 'me', label: 'My tasks' },
+              { value: 'all', label: 'Everyone' },
+              { label: 'People', options: state.people.filter((p) => p.id !== me.id).map((p) => ({ value: p.id, label: p.name })) },
+            ]}
+            className="w-36"
+          />
+          <Select
+            size="sm"
+            aria-label="Where tasks came from"
+            value={source}
+            onChange={(e) => setSource(e.target.value as Source)}
+            options={[
+              { value: 'any', label: 'From anywhere' },
+              { value: 'meeting', label: 'From meetings' },
+              { value: 'request', label: 'From requests' },
+              { value: 'none', label: 'Added directly' },
+            ]}
+            className="w-40"
+          />
+          <SearchField label="Search tasks" labelHidden size="sm" placeholder="Search tasks" value={query} onChange={setQuery} className="w-full sm:w-56" />
+        </div>
       </div>
+
+      {tasks.length === 0 ? (
+        <Card>
+          {filtered ? (
+            <EmptyState size="card" heading="No tasks match" action={<Button onClick={clear}>Clear filters</Button>}>
+              Try another search, or show everyone’s tasks.
+            </EmptyState>
+          ) : (
+            <EmptyState
+              size="card"
+              heading={owner === 'me' ? 'Nothing on your plate' : 'No tasks yet'}
+              action={<Button onClick={() => setCreating(true)}>New task</Button>}
+            >
+              Action items from meetings and requests show up here.
+            </EmptyState>
+          )}
+        </Card>
+      ) : view === 'list' ? (
+        <Card flush>
+          {open.length === 0 ? (
+            <Text tone="muted" className="px-4 pt-4">
+              All caught up. Nothing open{owner === 'me' ? '' : ` for ${owner === 'all' ? 'anyone' : person(owner).name}`}.
+            </Text>
+          ) : null}
+          <Group title="Overdue" tone="critical" tasks={groups.overdue} state={state} onOpen={openDrawer} />
+          <Group title="Today" tasks={groups.today} state={state} onOpen={openDrawer} />
+          <Group title="This week" tasks={groups.week} state={state} onOpen={openDrawer} />
+          <Group title="Later" tasks={groups.later} state={state} onOpen={openDrawer} />
+          {done.length ? (
+            <Group title={showAllDone ? 'Done' : 'Done in the last 7 days'} tasks={shownDone} state={state} onOpen={openDrawer} collapsible>
+              {hiddenDone ? (
+                <div className="px-4 py-2">
+                  <Button size="sm" variant="plain" onClick={() => setShowAllDone(true)}>
+                    Show {hiddenDone} older done {hiddenDone === 1 ? 'task' : 'tasks'}
+                  </Button>
+                </div>
+              ) : null}
+            </Group>
+          ) : null}
+          <div className="h-2" />
+        </Card>
+      ) : (
+        <div className="overflow-x-auto pb-2" role="region" aria-label="Task board" tabIndex={0}>
+          <div className="flex w-max gap-4">
+            {state.taskStatuses.map((s) => {
+              const all = tasks.filter((t) => t.status === s.id);
+              const column = s.category === 'done' && !showAllDone ? all.filter(recentlyDone) : all;
+              return (
+                <section key={s.id} aria-labelledby={`col-${s.id}`} className="flex w-72 shrink-0 flex-col gap-2 rounded-lg bg-surface-sunken p-3">
+                  <h2 className="flex items-center justify-between px-1">
+                    <Badge id={`col-${s.id}`} tone={s.tone} size="sm">
+                      {s.name}
+                    </Badge>
+                    <Text as="span" variant="caption" tone="muted" numeric>
+                      {column.length}
+                      <span className="sr-only"> tasks</span>
+                    </Text>
+                  </h2>
+                  {column.length ? (
+                    <ul className="flex flex-col gap-2">
+                      {column.map((t) => {
+                        const overdue = s.category !== 'done' && daysUntil(t.due) < 0;
+                        return (
+                          <li key={t.id}>
+                            <Card className="flex flex-col gap-2 p-3">
+                              <button
+                                type="button"
+                                onClick={() => setOpenId(t.id)}
+                                className="line-clamp-2 rounded-sm text-start text-md font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+                                title={t.title}
+                              >
+                                {t.title}
+                              </button>
+                              <div className="flex items-center justify-between gap-2 text-sm">
+                                <span className="flex min-w-0 items-center gap-1.5 text-fg-muted">
+                                  <Avatar name={person(t.ownerId).name} size="xs" decorative />
+                                  <span className="truncate">{person(t.ownerId).name.split(' ')[0]}</span>
+                                </span>
+                                <span className={overdue ? 'shrink-0 font-medium text-critical-subtle-fg' : 'shrink-0 text-fg-muted'}>
+                                  {dueLabel(t, s.category === 'done')}
+                                </span>
+                              </div>
+                              <Select
+                                size="sm"
+                                aria-label={`Move “${t.title}” to`}
+                                value={t.status}
+                                onChange={(e) => dispatch({ type: 'taskStatus', taskId: t.id, status: e.target.value })}
+                                options={state.taskStatuses.map((x) => ({ value: x.id, label: x.name }))}
+                              />
+                            </Card>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <Text variant="bodySm" tone="muted" className="px-1 pb-1">
+                      Nothing here.
+                    </Text>
+                  )}
+                  {s.category === 'done' && all.length > column.length ? (
+                    <Button size="sm" variant="plain" className="self-start px-1" onClick={() => setShowAllDone(true)}>
+                      Show {all.length - column.length} older
+                    </Button>
+                  ) : null}
+                </section>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <TaskDrawer
+        task={openTask}
+        creating={creating}
+        onClose={() => {
+          setOpenId(null);
+          setCreating(false);
+        }}
+      />
+      <StatusManager open={managing} onClose={() => setManaging(false)} />
     </>
   );
 }
