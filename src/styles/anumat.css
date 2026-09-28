@@ -97,3 +97,24 @@
 html[data-tour] body {
   padding-bottom: 20rem;
 }
+
+/* Handwritten notes, marketing pages only (brand book: never in the product UI). */
+@font-face {
+  font-family: 'Caveat';
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../assets/fonts/Caveat-latin.woff2') format('woff2');
+}
+.an-hand {
+  font-family: 'Caveat', 'Segoe Print', cursive;
+}
+
+/* Module colours from the brand kit, used for module icons on the landing page. */
+:root {
+  --an-mod-requests: #2f6fdb;
+  --an-mod-approvals: #1f9d55;
+  --an-mod-meetings: #7a5ae0;
+  --an-mod-documents: #c98a0b;
+  --an-mod-tasks: #0f9488;
+  --an-mod-process: #c2417a;
+}

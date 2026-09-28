@@ -5,6 +5,8 @@ import { Shell } from './layout/Shell';
 import { Approvals } from './pages/Approvals';
 import { Documents } from './pages/Documents';
 import { Home } from './pages/Home';
+import { Landing } from './pages/Landing';
+import { SignIn } from './pages/SignIn';
 import { Insights } from './pages/Insights';
 import { MeetingDetail } from './pages/MeetingDetail';
 import { Meetings } from './pages/Meetings';
@@ -33,9 +35,11 @@ export function App() {
     <>
       <RouteFocus />
       <Routes>
+        <Route index element={<Landing />} />
+        <Route path="signin" element={<SignIn />} />
         <Route path="welcome" element={<Welcome />} />
         <Route element={<Shell />}>
-          <Route index element={<Home />} />
+          <Route path="home" element={<Home />} />
           <Route path="requests" element={<Requests />} />
           <Route path="requests/new" element={<NewRequest />} />
           <Route path="requests/:id" element={<RequestDetail />} />

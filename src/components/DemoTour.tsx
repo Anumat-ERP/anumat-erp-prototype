@@ -1,5 +1,5 @@
 import { Button, IconButton, Text } from '@repo/ui';
-import { ChevronDown, Presentation, X } from 'lucide-react';
+import { ChevronDown, Eye, EyeOff, Presentation, X } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { useStore } from '../data/store';
@@ -19,14 +19,14 @@ export const TOUR: Step[] = [
   {
     title: 'Sign up',
     as: 'dara',
-    to: '/welcome',
+    to: '/',
     say: 'Dara runs operations at a logistics company where approvals live in email. She sets up Anumat for the whole company in under a minute.',
-    doThis: 'Type the company name, Continue, glance at the invited team and their roles, Continue, Create workspace.',
+    doThis: 'Click Start free. The company name is filled in: Continue, glance at the team and their roles, Continue, Create workspace.',
   },
   {
     title: 'The problem',
     as: 'dara',
-    to: '/',
+    to: '/home',
     say: 'Before Anumat, requests lived in email, chat and spreadsheets. Now everything waiting on Dara is in one place.',
     doThis: 'Point at “Needs your decision” and the workspace name in the sidebar.',
   },
@@ -82,6 +82,7 @@ export const TOUR: Step[] = [
 ];
 
 const KEY = 'anumat-tour';
+const SCRIPT_KEY = 'anumat-tour-script';
 
 interface TourState {
   step: number | null;
@@ -128,6 +129,26 @@ export function TourProvider({ children }: { children: ReactNode }) {
     navigate(s.to);
     setStep(i);
   };
+  // Presentation clickers send PageDown/PageUp (some send arrow keys).
+  useEffect(() => {
+    if (step === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      const t = e.target as HTMLElement | null;
+      const typing = t?.closest('input, textarea, select, [contenteditable="true"]');
+      // Arrow keys belong to focused widgets (tabs, radios, menus); only take them from the page itself.
+      const inWidget = t && t !== document.body && t.closest('button, a, [role]');
+      const forward = e.key === 'PageDown' || (e.key === 'ArrowRight' && !inWidget);
+      const back = e.key === 'PageUp' || (e.key === 'ArrowLeft' && !inWidget);
+      if (typing || (!forward && !back)) return;
+      e.preventDefault();
+      if (forward && step < TOUR.length - 1) go(step + 1);
+      if (back && step > 0) go(step - 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   const start = () => {
     dispatch({ type: 'reset' });
     go(0);
@@ -140,6 +161,23 @@ export function TourPanel() {
   const { step, go, end } = useTour();
   const { person } = useStore();
   const [minimized, setMinimized] = useState(false);
+  // The script is hidden by default so the audience doesn't read it off the projector.
+  const [showScript, setShowScript] = useState(() => {
+    try {
+      return sessionStorage.getItem(SCRIPT_KEY) === 'show';
+    } catch {
+      return false;
+    }
+  });
+  const toggleScript = () => {
+    const next = !showScript;
+    setShowScript(next);
+    try {
+      sessionStorage.setItem(SCRIPT_KEY, next ? 'show' : 'hide');
+    } catch {
+      // Still toggles for this visit.
+    }
+  };
   if (step === null) return null;
   const s = TOUR[step];
   if (!s) return null;
@@ -165,21 +203,33 @@ export function TourPanel() {
         <div className="flex flex-col">
           <Text as="span" variant="caption" tone="muted" numeric>
             Demo tour · {step + 1} of {TOUR.length} · as {person(s.as).name}
+            <span className="sr-only">. Page Down for the next step, Page Up to go back.</span>
           </Text>
           <Text as="h2" variant="subtitle">
             {s.title}
           </Text>
         </div>
         <div className="flex shrink-0">
+          <IconButton
+            size="sm"
+            icon={showScript ? <EyeOff /> : <Eye />}
+            label={showScript ? 'Hide the script' : 'Show the script'}
+            aria-pressed={showScript}
+            onClick={toggleScript}
+          />
           <IconButton size="sm" icon={<ChevronDown />} label="Minimize demo tour" onClick={() => setMinimized(true)} />
           <IconButton size="sm" icon={<X />} label="End demo tour" onClick={end} />
         </div>
       </div>
-      <p className="border-s-2 border-primary ps-3 text-md text-fg">“{s.say}”</p>
-      <Text variant="bodySm" tone="muted">
-        <span className="font-semibold text-fg">Do: </span>
-        {s.doThis}
-      </Text>
+      {showScript ? (
+        <>
+          <p className="border-s-2 border-primary ps-3 text-md text-fg">“{s.say}”</p>
+          <Text variant="bodySm" tone="muted">
+            <span className="font-semibold text-fg">Do: </span>
+            {s.doThis}
+          </Text>
+        </>
+      ) : null}
       <ol className="flex gap-1" aria-hidden>
         {TOUR.map((t, i) => (
           <li key={t.title} className={i <= step ? 'h-1 flex-1 rounded-full bg-primary' : 'h-1 flex-1 rounded-full bg-border'} />

@@ -33,13 +33,13 @@ export function Shell() {
 
   const waiting = waitingOnMe(state).length;
   const myOpenTasks = state.tasks.filter((t) => t.ownerId === me.id && t.status !== 'done').length;
-  const at = (href: string) => (href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`));
+  const at = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   const sections: NavigationSection[] = [
     {
       title: state.org.name,
       items: [
-        { label: 'Home', href: '/', icon: <Home />, selected: at('/') },
+        { label: 'Home', href: '/home', icon: <Home />, selected: at('/home') },
         { label: 'Requests', href: '/requests', icon: <FileText />, selected: at('/requests') },
         {
           label: 'Approvals',
@@ -73,7 +73,7 @@ export function Shell() {
   const topBar = (
     <>
       <Link
-        to="/"
+        to="/home"
         className="flex shrink-0 items-center gap-2 rounded-md text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <Logo className="h-7 w-auto" />
@@ -163,7 +163,7 @@ export function Shell() {
                 helpText: 'Undo everything you changed in this prototype.',
                 onAction: () => {
                   dispatch({ type: 'reset' });
-                  navigate('/');
+                  navigate('/home');
                   toast({ title: 'Demo data reset' });
                 },
               },

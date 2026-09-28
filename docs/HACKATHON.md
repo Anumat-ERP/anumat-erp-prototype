@@ -22,7 +22,8 @@ Done and verified in a browser (light, dark, phone width):
 | Tasks | Board by status, "only my tasks", overdue flags |
 | Insights | Time to decision vs target, where requests wait, spend by department, weekly volume |
 | People | "View as" any of 8 people; notifications bell per person |
-| Sign-up | Mock "Create your workspace": company, invite team with roles or an invite code, pick starter processes |
+| Landing | Marketing page at `/` following the original sketch: hero with a live product preview, problem, flow, modules, use cases, security, pilot, FAQ, closing call to action |
+| Sign-in / sign-up | Mock sign-in at `/signin` (any email; `alex@…` signs in as Alex) and "Create your workspace" at `/welcome` |
 | Demo | Guided 9-step tour (top bar → **Demo tour**) that resets data and switches people for you |
 | Brand | Anumat design system + brand tokens, accessible contrast, dark mode |
 
@@ -54,6 +55,7 @@ Priorities: **P0** must ship for the demo · **P1** strongly recommended · **P2
 | # | Task | Priority | Notes |
 |---|---|---|---|
 | 1 | Turn on GitHub Pages and confirm the live URL | P0 | Settings → Pages → Source: GitHub Actions, then re-run the workflow |
+| 1b | Replace the landing page's pilot block with a real quote once a pilot user agrees to be named | P1 | Never show a made-up testimonial |
 | 2 | Rehearse the demo tour 5 times; fix every snag you hit | P0 | Keep a list; each snag is a small fix |
 | 3 | **AI decision brief** on request detail: summary, risks, suggested decision | P1 | Biggest "wow" per hour of work. Needs a decision on how to call the model (see below) |
 | 4 | Replace seed names, amounts and currency with your team's real context | P1 | Judges trust specific details |
@@ -101,7 +103,7 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 
 | Time | Step | As | Say | Do |
 |---|---|---|---|---|
-| 0:00 | Sign up | Dara | "Dara's company runs approvals on email. She sets up Anumat for everyone in under a minute." | Company name → Continue → glance at invites and roles → Continue → Create workspace |
+| 0:00 | Sign up | Dara | "Dara's company runs approvals on email. She sets up Anumat for everyone in under a minute." | On the landing page, Start free → name is pre-filled → Continue → glance at invites and roles → Continue → Create workspace |
 | 0:30 | Problem → one place | Dara | "Everything waiting on Dara is now in one place." | Point at "Needs your decision" and the company name |
 | 0:45 | Ask | Alex | "Alex needs laptops. One form, and Anumat already shows who approves." | Change amount 7500 → 500 → 7500, Submit |
 | 1:10 | Approve | Dara | "It's at the top of Dara's queue with everything she needs." | Open it, Approve |
@@ -111,8 +113,13 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 | 2:25 | Change the rules | Dara | "Operations owns the process, not IT." | Raise the Finance threshold, Try it |
 | 2:45 | Track | Sokha | "Leadership sees how fast decisions happen, and where they stick. Ask, approve, move forward." | Hover "Where requests are waiting" |
 
-The tour panel can be minimized (chevron) if it covers something; pages also leave
-room at the bottom so the last buttons can scroll above it.
+**Presenting:** open the live URL's landing page and click **See how it works**.
+- The panel shows only the step name and Next, so the audience can't read your
+  script. The eye button shows the script; keep it on your laptop or on cards.
+- **Page Down / Page Up** (what most clickers send) move between steps; the arrow
+  keys work too when no control is focused. Keys typed into a form never change steps.
+- The chevron minimizes the panel; pages leave room at the bottom so it never
+  covers their last buttons.
 
 ---|---|---|---|---|
 | 0:00 | Problem | Dara | "Requests live in email, chat and spreadsheets. Nobody knows who decides or what's next." | Point at "Needs your decision" |

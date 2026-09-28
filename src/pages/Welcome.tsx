@@ -16,7 +16,7 @@ import {
 } from '@repo/ui';
 import { Check, Copy, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { Logo } from '../components/Logo';
 import { useStore } from '../data/store';
 import { formatMoney } from '../lib/format';
@@ -55,8 +55,10 @@ export function Welcome() {
   const { state, me, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [params] = useSearchParams();
   const [step, setStep] = useState(0);
-  const [name, setName] = useState('');
+  // The demo tour opens sign-up with the company already named, to save time on stage.
+  const [name, setName] = useState(params.get('demo') ? 'Lotus Logistics' : '');
   const [size, setSize] = useState('50–199');
   const [nameError, setNameError] = useState<string>();
   const [invites, setInvites] = useState<Invite[]>([]);
@@ -105,7 +107,7 @@ export function Welcome() {
       title: `Welcome to ${name.trim()}`,
       description: `${invites.length} teammates invited · ${processIds.length} approval processes on.`,
     });
-    navigate('/');
+    navigate('/home');
   };
 
   const addInvite = () => {
