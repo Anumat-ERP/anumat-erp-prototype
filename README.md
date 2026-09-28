@@ -76,3 +76,10 @@ Every push to `main` builds and deploys to GitHub Pages
 `index.html` to `404.html`, which Pages serves for unknown paths.
 
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+### Share as a single page
+
+`bun run build:artifact` writes `dist-artifact/anumat-prototype.html`: the
+whole prototype in one self-contained file (scripts, styles and fonts inlined),
+with navigation kept in memory instead of the URL. Use it where you can host a
+single HTML page, such as a claude.ai Artifact.
