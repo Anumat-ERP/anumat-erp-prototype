@@ -47,6 +47,18 @@ const NAV = [
   { href: '#faq', label: 'FAQ' },
 ];
 
+const FOOTER_LINK =
+  'rounded-sm text-fg-muted underline-offset-4 hover:text-fg hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
+
+function FooterColumn({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <nav aria-label={`${title} links`} className="flex flex-col gap-4">
+      <h2 className="text-sm font-semibold tracking-wide text-fg uppercase">{title}</h2>
+      <ul className="flex flex-col gap-3 text-md">{children}</ul>
+    </nav>
+  );
+}
+
 const PROBLEMS = [
   { icon: SearchX, title: 'Lost requests', text: 'Important requests get buried in email and chat threads.' },
   { icon: UserX, title: 'Unclear ownership', text: 'Nobody is sure who decides, or what happens next.' },
@@ -190,7 +202,7 @@ export function Landing() {
   const startFree = () => navigate(tour.step !== null ? '/welcome?demo=1' : '/welcome');
 
   return (
-    <div className="min-h-dvh bg-bg text-fg">
+    <div id="top" className="min-h-dvh bg-bg text-fg">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-(--a-z-index-toast) focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:shadow-md"
@@ -427,40 +439,53 @@ export function Landing() {
       </main>
 
       <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 md:flex-row md:items-start md:justify-between md:px-6">
-          <div className="flex flex-col gap-2">
-            <Logo className="h-6 w-auto self-start" />
-            <Text variant="bodySm" tone="muted">
-              Decision &amp; operations ERP for modern teams.
-            </Text>
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-10 px-4 py-12 md:grid-cols-3 md:px-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-x-10">
+          <div className="col-span-2 flex max-w-sm flex-col items-start gap-4 md:col-span-3 lg:col-span-1">
+            <Logo className="h-7 w-auto" />
+            <Text tone="muted">Decision &amp; operations ERP for modern teams. Ask, approve, move forward.</Text>
+            <Button variant="primary" onClick={startFree}>
+              Start free
+            </Button>
           </div>
-          <nav aria-label="Footer">
-            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-md">
-              {NAV.map((n) => (
-                <li key={n.href}>
-                  <a href={n.href} className="text-fg-muted hover:text-fg">
-                    {n.label}
-                  </a>
-                </li>
-              ))}
-              <li>
-                <Link to="/pricing" className="text-fg-muted hover:text-fg">
-                  Pricing &amp; deployment
-                </Link>
+          <FooterColumn title="Product">
+            {NAV.map((n) => (
+              <li key={n.href}>
+                <a href={n.href} className={FOOTER_LINK}>
+                  {n.label}
+                </a>
               </li>
-              <li>
-                <Link to="/signin" className="text-fg-muted hover:text-fg">
-                  Sign in
-                </Link>
-              </li>
-            </ul>
-          </nav>
-          <div className="flex flex-col gap-2">
-            <Text variant="label">Talk to us</Text>
+            ))}
+          </FooterColumn>
+          <FooterColumn title="Get started">
+            <li>
+              <Link to="/pricing" className={FOOTER_LINK}>
+                Pricing &amp; deployment
+              </Link>
+            </li>
+            <li>
+              <button type="button" onClick={() => tour.start()} className={cn(FOOTER_LINK, 'text-start')}>
+                3-minute tour
+              </button>
+            </li>
+            <li>
+              <Link to="/signin" className={FOOTER_LINK}>
+                Sign in
+              </Link>
+            </li>
+          </FooterColumn>
+          <section aria-labelledby="footer-contact" className="col-span-2 flex flex-col gap-4 md:col-span-1">
+            <h2 id="footer-contact" className="text-sm font-semibold tracking-wide text-fg uppercase">
+              Talk to us
+            </h2>
             <ContactChannels compact />
-            <Text variant="bodySm" tone="muted">
-              © 2026 Anumat. Prototype for demonstration.
-            </Text>
+          </section>
+        </div>
+        <div className="border-t border-border">
+          <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-sm text-fg-muted sm:flex-row sm:items-center sm:justify-between md:px-6">
+            <p>© 2026 Anumat. Prototype for demonstration.</p>
+            <a href="#top" className={FOOTER_LINK}>
+              Back to top ↑
+            </a>
           </div>
         </div>
       </footer>

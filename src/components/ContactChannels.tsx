@@ -42,7 +42,7 @@ const CHANNELS: Channel[] = [
 /** Support channels from src/config.ts. Unset ones say so instead of showing a made-up link. */
 export function ContactChannels({ compact = false }: { compact?: boolean }) {
   return (
-    <ul className={compact ? 'flex flex-wrap gap-x-5 gap-y-2' : 'grid gap-3 sm:grid-cols-3'}>
+    <ul className={compact ? 'flex flex-col gap-3' : 'grid gap-3 sm:grid-cols-3'}>
       {CHANNELS.map((c) => {
         const set = isSet(c.value);
         return (
