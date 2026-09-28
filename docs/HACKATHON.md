@@ -21,7 +21,8 @@ Done and verified in a browser (light, dark, phone width):
 | Documents | List with filters, version history drawer |
 | Tasks | List grouped by due date, or board by status; filters by person, source and search; task detail panel; new task; workspace-defined statuses (e.g. Blocked, In review) in three fixed categories |
 | Insights | Time to decision vs target, where requests wait, spend by department, weekly volume |
-| People | "View as" any of 8 people; notifications bell per person |
+| People | "View as" any of 8 people; notifications bell per person; People & roles page (Owner / Admin / Member) |
+| Permissions | Task owner, assigner and admins can change a task; others view only. Per-status rules: "Needs sign-off" (Done by default) and "Ask for a reason" (Blocked by default) |
 | Landing | Marketing page at `/` following the original sketch: hero with a live product preview, problem, flow, modules, use cases, security, pilot, FAQ, closing call to action |
 | Sign-in / sign-up | Mock sign-in at `/signin` (any email; `alex@…` signs in as Alex) and "Create your workspace" at `/welcome` |
 | Demo | Guided 9-step tour (top bar → **Demo tour**) that resets data and switches people for you |
@@ -29,7 +30,7 @@ Done and verified in a browser (light, dark, phone width):
 
 Not built: real backend, real sign-in and invites, email, real file storage, AI.
 
-**Accounts model (for judge questions):** the organisation is the account. The first person creates the workspace and becomes its owner; teammates join by invite or invite code; roles are Admin, Approver, Member; approvers mostly come from the org chart; data is kept separate per organisation. After the hackathon, use a managed service with organisations built in (Clerk, Supabase Auth or Auth0) rather than building sign-in.
+**Accounts model (for judge questions):** the organisation is the account. The first person creates the workspace and becomes its owner; teammates join by invite or invite code; roles are Owner, Admin and Member; who approves comes from the approval processes (the org chart), not from a role; data is kept separate per organisation. After the hackathon, use a managed service with organisations built in (Clerk, Supabase Auth or Auth0) rather than building sign-in.
 
 ---
 
@@ -153,7 +154,8 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 | Who buys it? | Operations leads at 50–500 person companies who approve spend and time off in email today. |
 | How do people sign up? | A company creates a workspace; teammates join by invite or code with a role (the sign-up step of the demo). |
 | Can teams use their own task statuses? | Yes. Each workspace defines its statuses (Blocked, In review…), each in a To do / In progress / Done category, so reports and due dates keep working. |
-| How do you handle permissions? | Admin, Approver and Member roles; the prototype shows each person's view through "View as". |
+| How do you handle permissions? | Owner, Admin and Member roles. Approving follows the approval processes. Tasks can be changed by their owner, whoever assigned them, and admins; statuses can require sign-off or a reason. Show it with "View as" Lina, then Alex. |
+| Why not a full workflow editor for tasks? | Strict control lives in request approvals, where auditors need it. Tasks stay light so people keep them up to date; two per-status rules cover the real needs. |
 | What about data security? | Planned: encryption in transit and at rest, an audit trail (already visible as request activity), version history. |
 
 ---

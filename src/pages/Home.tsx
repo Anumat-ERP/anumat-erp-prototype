@@ -5,6 +5,7 @@ import { AppLink } from '../components/links';
 import { AvatarGroup } from '../components/Person';
 import { RequestIcon } from '../components/RequestIcon';
 import { firstStatus, isDone, useStore, waitingOnMe } from '../data/store';
+import { useTaskMover } from '../components/useTaskMover';
 import { daysUntil, formatMoney, formatRelative, formatTime, formatWeekday, typeLabel } from '../lib/format';
 
 function greeting() {
@@ -32,7 +33,8 @@ function Stat({ label, value, hint, to }: { label: string; value: number; hint: 
 }
 
 export function Home() {
-  const { state, me, person, dispatch } = useStore();
+  const { state, me, person } = useStore();
+  const { move, dialog } = useTaskMover();
   const navigate = useNavigate();
   const waiting = waitingOnMe(state);
   const inFlight = state.requests.filter((r) => r.status === 'pending').length;
@@ -178,7 +180,7 @@ export function Home() {
                     <li key={t.id}>
                       <Checkbox
                         checked={false}
-                        onCheckedChange={() => dispatch({ type: 'taskStatus', taskId: t.id, status: firstStatus(state, 'done') })}
+                        onCheckedChange={() => move(t, firstStatus(state, 'done'))}
                         label={t.title}
                         helpText={d < 0 ? `Overdue by ${-d} ${-d === 1 ? 'day' : 'days'}` : d === 0 ? 'Due today' : `Due in ${d} ${d === 1 ? 'day' : 'days'}`}
                       />
@@ -204,6 +206,7 @@ export function Home() {
           </Card>
         </div>
       </div>
+      {dialog}
     </>
   );
 }

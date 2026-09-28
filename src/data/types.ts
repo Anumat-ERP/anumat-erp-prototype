@@ -1,10 +1,15 @@
 export type PersonId = string;
 
+/** What someone may do in the workspace. Approving comes from approval processes, not from this. */
+export type Access = 'owner' | 'admin' | 'member';
+
 export interface Person {
   id: PersonId;
   name: string;
+  /** Job title, e.g. "Finance Manager". */
   role: string;
   department: string;
+  access: Access;
 }
 
 export type RequestType = 'purchase' | 'leave' | 'expense' | 'contract';
@@ -105,6 +110,10 @@ export interface TaskStatusDef {
   tone: StatusTone;
   /** "To do" and "Done" can be renamed but not removed. */
   locked?: boolean;
+  /** Only the person who assigned the task, or an admin, can move tasks into this status. */
+  signOff?: boolean;
+  /** Moving a task here asks for a reason, e.g. what is blocking it. */
+  requireNote?: boolean;
 }
 
 /** The id of a TaskStatusDef. */
@@ -120,6 +129,12 @@ export interface Task {
   notes?: string;
   /** When it moved into a done-category status. */
   doneAt?: string;
+  /** Who assigned it (the owner, for self-assigned tasks). */
+  assignedById?: PersonId;
+  /** The reason given when entering a status that asks for one. */
+  statusNote?: string;
+  /** Set when the owner finished it and it waits for the assigner's sign-off. */
+  signOffRequestedAt?: string;
 }
 
 export interface ProcessStep {

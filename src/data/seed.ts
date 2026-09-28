@@ -288,19 +288,44 @@ const MORE_TASKS: Task[] = MORE.map(([title, ownerId, days, status, source, note
   doneAt: status === 'done' ? at(Math.min(days, -1), 15) : undefined,
 }));
 
+const ORGANIZER: Record<string, string> = {
+  '/meetings/ops-weekly': 'dara',
+  '/meetings/vendor-review': 'omar',
+  '/meetings/q4-budget': 'priya',
+  '/meetings/hiring-sync': 'daniel',
+};
+
+/**
+ * Who assigned each demo task: the meeting organiser for action items, the
+ * requester's manager (Dara, for Operations) for request follow-ups, else the owner.
+ */
+function withAssigners(tasks: Task[]): Task[] {
+  return tasks.map((t) => {
+    const href = t.source?.href ?? '';
+    let by = t.ownerId;
+    if (ORGANIZER[href]) by = ORGANIZER[href];
+    else if (href.startsWith('/requests/') && ['alex', 'lina'].includes(t.ownerId)) by = 'dara';
+    return {
+      ...t,
+      assignedById: by,
+      statusNote: t.status === 'blocked' ? (t.notes ?? 'Waiting on someone outside the team.') : undefined,
+    };
+  });
+}
+
 export const seed: DataState = {
   org: { name: 'Lotus Logistics', size: '50–199' },
   meId: 'dara',
   lastSeen: { dara: at(-2, 18), alex: at(-3, 18), priya: at(-3, 18), sokha: at(-10), maria: at(-10), daniel: at(-10), lina: at(-10), omar: at(-10) },
   people: [
-    { id: 'dara', name: 'Dara Sok', role: 'Operations Manager', department: 'Operations' },
-    { id: 'alex', name: 'Alex Tan', role: 'Operations Lead', department: 'Operations' },
-    { id: 'priya', name: 'Priya Shah', role: 'Finance Manager', department: 'Finance' },
-    { id: 'sokha', name: 'Sokha Chan', role: 'Chief Executive', department: 'Leadership' },
-    { id: 'maria', name: 'Maria Lopez', role: 'Legal Counsel', department: 'Legal' },
-    { id: 'daniel', name: 'Daniel Kim', role: 'Head of People', department: 'People' },
-    { id: 'lina', name: 'Lina Park', role: 'Product Designer', department: 'Product' },
-    { id: 'omar', name: 'Omar Haddad', role: 'IT Lead', department: 'IT' },
+    { id: 'dara', name: 'Dara Sok', role: 'Operations Manager', department: 'Operations', access: 'owner' },
+    { id: 'alex', name: 'Alex Tan', role: 'Operations Lead', department: 'Operations', access: 'member' },
+    { id: 'priya', name: 'Priya Shah', role: 'Finance Manager', department: 'Finance', access: 'member' },
+    { id: 'sokha', name: 'Sokha Chan', role: 'Chief Executive', department: 'Leadership', access: 'admin' },
+    { id: 'maria', name: 'Maria Lopez', role: 'Legal Counsel', department: 'Legal', access: 'member' },
+    { id: 'daniel', name: 'Daniel Kim', role: 'Head of People', department: 'People', access: 'member' },
+    { id: 'lina', name: 'Lina Park', role: 'Product Designer', department: 'Product', access: 'member' },
+    { id: 'omar', name: 'Omar Haddad', role: 'IT Lead', department: 'IT', access: 'member' },
   ],
   requests,
   meetings: [
@@ -449,11 +474,11 @@ export const seed: DataState = {
   taskStatuses: [
     { id: 'todo', name: 'To do', category: 'todo', tone: 'neutral', locked: true },
     { id: 'doing', name: 'In progress', category: 'active', tone: 'info' },
-    { id: 'blocked', name: 'Blocked', category: 'active', tone: 'critical' },
+    { id: 'blocked', name: 'Blocked', category: 'active', tone: 'critical', requireNote: true },
     { id: 'review', name: 'In review', category: 'active', tone: 'warning' },
-    { id: 'done', name: 'Done', category: 'done', tone: 'success', locked: true },
+    { id: 'done', name: 'Done', category: 'done', tone: 'success', locked: true, signOff: true },
   ],
-  tasks: [
+  tasks: withAssigners([
     { id: 't1', title: 'Confirm laptop delivery date with supplier', ownerId: 'alex', due: at(2), status: 'doing', source: { label: 'PR-1042', href: '/requests/PR-1042' } },
     { id: 't2', title: 'Send onboarding checklist to new analysts', ownerId: 'daniel', due: at(5), status: 'todo', source: { label: 'Hiring sync', href: '/meetings/hiring-sync' } },
     { id: 't3', title: 'Review data-processing annex', ownerId: 'maria', due: at(1), status: 'doing', source: { label: 'CT-0412', href: '/requests/CT-0412' } },
@@ -464,7 +489,7 @@ export const seed: DataState = {
     { id: 't8', title: 'Update the vendor comparison with support SLAs', ownerId: 'omar', due: at(2), status: 'todo', source: { label: 'Cloud hosting vendor review', href: '/meetings/vendor-review' } },
     { id: 't9', title: 'Approve Q4 team goals', ownerId: 'dara', due: at(-6), status: 'done', doneAt: at(-6, 11) },
     ...MORE_TASKS,
-  ],
+  ]),
   processes: [
     {
       id: 'proc-purchase',

@@ -14,11 +14,12 @@ import {
   Text,
   cn,
 } from '@repo/ui';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Lock } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { StatusManager } from '../components/StatusManager';
 import { TaskDrawer } from '../components/TaskDrawer';
-import { firstStatus, isDone, statusDef, useStore } from '../data/store';
+import { useTaskMover } from '../components/useTaskMover';
+import { canEditTask, firstStatus, isAdmin, isDone, statusDef, useStore } from '../data/store';
 import type { DataState, Task } from '../data/types';
 import { daysUntil, formatShortDate } from '../lib/format';
 
@@ -41,9 +42,14 @@ function recentlyDone(t: Task) {
 }
 
 /** One line per task: checkbox, title, then status, due and source in a quiet meta line. */
-function TaskRow({ task, state, onOpen }: { task: Task; state: DataState; onOpen: () => void }) {
-  const { person, dispatch } = useStore();
+type Mover = ReturnType<typeof useTaskMover>['move'];
+
+function TaskRow({ task, state, onOpen, move }: { task: Task; state: DataState; onOpen: () => void; move: Mover }) {
+  const { person } = useStore();
   const done = isDone(state, task);
+  const editable = canEditTask(state, task);
+  const assigner = person(task.assignedById ?? task.ownerId);
+  const canSignOff = Boolean(task.signOffRequestedAt) && (task.assignedById === state.meId || isAdmin(state));
   const status = statusDef(state, task.status);
   const overdue = !done && daysUntil(task.due) < 0;
   const owner = person(task.ownerId);
@@ -52,9 +58,10 @@ function TaskRow({ task, state, onOpen }: { task: Task; state: DataState; onOpen
       <Checkbox
         className="mt-0.5"
         labelHidden
-        label={done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}
+        label={editable ? (done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`) : `“${task.title}” (view only)`}
         checked={done}
-        onCheckedChange={(c) => dispatch({ type: 'taskStatus', taskId: task.id, status: firstStatus(state, c === true ? 'done' : 'todo') })}
+        disabled={!editable}
+        onCheckedChange={(c) => move(task, firstStatus(state, c === true ? 'done' : 'todo'))}
       />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <button
@@ -74,6 +81,12 @@ function TaskRow({ task, state, onOpen }: { task: Task; state: DataState; onOpen
               {status.name}
             </Badge>
           ) : null}
+          {task.statusNote ? <span className="text-fg">“{task.statusNote}”</span> : null}
+          {task.signOffRequestedAt ? (
+            <Badge size="sm" tone="warning">
+              {task.assignedById === state.meId ? 'Needs your sign-off' : `Waiting for sign-off from ${assigner.name}`}
+            </Badge>
+          ) : null}
           <span className={overdue ? 'font-medium text-critical-subtle-fg' : undefined}>{dueLabel(task, done)}</span>
           {task.source ? (
             <>
@@ -87,8 +100,22 @@ function TaskRow({ task, state, onOpen }: { task: Task; state: DataState; onOpen
               <span>Has notes</span>
             </>
           ) : null}
+          {!editable ? (
+            <>
+              <span aria-hidden>·</span>
+              <span className="inline-flex items-center gap-1">
+                <Lock aria-hidden className="size-3" />
+                View only
+              </span>
+            </>
+          ) : null}
         </span>
       </div>
+      {canSignOff ? (
+        <Button size="sm" variant="primary" onClick={() => move(task, firstStatus(state, 'done'))}>
+          Sign off
+        </Button>
+      ) : null}
       <span className="flex shrink-0 items-center gap-2">
         <Avatar name={owner.name} size="xs" decorative />
         <span className="hidden w-24 truncate text-sm text-fg-muted md:inline">{owner.name}</span>
@@ -104,6 +131,7 @@ function Group({
   tasks,
   state,
   onOpen,
+  move,
   collapsible,
   children,
 }: {
@@ -112,6 +140,7 @@ function Group({
   tasks: Task[];
   state: DataState;
   onOpen: (t: Task) => void;
+  move: Mover;
   collapsible?: boolean;
   children?: ReactNode;
 }) {
@@ -147,7 +176,7 @@ function Group({
         <>
           <ul className="divide-y divide-border-subtle">
             {tasks.map((t) => (
-              <TaskRow key={t.id} task={t} state={state} onOpen={() => onOpen(t)} />
+              <TaskRow key={t.id} task={t} state={state} onOpen={() => onOpen(t)} move={move} />
             ))}
           </ul>
           {children}
@@ -158,7 +187,9 @@ function Group({
 }
 
 export function Tasks() {
-  const { state, me, person, dispatch } = useStore();
+  const { state, me, person } = useStore();
+  const { move, dialog } = useTaskMover();
+  const admin = isAdmin(state);
   const [view, setView] = useState<View>('list');
   const [owner, setOwner] = useState('me');
   const [source, setSource] = useState<Source>('any');
@@ -208,7 +239,7 @@ export function Tasks() {
         title="Tasks"
         subtitle="Decisions turned into work, with an owner and a deadline."
         primaryAction={{ content: 'New task', onAction: () => setCreating(true) }}
-        secondaryActions={[{ content: 'Manage statuses', onAction: () => setManaging(true) }]}
+        secondaryActions={admin ? [{ content: 'Manage statuses', onAction: () => setManaging(true) }] : undefined}
       />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -271,12 +302,12 @@ export function Tasks() {
               All caught up. Nothing open{owner === 'me' ? '' : ` for ${owner === 'all' ? 'anyone' : person(owner).name}`}.
             </Text>
           ) : null}
-          <Group title="Overdue" tone="critical" tasks={groups.overdue} state={state} onOpen={openDrawer} />
-          <Group title="Today" tasks={groups.today} state={state} onOpen={openDrawer} />
-          <Group title="This week" tasks={groups.week} state={state} onOpen={openDrawer} />
-          <Group title="Later" tasks={groups.later} state={state} onOpen={openDrawer} />
+          <Group title="Overdue" tone="critical" tasks={groups.overdue} state={state} onOpen={openDrawer} move={move} />
+          <Group title="Today" tasks={groups.today} state={state} onOpen={openDrawer} move={move} />
+          <Group title="This week" tasks={groups.week} state={state} onOpen={openDrawer} move={move} />
+          <Group title="Later" tasks={groups.later} state={state} onOpen={openDrawer} move={move} />
           {done.length ? (
-            <Group title={showAllDone ? 'Done' : 'Done in the last 7 days'} tasks={shownDone} state={state} onOpen={openDrawer} collapsible>
+            <Group title={showAllDone ? 'Done' : 'Done in the last 7 days'} tasks={shownDone} state={state} onOpen={openDrawer} move={move} collapsible>
               {hiddenDone ? (
                 <div className="px-4 py-2">
                   <Button size="sm" variant="plain" onClick={() => setShowAllDone(true)}>
@@ -329,13 +360,24 @@ export function Tasks() {
                                   {dueLabel(t, s.category === 'done')}
                                 </span>
                               </div>
-                              <Select
-                                size="sm"
-                                aria-label={`Move “${t.title}” to`}
-                                value={t.status}
-                                onChange={(e) => dispatch({ type: 'taskStatus', taskId: t.id, status: e.target.value })}
-                                options={state.taskStatuses.map((x) => ({ value: x.id, label: x.name }))}
-                              />
+                              {t.statusNote || t.signOffRequestedAt ? (
+                                <Text variant="caption" tone="muted" className="line-clamp-2">
+                                  {t.signOffRequestedAt ? `Waiting for sign-off from ${person(t.assignedById ?? t.ownerId).name}` : `“${t.statusNote}”`}
+                                </Text>
+                              ) : null}
+                              {canEditTask(state, t) ? (
+                                <Select
+                                  size="sm"
+                                  aria-label={`Move “${t.title}” to`}
+                                  value={t.status}
+                                  onChange={(e) => move(t, e.target.value)}
+                                  options={state.taskStatuses.map((x) => ({ value: x.id, label: x.name }))}
+                                />
+                              ) : (
+                                <Text variant="caption" tone="muted" className="inline-flex items-center gap-1">
+                                  <Lock aria-hidden className="size-3" /> View only
+                                </Text>
+                              )}
                             </Card>
                           </li>
                         );
@@ -367,6 +409,7 @@ export function Tasks() {
         }}
       />
       <StatusManager open={managing} onClose={() => setManaging(false)} />
+      {dialog}
     </>
   );
 }

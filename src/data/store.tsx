@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import { seed } from './seed';
-import type { Activity, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Task, TaskStatus, TaskStatusDef } from './types';
+import type { Access, Activity, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Task, TaskStatus, TaskStatusDef } from './types';
 
-const STORAGE_KEY = 'anumat-prototype-v4';
+const STORAGE_KEY = 'anumat-prototype-v5';
 
 type Action =
   | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string }
@@ -14,7 +14,9 @@ type Action =
   | { type: 'createMeeting'; meeting: Meeting }
   | { type: 'switchUser'; personId: string }
   | { type: 'markSeen' }
-  | { type: 'setupOrg'; name: string; size: string; activeProcessIds: string[] }
+  | { type: 'setupOrg'; name: string; size: string; activeProcessIds: string[]; access?: Record<string, Access> }
+  | { type: 'setAccess'; personId: string; access: Access }
+  | { type: 'moveTask'; taskId: string; status: TaskStatus; note?: string; signOff?: boolean }
   | { type: 'taskStatus'; taskId: string; status: TaskStatus }
   | { type: 'addTask'; task: Task }
   | { type: 'updateTask'; taskId: string; patch: Partial<Task> }
@@ -112,6 +114,7 @@ function reducer(state: DataState, action: Action): DataState {
       return {
         ...state,
         org: { name: action.name, size: action.size },
+        people: action.access ? state.people.map((p) => (action.access?.[p.id] && p.access !== 'owner' ? { ...p, access: action.access[p.id] as Access } : p)) : state.people,
         processes: state.processes.map((p) => ({ ...p, active: action.activeProcessIds.includes(p.id) })),
       };
     case 'markSeen':
@@ -131,6 +134,24 @@ function reducer(state: DataState, action: Action): DataState {
           return next;
         }),
       };
+    case 'moveTask': {
+      const target = statusDef(state, action.status);
+      const moved = reducer(state, { type: 'updateTask', taskId: action.taskId, patch: { status: action.status } });
+      return {
+        ...moved,
+        tasks: moved.tasks.map((t) =>
+          t.id === action.taskId
+            ? {
+                ...t,
+                statusNote: target.requireNote ? action.note : undefined,
+                signOffRequestedAt: action.signOff ? now() : undefined,
+              }
+            : t,
+        ),
+      };
+    }
+    case 'setAccess':
+      return { ...state, people: state.people.map((p) => (p.id === action.personId ? { ...p, access: action.access } : p)) };
     case 'deleteTask':
       return { ...state, tasks: state.tasks.filter((t) => t.id !== action.taskId) };
     case 'saveStatuses': {
@@ -190,7 +211,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [state]);
 
   const person = useCallback(
-    (id: string) => state.people.find((p) => p.id === id) ?? { id, name: 'Unknown', role: '', department: '' },
+    (id: string) => state.people.find((p) => p.id === id) ?? { id, name: 'Unknown', role: '', department: '', access: 'member' as const },
     [state.people],
   );
   const value = useMemo(() => ({ state, dispatch, person, me: person(state.meId) }), [state, person]);
@@ -243,7 +264,16 @@ export function notificationsFor(state: DataState): Notification[] {
       text: `invited you to ${m.title}`,
       href: `/meetings/${m.id}`,
     }));
-  return [...fromRequests, ...fromMeetings].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20);
+  const fromTasks = state.tasks
+    .filter((t) => t.assignedById === me && t.ownerId !== me && t.signOffRequestedAt)
+    .map((t) => ({
+      id: `t-${t.id}`,
+      at: t.signOffRequestedAt ?? '',
+      personId: t.ownerId,
+      text: `finished “${t.title}” and asked you to sign off`,
+      href: '/tasks',
+    }));
+  return [...fromRequests, ...fromMeetings, ...fromTasks].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20);
 }
 
 const UNKNOWN_STATUS: TaskStatusDef = { id: 'unknown', name: 'Unknown', category: 'todo', tone: 'neutral' };
@@ -260,4 +290,46 @@ export function isDone(state: DataState, task: Task) {
 /** The first status in a category: where checkboxes send a task. */
 export function firstStatus(state: DataState, category: TaskStatusDef['category']) {
   return state.taskStatuses.find((s) => s.category === category)?.id ?? category;
+}
+
+/** Owners and admins manage the workspace and can change any task. */
+export function isAdmin(state: DataState, personId = state.meId) {
+  const access = state.people.find((p) => p.id === personId)?.access;
+  return access === 'owner' || access === 'admin';
+}
+
+/** The owner, whoever assigned it, and admins can change a task; everyone else can view it. */
+export function canEditTask(state: DataState, task: Task) {
+  const me = state.meId;
+  return task.ownerId === me || task.assignedById === me || isAdmin(state);
+}
+
+export type MovePlan =
+  | { kind: 'move' }
+  | { kind: 'note' }
+  | { kind: 'signoff'; via: TaskStatus; assignerId: string }
+  | { kind: 'denied'; reason: string };
+
+/** What happens when the signed-in person tries to move a task into a status. */
+export function planMove(state: DataState, task: Task, statusId: TaskStatus): MovePlan {
+  const name = (id?: string) => state.people.find((p) => p.id === id)?.name ?? 'someone';
+  const me = state.meId;
+  if (!canEditTask(state, task)) {
+    const who = [...new Set([task.ownerId, task.assignedById].filter(Boolean))].map(name).join(', ');
+    return { kind: 'denied', reason: `Only ${who} or an admin can change this task.` };
+  }
+  const target = statusDef(state, statusId);
+  const assigner = task.assignedById ?? task.ownerId;
+  if (target.signOff && assigner !== me && !isAdmin(state)) {
+    // The owner finishes it; the assigner signs off. It waits in the nearest earlier in-progress status.
+    const index = state.taskStatuses.findIndex((s) => s.id === statusId);
+    const via = state.taskStatuses
+      .slice(0, index)
+      .reverse()
+      .find((s) => s.category === 'active' && !s.requireNote && !s.signOff);
+    if (task.ownerId === me && via) return { kind: 'signoff', via: via.id, assignerId: assigner };
+    return { kind: 'denied', reason: `${target.name} needs sign-off from ${name(assigner)} or an admin.` };
+  }
+  if (target.requireNote) return { kind: 'note' };
+  return { kind: 'move' };
 }

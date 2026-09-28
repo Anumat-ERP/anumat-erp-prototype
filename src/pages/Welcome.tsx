@@ -29,13 +29,12 @@ const SIZES = [
 ];
 
 const ROLES = [
-  { value: 'admin', label: 'Admin', help: 'Manages people and processes' },
-  { value: 'approver', label: 'Approver', help: 'Decides on requests' },
-  { value: 'member', label: 'Member', help: 'Raises requests, does tasks' },
+  { value: 'admin', label: 'Admin', help: 'Manages people, processes and statuses' },
+  { value: 'member', label: 'Member', help: 'Raises requests, works on tasks' },
 ];
 
 /** Suggested role for each demo person, based on their job. */
-const DEFAULT_ROLE: Record<string, string> = { sokha: 'admin', priya: 'approver', maria: 'approver', daniel: 'approver' };
+const DEFAULT_ROLE: Record<string, string> = { sokha: 'admin' };
 
 const STEPS = ['Your company', 'Invite your team', 'Approval processes'];
 
@@ -101,7 +100,13 @@ export function Welcome() {
       setProcessError('Turn on at least one process, so requests have somewhere to go.');
       return;
     }
-    dispatch({ type: 'setupOrg', name: name.trim(), size, activeProcessIds: processIds });
+    const access = Object.fromEntries(
+      invites.flatMap((i) => {
+        const p = state.people.find((x) => x.name === i.name);
+        return p ? [[p.id, i.role as 'admin' | 'member']] : [];
+      }),
+    );
+    dispatch({ type: 'setupOrg', name: name.trim(), size, activeProcessIds: processIds, access });
     toast({
       tone: 'success',
       title: `Welcome to ${name.trim()}`,
@@ -205,7 +210,7 @@ export function Welcome() {
                   <Text as="h1" variant="heading">
                     Invite your team
                   </Text>
-                  <Text tone="muted">They join {name.trim()} when they accept. Roles decide who can approve and who manages the workspace.</Text>
+                  <Text tone="muted">They join {name.trim()} when they accept. Admins manage the workspace; who approves what comes from your approval processes, next.</Text>
                 </div>
                 <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
                   {invites.map((inv) => (

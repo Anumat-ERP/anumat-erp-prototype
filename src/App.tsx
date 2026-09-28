@@ -14,6 +14,7 @@ import { NewMeeting } from './pages/NewMeeting';
 import { NewRequest } from './pages/NewRequest';
 import { NotFound } from './pages/NotFound';
 import { ProcessEditor } from './pages/ProcessEditor';
+import { People } from './pages/People';
 import { Processes } from './pages/Processes';
 import { RequestDetail } from './pages/RequestDetail';
 import { Requests } from './pages/Requests';
@@ -51,6 +52,7 @@ export function App() {
           <Route path="documents" element={<Documents />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="insights" element={<Insights />} />
+          <Route path="settings/people" element={<People />} />
           <Route path="processes" element={<Processes />} />
           <Route path="processes/:id" element={<ProcessEditor />} />
           <Route path="*" element={<NotFound />} />

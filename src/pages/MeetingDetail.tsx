@@ -6,7 +6,8 @@ import { AppLink, headerLink } from '../components/links';
 import { Person } from '../components/Person';
 import { StatusBadge } from '../components/StatusBadge';
 import { at } from '../data/seed';
-import { firstStatus, isDone, uid, useStore } from '../data/store';
+import { canEditTask, firstStatus, isDone, uid, useStore } from '../data/store';
+import { useTaskMover } from '../components/useTaskMover';
 import { daysUntil, formatShortDate, formatTime, formatWeekday } from '../lib/format';
 
 export function MeetingDetail() {
@@ -14,6 +15,7 @@ export function MeetingDetail() {
   const { state, person, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { move, dialog } = useTaskMover();
   const [decision, setDecision] = useState('');
   const [task, setTask] = useState('');
   const [owner, setOwner] = useState('');
@@ -103,9 +105,8 @@ export function MeetingDetail() {
                     <li key={t.id} className="flex flex-wrap items-start justify-between gap-2">
                       <Checkbox
                         checked={isDone(state, t)}
-                        onCheckedChange={(c) =>
-                          dispatch({ type: 'taskStatus', taskId: t.id, status: firstStatus(state, c === true ? 'done' : 'todo') })
-                        }
+                        disabled={!canEditTask(state, t)}
+                        onCheckedChange={(c) => move(t, firstStatus(state, c === true ? 'done' : 'todo'))}
                         label={t.title}
                         helpText={`${person(t.ownerId).name} · due ${formatShortDate(t.due)}`}
                       />
@@ -133,7 +134,7 @@ export function MeetingDetail() {
                 }
                 dispatch({
                   type: 'addTask',
-                  task: { id: uid('t'), title: task.trim(), ownerId, due: at(7), status: firstStatus(state, 'todo'), source: { label: m.title, href } },
+                  task: { id: uid('t'), title: task.trim(), ownerId, due: at(7), status: firstStatus(state, 'todo'), assignedById: state.meId, source: { label: m.title, href } },
                 });
                 setTask('');
                 setTaskError(undefined);
@@ -182,6 +183,7 @@ export function MeetingDetail() {
           ) : null}
         </div>
       </div>
+      {dialog}
     </>
   );
 }

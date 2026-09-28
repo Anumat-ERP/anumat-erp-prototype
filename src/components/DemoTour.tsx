@@ -62,15 +62,15 @@ export const TOUR: Step[] = [
     title: 'Act',
     as: 'alex',
     to: '/tasks',
-    say: 'That action item is now Alex’s task, due this week, with a link back to the decision.',
-    doThis: 'Point at it under “This week”, open it to show where it came from, then tick one off.',
+    say: 'That action item is now Alex’s task, due this week, linked to the decision. When he finishes it, Dara signs it off.',
+    doThis: 'Point at it under “This week”, open it to show where it came from, then tick it: it goes to Dara for sign-off.',
   },
   {
     title: 'Change the rules',
     as: 'dara',
     to: '/processes/proc-purchase',
     say: 'Operations owns the process, not IT. Change who approves and when, without code.',
-    doThis: 'Raise the Finance threshold, then use “Try it” with different amounts.',
+    doThis: 'Optional: open the bell to show Alex’s sign-off request. Then raise the Finance threshold and use “Try it”.',
   },
   {
     title: 'Track',

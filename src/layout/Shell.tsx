@@ -1,5 +1,5 @@
 import { ActionMenu, AppShell, Avatar, Badge, Button, IconButton, Navigation, SearchField, useToast, type NavigationSection } from '@repo/ui';
-import { BarChart3, CalendarDays, Check, Presentation, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Sun, Workflow } from 'lucide-react';
+import { BarChart3, CalendarDays, Check, Presentation, UsersRound, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Sun, Workflow } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { Logo } from '../components/Logo';
@@ -66,6 +66,7 @@ export function Shell() {
       items: [
         { label: 'Insights', href: '/insights', icon: <BarChart3 />, selected: at('/insights') },
         { label: 'Process Builder', href: '/processes', icon: <Workflow />, selected: at('/processes') },
+        { label: 'People & roles', href: '/settings/people', icon: <UsersRound />, selected: at('/settings/people') },
       ],
     },
   ];

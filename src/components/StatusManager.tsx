@@ -1,4 +1,4 @@
-import { Badge, Banner, Button, IconButton, Input, Modal, Select, Text, useToast } from '@repo/ui';
+import { Badge, Banner, Button, Checkbox, IconButton, Input, Modal, Select, Text, useToast } from '@repo/ui';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { uid, useStore } from '../data/store';
@@ -63,6 +63,16 @@ export function StatusManager({ open, onClose }: { open: boolean; onClose: () =>
     >
       <div className="flex flex-col gap-4">
         {error ? <Banner tone="critical">{error}</Banner> : null}
+        <dl className="grid gap-x-6 gap-y-1 rounded-md bg-surface-sunken p-3 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="font-medium text-fg">Needs sign-off</dt>
+            <dd className="text-fg-muted">Only whoever assigned the task, or an admin, can move tasks here. Owners ask for sign-off instead.</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-fg">Ask for a reason</dt>
+            <dd className="text-fg-muted">Moving a task here asks why, for example what is blocking it.</dd>
+          </div>
+        </dl>
         <ol className="flex flex-col divide-y divide-border rounded-lg border border-border">
           {rows.map((r, i) => {
             const count = inUse(r.id);
@@ -104,6 +114,10 @@ export function StatusManager({ open, onClose }: { open: boolean; onClose: () =>
                     onClick={() => setRows(rows.filter((_, j) => j !== i))}
                   />
                 </span>
+                <div className="flex basis-full flex-wrap gap-x-6 gap-y-1 ps-26">
+                  <Checkbox label="Needs sign-off" checked={Boolean(r.signOff)} onCheckedChange={(c) => set(i, { signOff: c === true })} />
+                  <Checkbox label="Ask for a reason" checked={Boolean(r.requireNote)} onCheckedChange={(c) => set(i, { requireNote: c === true })} />
+                </div>
                 {count && !r.locked ? (
                   <Text variant="caption" tone="muted" className="basis-full ps-26">
                     {count} {count === 1 ? 'task uses' : 'tasks use'} this. If you remove it, they move to “{rows.find((x) => x.category === 'todo')?.name}”.

@@ -33,6 +33,8 @@ script are in [docs/HACKATHON.md](docs/HACKATHON.md).
 | Tasks | **List** grouped by due date (Overdue, Today, This week, Later, Done in the last 7 days) or **Board** by status. Filter by person, source or search; open a task to edit it; **Manage statuses** to add your own, like “QA check” |
 | Insights | Time to decision, where requests wait, spend by department |
 | Process Builder | Edit a route, add a step, change thresholds; **Try it** shows which steps run |
+| People & roles (`/settings/people`) | Owner / Admin / Member, and where each person approves. Admins change roles |
+| Permissions | As **Lina**, Alex's tasks are view only. As **Alex**, ticking a task Dara assigned sends it to her for sign-off; moving to Blocked asks why. As **Dara**, sign it off from the list or the bell |
 
 Use the account menu to **view the prototype as** any of the eight people
 (requester, manager, finance, legal, CEO…). Each has their own queue and
