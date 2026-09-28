@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
 import { seed } from './seed';
 import type { Activity, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Task, TaskStatus } from './types';
 
-const STORAGE_KEY = 'anumat-prototype-v2';
+const STORAGE_KEY = 'anumat-prototype-v3';
 
 type Action =
   | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string }
@@ -14,6 +14,7 @@ type Action =
   | { type: 'createMeeting'; meeting: Meeting }
   | { type: 'switchUser'; personId: string }
   | { type: 'markSeen' }
+  | { type: 'setupOrg'; name: string; size: string; activeProcessIds: string[] }
   | { type: 'taskStatus'; taskId: string; status: TaskStatus }
   | { type: 'addTask'; task: Task }
   | { type: 'addDecision'; meetingId: string; text: string }
@@ -103,6 +104,13 @@ function reducer(state: DataState, action: Action): DataState {
       return { ...state, meetings: [...state.meetings, action.meeting] };
     case 'switchUser':
       return { ...state, meId: action.personId };
+    case 'setupOrg':
+      // The demo workspace keeps its people and history; sign-up names it and picks processes.
+      return {
+        ...state,
+        org: { name: action.name, size: action.size },
+        processes: state.processes.map((p) => ({ ...p, active: action.activeProcessIds.includes(p.id) })),
+      };
     case 'markSeen':
       return { ...state, lastSeen: { ...state.lastSeen, [state.meId]: now() } };
     case 'taskStatus':

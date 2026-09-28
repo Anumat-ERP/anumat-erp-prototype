@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { Logo } from '../components/Logo';
 import { Notifications } from '../components/Notifications';
-import { TourPanel, useTour } from '../components/DemoTour';
+import { useTour } from '../components/DemoTour';
 import { navLink } from '../components/links';
 import { useStore, waitingOnMe } from '../data/store';
 
@@ -37,6 +37,7 @@ export function Shell() {
 
   const sections: NavigationSection[] = [
     {
+      title: state.org.name,
       items: [
         { label: 'Home', href: '/', icon: <Home />, selected: at('/') },
         { label: 'Requests', href: '/requests', icon: <FileText />, selected: at('/requests') },
@@ -146,6 +147,11 @@ export function Shell() {
           {
             items: [
               {
+                content: 'Create a new workspace',
+                helpText: 'See sign-up as a new company. Keeps the demo data.',
+                onAction: () => navigate('/welcome'),
+              },
+              {
                 content: 'Start demo tour',
                 icon: <Presentation />,
                 helpText: 'Resets the demo data and walks through a 3-minute pitch.',
@@ -173,7 +179,6 @@ export function Shell() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <Outlet />
       </div>
-      <TourPanel />
     </AppShell>
   );
 }

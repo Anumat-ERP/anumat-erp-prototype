@@ -92,3 +92,8 @@
   --an-chart-1: #e8661c;
   --an-chart-2: #5b8def;
 }
+
+/* While the demo tour runs, pages can scroll their last controls above the pinned panel. */
+html[data-tour] body {
+  padding-bottom: 20rem;
+}

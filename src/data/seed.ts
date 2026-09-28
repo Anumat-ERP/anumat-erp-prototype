@@ -234,6 +234,7 @@ const requests: Request[] = [
 ];
 
 export const seed: DataState = {
+  org: { name: 'Lotus Logistics', size: '50–199' },
   meId: 'dara',
   lastSeen: { dara: at(-2, 18), alex: at(-3, 18), priya: at(-3, 18), sokha: at(-10), maria: at(-10), daniel: at(-10), lina: at(-10), omar: at(-10) },
   people: [

@@ -22,10 +22,13 @@ Done and verified in a browser (light, dark, phone width):
 | Tasks | Board by status, "only my tasks", overdue flags |
 | Insights | Time to decision vs target, where requests wait, spend by department, weekly volume |
 | People | "View as" any of 8 people; notifications bell per person |
-| Demo | Guided 8-step tour (top bar → **Demo tour**) that resets data and switches people for you |
+| Sign-up | Mock "Create your workspace": company, invite team with roles or an invite code, pick starter processes |
+| Demo | Guided 9-step tour (top bar → **Demo tour**) that resets data and switches people for you |
 | Brand | Anumat design system + brand tokens, accessible contrast, dark mode |
 
-Not built: real backend, sign-in, email, real file storage, AI.
+Not built: real backend, real sign-in and invites, email, real file storage, AI.
+
+**Accounts model (for judge questions):** the organisation is the account. The first person creates the workspace and becomes its owner; teammates join by invite or invite code; roles are Admin, Approver, Member; approvers mostly come from the org chart; data is kept separate per organisation. After the hackathon, use a managed service with organisations built in (Clerk, Supabase Auth or Auth0) rather than building sign-in.
 
 ---
 
@@ -98,6 +101,20 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 
 | Time | Step | As | Say | Do |
 |---|---|---|---|---|
+| 0:00 | Sign up | Dara | "Dara's company runs approvals on email. She sets up Anumat for everyone in under a minute." | Company name → Continue → glance at invites and roles → Continue → Create workspace |
+| 0:30 | Problem → one place | Dara | "Everything waiting on Dara is now in one place." | Point at "Needs your decision" and the company name |
+| 0:45 | Ask | Alex | "Alex needs laptops. One form, and Anumat already shows who approves." | Change amount 7500 → 500 → 7500, Submit |
+| 1:10 | Approve | Dara | "It's at the top of Dara's queue with everything she needs." | Open it, Approve |
+| 1:25 | Rules route it | Priya | "Over $1,000, so Finance is next. Nobody chased anyone." | Open the bell, Approve |
+| 1:45 | Decide together | Dara | "Bigger calls happen in meetings, recorded next to the request." | Record a decision, add an action item for Alex |
+| 2:10 | Act | Alex | "That's now Alex's task, linked to the decision." | "Only my tasks", tick one off |
+| 2:25 | Change the rules | Dara | "Operations owns the process, not IT." | Raise the Finance threshold, Try it |
+| 2:45 | Track | Sokha | "Leadership sees how fast decisions happen, and where they stick. Ask, approve, move forward." | Hover "Where requests are waiting" |
+
+The tour panel can be minimized (chevron) if it covers something; pages also leave
+room at the bottom so the last buttons can scroll above it.
+
+---|---|---|---|---|
 | 0:00 | Problem | Dara | "Requests live in email, chat and spreadsheets. Nobody knows who decides or what's next." | Point at "Needs your decision" |
 | 0:20 | Ask | Alex | "Alex needs laptops. One form, and Anumat already shows who approves." | Change amount 7500 → 500 → 7500, Submit |
 | 0:50 | Approve | Dara | "It's at the top of Dara's queue with everything she needs." | Open it, Approve |
@@ -127,7 +144,8 @@ Run **Demo tour** from the top bar; it follows this script and resets the data.
 | Is this real or a mock-up? | A working front end with seeded data; routing rules, notifications and insights are computed live. The backend is the next step. |
 | How is this different from Kissflow or Odoo? | Focused on decisions, not a full ERP: request, meeting, decision and task are one linked record. |
 | Who buys it? | Operations leads at 50–500 person companies who approve spend and time off in email today. |
-| How do you handle permissions? | Role-based access is on the roadmap; the prototype shows it through "View as". |
+| How do people sign up? | A company creates a workspace; teammates join by invite or code with a role (the sign-up step of the demo). |
+| How do you handle permissions? | Admin, Approver and Member roles; the prototype shows each person's view through "View as". |
 | What about data security? | Planned: encryption in transit and at rest, an audit trail (already visible as request activity), version history. |
 
 ---

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router';
+import { TourPanel } from './components/DemoTour';
 import { Shell } from './layout/Shell';
 import { Approvals } from './pages/Approvals';
 import { Documents } from './pages/Documents';
@@ -15,6 +16,7 @@ import { Processes } from './pages/Processes';
 import { RequestDetail } from './pages/RequestDetail';
 import { Requests } from './pages/Requests';
 import { Tasks } from './pages/Tasks';
+import { Welcome } from './pages/Welcome';
 
 /** Scroll to the top and move focus to <main> when the page changes. */
 function RouteFocus() {
@@ -31,6 +33,7 @@ export function App() {
     <>
       <RouteFocus />
       <Routes>
+        <Route path="welcome" element={<Welcome />} />
         <Route element={<Shell />}>
           <Route index element={<Home />} />
           <Route path="requests" element={<Requests />} />
@@ -49,6 +52,7 @@ export function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
+      <TourPanel />
     </>
   );
 }

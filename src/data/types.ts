@@ -127,7 +127,14 @@ export interface Process {
   runs30d: number;
 }
 
+export interface Organization {
+  name: string;
+  /** Head-count band chosen at sign-up, e.g. "50–199". */
+  size: string;
+}
+
 export interface DataState {
+  org: Organization;
   meId: PersonId;
   people: Person[];
   requests: Request[];

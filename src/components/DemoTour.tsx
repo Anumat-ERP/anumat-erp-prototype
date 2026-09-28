@@ -1,5 +1,5 @@
 import { Button, IconButton, Text } from '@repo/ui';
-import { X } from 'lucide-react';
+import { ChevronDown, Presentation, X } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { useStore } from '../data/store';
@@ -14,14 +14,21 @@ interface Step {
   doThis: string;
 }
 
-/** The 3-minute pitch: one request from ask to decision to action to insight. */
+/** The 3-minute pitch: sign up, then one request from ask to decision to action to insight. */
 export const TOUR: Step[] = [
+  {
+    title: 'Sign up',
+    as: 'dara',
+    to: '/welcome',
+    say: 'Dara runs operations at a logistics company where approvals live in email. She sets up Anumat for the whole company in under a minute.',
+    doThis: 'Type the company name, Continue, glance at the invited team and their roles, Continue, Create workspace.',
+  },
   {
     title: 'The problem',
     as: 'dara',
     to: '/',
-    say: 'Requests live in email, chat and spreadsheets. Nobody knows who decides, or what happens next.',
-    doThis: 'Point at “Needs your decision”: everything waiting on Dara, in one place.',
+    say: 'Before Anumat, requests lived in email, chat and spreadsheets. Now everything waiting on Dara is in one place.',
+    doThis: 'Point at “Needs your decision” and the workspace name in the sidebar.',
   },
   {
     title: 'Ask',
@@ -104,6 +111,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    // Leave room below the page so the pinned panel never covers its last buttons.
+    document.documentElement.toggleAttribute('data-tour', step !== null);
     try {
       if (step === null) sessionStorage.removeItem(KEY);
       else sessionStorage.setItem(KEY, String(step));
@@ -130,10 +139,23 @@ export function TourProvider({ children }: { children: ReactNode }) {
 export function TourPanel() {
   const { step, go, end } = useTour();
   const { person } = useStore();
+  const [minimized, setMinimized] = useState(false);
   if (step === null) return null;
   const s = TOUR[step];
   if (!s) return null;
   const last = step === TOUR.length - 1;
+  if (minimized) {
+    return (
+      <Button
+        variant="secondary"
+        icon={<Presentation />}
+        onClick={() => setMinimized(false)}
+        className="fixed end-4 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] z-(--a-z-index-overlay) shadow-md"
+      >
+        Tour {step + 1}/{TOUR.length}: {s.title}
+      </Button>
+    );
+  }
   return (
     <aside
       aria-label="Demo tour"
@@ -148,7 +170,10 @@ export function TourPanel() {
             {s.title}
           </Text>
         </div>
-        <IconButton size="sm" icon={<X />} label="End demo tour" onClick={end} />
+        <div className="flex shrink-0">
+          <IconButton size="sm" icon={<ChevronDown />} label="Minimize demo tour" onClick={() => setMinimized(true)} />
+          <IconButton size="sm" icon={<X />} label="End demo tour" onClick={end} />
+        </div>
       </div>
       <p className="border-s-2 border-primary ps-3 text-md text-fg">“{s.say}”</p>
       <Text variant="bodySm" tone="muted">

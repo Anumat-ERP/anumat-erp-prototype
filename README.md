@@ -12,12 +12,13 @@ Use the account menu → **Reset demo data** to start over.
 
 ## What you can try
 
-Start with **Demo tour** in the top bar: an 8-step, 3-minute walkthrough that
+Start with **Demo tour** in the top bar: a 9-step, 3-minute walkthrough that
 resets the data and switches people for you. The full hackathon plan and demo
 script are in [docs/HACKATHON.md](docs/HACKATHON.md).
 
 | Screen | Try this |
 |---|---|
+| Sign-up (`/welcome`) | Create a workspace: company name, invite the team with roles, pick starter processes. Also in the account menu |
 | Home | See what is waiting on you, upcoming meetings, your tasks |
 | Requests | Search and filter; open **PR-1042** |
 | Request detail | **Approve**, **Request changes** or **Decline**; schedule a meeting about it; withdraw your own |
