@@ -8,7 +8,10 @@ workspace. Built with the Anumat design system and deployed to GitHub Pages.
 
 This is the **demo-day copy** of [anumat-erp-prototype](https://github.com/Anumat-ERP/anumat-erp-prototype)
 in the hackathon brand: **Anumat Blue `#003D96`** and the submitted logo. Same screens
-and demo tour. Only fix demo-breaking bugs here; build new features in the main
+and demo tour. The product UI follows the calm back-office principles in
+[anumat-erp-web/packages/brand](https://github.com/Anumat-ERP/anumat-erp-web/tree/main/packages/brand):
+⌘K / Ctrl+K search, A/R/D shortcuts for approvers, exact times on hover, compact
+spacing in the account menu. Only fix demo-breaking bugs here; build new features in the main
 prototype (or the real app) and copy them over deliberately.
 
 Everything runs in the browser with demo data. Changes you make (approving a

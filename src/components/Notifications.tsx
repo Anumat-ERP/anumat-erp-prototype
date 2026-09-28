@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import { notificationsFor, useStore } from '../data/store';
 import { formatRelative } from '../lib/format';
 import { Person } from './Person';
+import { Time } from './Time';
 
 /** Bell in the top bar: what others did on requests and meetings you are part of. */
 export function Notifications() {
@@ -65,7 +66,7 @@ export function Notifications() {
                       <span className="font-medium">{person(n.personId).name}</span> {n.text}
                     </span>
                     <Text as="span" variant="caption" tone="subtle">
-                      {formatRelative(n.at)}
+                      <Time iso={n.at} />
                       {n.at > seen ? <span className="sr-only"> (unread)</span> : null}
                     </Text>
                   </span>

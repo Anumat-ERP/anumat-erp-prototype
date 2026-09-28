@@ -9,6 +9,7 @@ import { firstStatus, isDone, surveysToAnswer, useStore, waitingOnMe } from '../
 import { closesLabel } from './Surveys';
 import { useTaskMover } from '../components/useTaskMover';
 import { daysUntil, formatMoney, formatRelative, formatTime, formatWeekday, typeLabel, typeName } from '../lib/format';
+import { Time } from '../components/Time';
 
 function greeting() {
   const h = new Date().getHours();
@@ -63,7 +64,7 @@ export function Home() {
         subtitle={
           waiting.length
             ? `${waiting.length} ${waiting.length === 1 ? 'request is' : 'requests are'} waiting on your decision.`
-            : 'Nothing is waiting on you. Nice.'
+            : 'Nothing is waiting on you.'
         }
         primaryAction={{ content: 'New request', onAction: () => navigate('/requests/new') }}
       />
@@ -99,7 +100,7 @@ export function Home() {
                           {r.title}
                         </Text>
                         <Text as="span" variant="bodySm" tone="muted" truncate>
-                          {typeName(r.type, state.processes)} · {r.id} · {person(r.requesterId).name} · {formatRelative(r.createdAt)}
+                          {typeName(r.type, state.processes)} · {r.id} · {person(r.requesterId).name} · <Time iso={r.createdAt} />
                         </Text>
                       </span>
                       {r.amount !== undefined ? (
@@ -122,7 +123,7 @@ export function Home() {
           {surveys.length ? (
             <Card className="flex flex-col gap-3 border-primary/40">
               <CardHeader
-                title="Your view is wanted"
+                title="Surveys waiting for you"
                 description={`${surveys.length} ${surveys.length === 1 ? 'survey is' : 'surveys are'} waiting for your answer.`}
               />
               <ul className="flex flex-col gap-2">
@@ -158,7 +159,7 @@ export function Home() {
                     <AppLink to={`/requests/${a.request.id}`}>{a.request.title}</AppLink>
                     <Text as="span" variant="bodySm" tone="subtle">
                       {' '}
-                      · {formatRelative(a.at)}
+                      · <Time iso={a.at} />
                     </Text>
                   </span>
                 </li>

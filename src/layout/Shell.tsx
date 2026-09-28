@@ -1,5 +1,5 @@
-import { ActionMenu, AppShell, Avatar, Badge, Button, IconButton, Navigation, SearchField, useToast, type NavigationSection } from '@repo/ui';
-import { BarChart3, CalendarDays, Check, CircleHelp, ClipboardList, Presentation, UsersRound, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Sun, Workflow } from 'lucide-react';
+import { ActionMenu, AppShell, Avatar, Badge, Button, IconButton, KbdShortcut, Navigation, useToast, type NavigationSection } from '@repo/ui';
+import { BarChart3, CalendarDays, Check, CircleHelp, ClipboardList, Presentation, UsersRound, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Search, Sun, Workflow } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { Logo } from '../components/Logo';
@@ -7,6 +7,7 @@ import { Notifications } from '../components/Notifications';
 import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
 import { FeedbackDialog, SurveyPrompt } from '../components/Feedback';
 import { useTour } from '../components/DemoTour';
+import { CommandPalette, commandKey } from '../components/CommandPalette';
 import { navLink } from '../components/links';
 import { isDone, surveysToAnswer, useStore, waitingOnMe } from '../data/store';
 
@@ -25,13 +26,49 @@ function useTheme() {
   return [theme, setTheme] as const;
 }
 
+type Density = 'comfortable' | 'compact';
+
+/** Comfortable or compact spacing, remembered on this device. */
+function useDensity() {
+  const [density, setDensity] = useState<Density>(() => {
+    try {
+      return localStorage.getItem('anumat-density') === 'compact' ? 'compact' : 'comfortable';
+    } catch {
+      return 'comfortable';
+    }
+  });
+  useEffect(() => {
+    document.documentElement.dataset.density = density;
+    try {
+      localStorage.setItem('anumat-density', density);
+    } catch {
+      // Density still applies for this visit.
+    }
+  }, [density]);
+  return [density, setDensity] as const;
+}
+
 export function Shell() {
   const { state, me, dispatch } = useStore();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [theme, setTheme] = useTheme();
+  const [density, setDensity] = useDensity();
+  const [searching, setSearching] = useState(false);
   const tour = useTour();
+
+  // ⌘K / Ctrl+K opens search from anywhere, even while typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearching((open) => !open);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const [feedback, setFeedback] = useState<'feedback' | 'problem' | null>(null);
 
   const waiting = waitingOnMe(state).length;
@@ -93,22 +130,17 @@ export function Shell() {
       <Badge tone="primary" size="sm" className="hidden sm:inline-flex">
         Prototype
       </Badge>
-      {/* Phones use the search on the Requests page; the top bar has no room. */}
-      <div className="ms-auto hidden w-full max-w-80 sm:block">
-        <SearchField
-          label="Search requests"
-          labelHidden
-          placeholder="Search requests…"
-          size="sm"
-          onChange={() => undefined}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              const q = (e.target as HTMLInputElement).value.trim();
-              navigate(q ? `/requests?q=${encodeURIComponent(q)}` : '/requests');
-            }
-          }}
-        />
-      </div>
+      <button
+        type="button"
+        onClick={() => setSearching(true)}
+        aria-keyshortcuts="Meta+K Control+K"
+        className="ms-auto hidden h-8 w-full max-w-80 items-center gap-2 rounded-md border border-border-input/60 bg-surface px-2.5 text-start text-md text-fg-subtle hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:flex"
+      >
+        <Search aria-hidden className="size-4" />
+        <span className="flex-1">Search or jump to…</span>
+        <KbdShortcut size="sm" keys={[commandKey, 'K']} />
+      </button>
+      <IconButton icon={<Search />} label="Search" className="ms-auto sm:hidden" onClick={() => setSearching(true)} />
       <Button
         size="sm"
         variant="tertiary"
@@ -119,7 +151,7 @@ export function Shell() {
       >
         Demo tour
       </Button>
-      <span className="ms-auto sm:ms-0">
+      <span>
         <Notifications />
       </span>
       <ActionMenu
@@ -133,10 +165,12 @@ export function Shell() {
           { content: 'Start demo tour', icon: <Presentation />, onAction: tour.start },
         ]}
       />
+      {/* Phones: the theme switch lives in the account menu, so the top bar fits. */}
       <IconButton
         icon={theme === 'dark' ? <Sun /> : <Moon />}
         label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        className="hidden sm:inline-flex"
       />
       <ActionMenu
         align="end"
@@ -173,6 +207,16 @@ export function Shell() {
                 content: 'Notification settings',
                 helpText: 'Email and Telegram, per kind of event.',
                 onAction: () => navigate('/settings/notifications'),
+              },
+              {
+                content: theme === 'dark' ? 'Light theme' : 'Dark theme',
+                icon: theme === 'dark' ? <Sun /> : <Moon />,
+                onAction: () => setTheme(theme === 'dark' ? 'light' : 'dark'),
+              },
+              {
+                content: density === 'compact' ? 'Comfortable spacing' : 'Compact spacing',
+                helpText: density === 'compact' ? 'Roomier rows and text.' : 'Fit more on screen: tighter rows and text.',
+                onAction: () => setDensity(density === 'compact' ? 'comfortable' : 'compact'),
               },
               {
                 content: 'Telegram preview',
@@ -217,6 +261,7 @@ export function Shell() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <Outlet />
       </div>
+      <CommandPalette open={searching} onOpenChange={setSearching} />
       <SurveyPrompt />
       <FeedbackDialog kind={feedback} onClose={() => setFeedback(null)} />
     </AppShell>

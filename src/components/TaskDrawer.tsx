@@ -6,6 +6,7 @@ import { formatRelative } from '../lib/format';
 import { PeoplePicker } from './PeoplePicker';
 import type { Task } from '../data/types';
 import { AppLink } from './links';
+import { Time } from './Time';
 
 const CATEGORY_LABEL = { todo: 'To do', active: 'In progress', done: 'Done' } as const;
 
@@ -251,7 +252,7 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <Text as="span" variant="bodySm">
                         <span className="font-medium">{c.personId === me.id ? 'You' : person(c.personId).name}</span>
-                        <span className="text-fg-subtle"> · {formatRelative(c.at)}</span>
+                        <span className="text-fg-subtle"> · <Time iso={c.at} /></span>
                       </Text>
                       <p className="rounded-md bg-surface-sunken px-3 py-2 text-md">{c.text}</p>
                     </div>

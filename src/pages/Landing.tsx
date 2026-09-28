@@ -188,9 +188,6 @@ function ProductPreview() {
           </div>
         </div>
       </div>
-      <span aria-hidden className="an-hand absolute -bottom-9 start-4 -rotate-3 text-2xl text-fg-link">
-        ask → approve → move forward
-      </span>
     </div>
   );
 }
@@ -202,7 +199,7 @@ export function Landing() {
   const startFree = () => navigate(tour.step !== null ? '/welcome?demo=1' : '/welcome');
 
   return (
-    <div id="top" className="min-h-dvh bg-bg text-fg">
+    <div id="top" className="an-marketing min-h-dvh bg-bg text-fg">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-(--a-z-index-toast) focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:shadow-md"
@@ -248,7 +245,7 @@ export function Landing() {
             <span className="text-xs font-semibold tracking-wide text-fg-link uppercase">Decision &amp; operations ERP</span>
             <h1 className="text-[clamp(2.25rem,5.2vw,3.75rem)] leading-[1.05] font-bold tracking-tight text-balance">
               Every request becomes a{' '}
-              <span className="bg-[linear-gradient(transparent_68%,var(--an-accent)_68%,var(--an-accent)_90%,transparent_90%)]">
+              <span className="text-fg-link">
                 clear decision.
               </span>
             </h1>

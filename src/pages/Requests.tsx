@@ -8,6 +8,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { useStore } from '../data/store';
 import type { Request, RequestStatus, RequestType } from '../data/types';
 import { formatMoney, formatRelative, requestStatus, typeLabel, typeName } from '../lib/format';
+import { Time } from '../components/Time';
 
 const STATUS_OPTIONS = (Object.keys(requestStatus) as RequestStatus[]).map((s) => ({ value: s, label: requestStatus[s].label }));
 
@@ -83,7 +84,7 @@ export function Requests() {
       header: 'Updated',
       sortable: true,
       sortValue: (r) => r.updatedAt,
-      cell: (r) => <span className="text-fg-muted">{formatRelative(r.updatedAt)}</span>,
+      cell: (r) => <span className="text-fg-muted"><Time iso={r.updatedAt} /></span>,
     },
   ];
 

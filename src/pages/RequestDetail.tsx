@@ -1,4 +1,6 @@
 import {
+  IconButton,
+  Kbd,
   Banner,
   Button,
   Card,
@@ -13,8 +15,8 @@ import {
   useToast,
 } from '@repo/ui';
 import { formatAnswer, questionsOf, visibleFields } from '../lib/forms';
-import { Paperclip } from 'lucide-react';
-import { useState } from 'react';
+import { Copy, Paperclip } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ApprovalTimeline } from '../components/ApprovalTimeline';
 import { MobileActionBar } from '../components/MobileActionBar';
@@ -25,6 +27,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { stepForm, useStore } from '../data/store';
 import type { FormValues } from '../data/types';
 import { formatBytesShort, formatDate, formatDateTime, formatMoney, formatRelative, typeLabel, typeName } from '../lib/format';
+import { Time } from '../components/Time';
 
 export function RequestDetail() {
   const { id } = useParams();
@@ -36,6 +39,25 @@ export function RequestDetail() {
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
 
   const r = state.requests.find((x) => x.id === id);
+  const canDecideNow = Boolean(r && r.status === 'pending' && r.steps.find((st) => st.status === 'current')?.approverId === me.id);
+
+  // Keyboard: A approve, R request changes, D decline. Never while typing or with a dialog open.
+  useEffect(() => {
+    if (!canDecideNow) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || decision) return;
+      const t = e.target as HTMLElement | null;
+      if (t?.closest('input, textarea, select, [contenteditable="true"]') || document.querySelector('[role="dialog"]')) return;
+      const k = e.key.toLowerCase();
+      if (k === 'a' || k === 'r' || k === 'd') {
+        e.preventDefault();
+        setDecision(k === 'a' ? 'approve' : k === 'r' ? 'changes' : 'decline');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canDecideNow, decision]);
+
   if (!r) {
     return (
       <EmptyState
@@ -70,7 +92,26 @@ export function RequestDetail() {
   };
 
   const details = [
-    { term: 'Request ID', description: <span className="font-mono text-sm">{r.id}</span> },
+    {
+      term: 'Request ID',
+      description: (
+        <span className="inline-flex items-center gap-1.5">
+          <span className="font-mono text-sm">{r.id}</span>
+          <IconButton
+            size="sm"
+            variant="tertiary"
+            icon={<Copy />}
+            label={`Copy ${r.id}`}
+            onClick={() => {
+              navigator.clipboard?.writeText(r.id).then(
+                () => toast({ title: `Copied ${r.id}` }),
+                () => toast({ tone: 'critical', title: 'Couldn’t copy', description: 'Select the ID and copy it instead.' }),
+              );
+            }}
+          />
+        </span>
+      ),
+    },
     { term: 'Type', description: typeName(r.type, state.processes) },
     { term: 'Requested by', description: <Person id={r.requesterId} showRole /> },
     { term: 'Department', description: r.department },
@@ -128,6 +169,18 @@ export function RequestDetail() {
         <Banner tone="warning" title="Waiting on your decision">
           You are the approver for <strong>{current?.name}</strong>.
           {next ? ` After you, it goes to ${person(next.approverId).name} for ${next.name.toLowerCase()}.` : ' Yours is the final step.'}
+          <span aria-hidden className="mt-2 hidden items-center gap-3 text-sm text-fg-muted md:flex">
+            Shortcuts:
+            <span className="inline-flex items-center gap-1">
+              <Kbd size="sm">A</Kbd> approve
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Kbd size="sm">R</Kbd> request changes
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Kbd size="sm">D</Kbd> decline
+            </span>
+          </span>
         </Banner>
       ) : r.status === 'changes' ? (
         <Banner
@@ -183,7 +236,7 @@ export function RequestDetail() {
                   <div className="flex items-center justify-between gap-3">
                     <Person id={a.personId} size="xs" />
                     <Text as="span" variant="caption" tone="subtle" className="shrink-0">
-                      {formatRelative(a.at)}
+                      <Time iso={a.at} />
                     </Text>
                   </div>
                   <div className="min-w-0 ps-7">

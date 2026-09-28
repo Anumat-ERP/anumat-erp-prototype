@@ -8,6 +8,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { needsDetails, useStore, waitingOnMe } from '../data/store';
 import type { Process, Request } from '../data/types';
 import { daysUntil, formatMoney, formatRelative, stepStatus, typeLabel, typeName } from '../lib/format';
+import { Time } from '../components/Time';
 
 const REQUESTS = { singular: 'request', plural: 'requests' };
 
@@ -62,7 +63,7 @@ export function Approvals() {
       sortValue: (r) => r.createdAt,
       cell: (r) => {
         const days = -daysUntil(r.createdAt);
-        return <span className={days >= 2 ? 'font-medium text-critical-subtle-fg' : 'text-fg-muted'}>{formatRelative(r.createdAt)}</span>;
+        return <span className={days >= 2 ? 'font-medium text-critical-subtle-fg' : 'text-fg-muted'}><Time iso={r.createdAt} /></span>;
       },
     },
   ];
@@ -113,7 +114,7 @@ export function Approvals() {
                       </Text>
                       <span className="flex items-center justify-between gap-2 text-sm">
                         <span className="text-fg-muted">Your step: {r.steps.find((st) => st.status === 'current')?.name}</span>
-                        <span className={days >= 2 ? 'font-medium text-critical-subtle-fg' : 'text-fg-muted'}>{formatRelative(r.createdAt)}</span>
+                        <span className={days >= 2 ? 'font-medium text-critical-subtle-fg' : 'text-fg-muted'}><Time iso={r.createdAt} /></span>
                       </span>
                     </span>
                     <ChevronRight aria-hidden className="size-4 shrink-0 self-center text-fg-subtle" />

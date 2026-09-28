@@ -70,7 +70,7 @@ export function Pricing() {
   };
 
   return (
-    <div className="min-h-dvh bg-bg text-fg">
+    <div className="an-marketing min-h-dvh bg-bg text-fg">
       <header className="border-b border-border">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 md:px-6">
           <Link to="/" aria-label="Anumat home" className="rounded-md text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
