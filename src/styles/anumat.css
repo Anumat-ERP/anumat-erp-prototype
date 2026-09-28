@@ -1,0 +1,82 @@
+/*
+ * Anumat brand layer on top of the design system.
+ *
+ * @repo/ui ships a neutral violet theme. The prototype keeps every component
+ * and semantic token name, and only re-points the brand-facing tokens to the
+ * Anumat palette (anumat-erp-branding/tokens). Load after globals.css.
+ *
+ * Rule from the brand book: text on Anumat Orange is Ink, never white
+ * (white on #F26A1B is 3.1:1; Ink is 5.2:1).
+ */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../assets/fonts/PlusJakartaSans-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('../assets/fonts/JetBrainsMono-latin.woff2') format('woff2');
+}
+
+:root {
+  --a-font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --a-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Anumat Orange ramp (500 is the brand colour). */
+  --a-palette-brand-50: #fff5ee;
+  --a-palette-brand-100: #fde9dc;
+  --a-palette-brand-200: #f9cdaf;
+  --a-palette-brand-300: #f6a874;
+  --a-palette-brand-400: #f4883f;
+  --a-palette-brand-500: #f26a1b;
+  --a-palette-brand-600: #db570b;
+  --a-palette-brand-700: #b34506;
+  --a-palette-brand-800: #8f3a05;
+  --a-palette-brand-900: #6b2d06;
+  --a-palette-brand-950: #4a1f05;
+
+  --an-ink: #1b2230;
+  --an-paper: #fbf7ef;
+}
+
+:root,
+[data-theme='light'] {
+  --a-color-bg: var(--an-paper);
+  --a-color-fg: var(--an-ink);
+  --a-color-surface-selected: var(--a-palette-brand-50);
+  --a-color-ring: var(--a-palette-brand-600);
+  --a-color-fg-link: var(--a-palette-brand-700);
+  --a-color-primary: var(--a-palette-brand-500);
+  /* Hover and press go lighter, not darker: Ink on brand-600 would drop to 4.1:1. */
+  --a-color-primary-hover: var(--a-palette-brand-400);
+  --a-color-primary-active: var(--a-palette-brand-300);
+  --a-color-primary-fg: var(--an-ink);
+  --a-color-primary-subtle: var(--a-palette-brand-100);
+  --a-color-primary-subtle-fg: var(--a-palette-brand-800);
+  --a-color-primary-border: var(--a-palette-brand-200);
+}
+
+[data-theme='dark'] {
+  --a-color-bg: #141924;
+  --a-color-surface: #1c2331;
+  --a-color-surface-muted: #202839;
+  --a-color-surface-hover: #242c3d;
+  --a-color-surface-active: #2c3547;
+  --a-color-surface-sunken: #141924;
+  --a-color-border: #2c3445;
+  --a-color-border-subtle: #242c3d;
+  --a-color-fg: #f3eee4;
+  --a-color-surface-selected: #3a2416;
+  --a-color-ring: var(--a-palette-brand-400);
+  --a-color-fg-link: #ff9a5c;
+  --a-color-primary: var(--a-palette-brand-500);
+  --a-color-primary-hover: var(--a-palette-brand-400);
+  --a-color-primary-active: var(--a-palette-brand-300);
+  --a-color-primary-fg: var(--an-ink);
+  --a-color-primary-subtle: #3a2416;
+  --a-color-primary-subtle-fg: #ffb98c;
+  --a-color-primary-border: #7a3a12;
+}
