@@ -1,24 +1,11 @@
-import {
-  Avatar,
-  Banner,
-  Button,
-  Card,
-  Checkbox,
-  Field,
-  IconButton,
-  Input,
-  RadioGroup,
-  RadioGroupItem,
-  Select,
-  Text,
-  useToast,
-  cn,
-} from '@repo/ui';
+import { Avatar, Banner, Button, Card, Checkbox, cn, Field, IconButton, Input, RadioGroup, RadioGroupItem, Select, Text, useToast } from '@repo/ui';
 import { Check, Copy, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Logo } from '../components/Logo';
 import { useStore } from '../data/store';
+import { LanguageSwitch } from '../i18n/LanguageSwitch';
+import { useLocale } from '../i18n/LocaleProvider';
 import { formatMoney } from '../lib/format';
 
 const SIZES = [
@@ -29,7 +16,11 @@ const SIZES = [
 ];
 
 const ROLES = [
-  { value: 'admin', label: 'Admin', help: 'Manages people, processes and statuses' },
+  {
+    value: 'admin',
+    label: 'Admin',
+    help: 'Manages people, processes and statuses',
+  },
   { value: 'member', label: 'Member', help: 'Raises requests, works on tasks' },
 ];
 
@@ -51,6 +42,7 @@ interface Invite {
  * the demo; nothing leaves the browser and no email is sent.
  */
 export function Welcome() {
+  const { t: tr } = useLocale();
   const { state, me, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -74,7 +66,7 @@ export function Welcome() {
     e.preventDefault();
     if (step === 0) {
       if (!name.trim()) {
-        setNameError('Enter your company’s name. You can change it later.');
+        setNameError(tr('Enter your company’s name. You can change it later.'));
         return;
       }
       if (invites.length === 0) {
@@ -97,7 +89,7 @@ export function Welcome() {
       return;
     }
     if (processIds.length === 0) {
-      setProcessError('Turn on at least one process, so requests have somewhere to go.');
+      setProcessError(tr('Turn on at least one process, so requests have somewhere to go.'));
       return;
     }
     const access = Object.fromEntries(
@@ -107,8 +99,22 @@ export function Welcome() {
       }),
     );
     // The demo tour renames the current workspace; everyone else gets a new one.
-    if (params.get('demo')) dispatch({ type: 'setupOrg', name: name.trim(), size, activeProcessIds: processIds, access });
-    else dispatch({ type: 'createWorkspace', name: name.trim(), size, activeProcessIds: processIds, access });
+    if (params.get('demo'))
+      dispatch({
+        type: 'setupOrg',
+        name: name.trim(),
+        size,
+        activeProcessIds: processIds,
+        access,
+      });
+    else
+      dispatch({
+        type: 'createWorkspace',
+        name: name.trim(),
+        size,
+        activeProcessIds: processIds,
+        access,
+      });
     toast({
       tone: 'success',
       title: `Welcome to ${name.trim()}`,
@@ -120,7 +126,7 @@ export function Welcome() {
   const addInvite = () => {
     const email = newEmail.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError('Enter an email address, like name@company.com.');
+      setEmailError(tr('Enter an email address, like name@company.com.'));
       return;
     }
     if (invites.some((i) => i.email === email)) {
@@ -147,6 +153,9 @@ export function Welcome() {
   return (
     <div className="min-h-dvh bg-bg px-4 py-8 text-fg sm:py-12">
       <main id="main-content" tabIndex={-1} className="mx-auto flex w-full max-w-2xl flex-col gap-6 outline-none">
+        <div className="self-end">
+          <LanguageSwitch />
+        </div>
         <Logo className="h-8 w-auto self-start" />
 
         <ol className="flex flex-wrap gap-x-6 gap-y-2" aria-label="Sign-up steps">
@@ -165,7 +174,7 @@ export function Welcome() {
               </span>
               <span className={i === step ? 'font-semibold text-fg' : 'text-fg-muted'}>
                 {label}
-                {i < step ? <span className="sr-only"> (done)</span> : null}
+                {i < step ? <span className="sr-only"> {tr('(done)')}</span> : null}
               </span>
             </li>
           ))}
@@ -177,11 +186,12 @@ export function Welcome() {
               <>
                 <div className="flex flex-col gap-1">
                   <Text as="h1" variant="heading">
-                    Create your workspace
+                    {' '}
+                    {tr('Create your workspace')}{' '}
                   </Text>
-                  <Text tone="muted">One workspace for your whole company. You’ll be its owner.</Text>
+                  <Text tone="muted">{tr('One workspace for your whole company. You’ll be its owner.')}</Text>
                 </div>
-                <Field label="Company name" required error={nameError}>
+                <Field label={tr('Company name')} required error={nameError}>
                   <Input
                     autoFocus
                     value={name}
@@ -210,9 +220,12 @@ export function Welcome() {
               <>
                 <div className="flex flex-col gap-1">
                   <Text as="h1" variant="heading">
-                    Invite your team
+                    {' '}
+                    {tr('Invite your team')}{' '}
                   </Text>
-                  <Text tone="muted">They join {name.trim()} when they accept. Admins manage the workspace; who approves what comes from your approval processes, next.</Text>
+                  <Text tone="muted">
+                    They join {name.trim()} when they accept. Admins manage the workspace; who approves what comes from your approval processes, next.
+                  </Text>
                 </div>
                 <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
                   {invites.map((inv) => (
@@ -227,7 +240,10 @@ export function Welcome() {
                         aria-label={`Role for ${inv.name ?? inv.email}`}
                         value={inv.role}
                         onChange={(e) => setInvites(invites.map((i) => (i.email === inv.email ? { ...i, role: e.target.value } : i)))}
-                        options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
+                        options={ROLES.map((r) => ({
+                          value: r.value,
+                          label: r.label,
+                        }))}
                         className="w-32"
                       />
                       <IconButton
@@ -238,12 +254,10 @@ export function Welcome() {
                       />
                     </li>
                   ))}
-                  {invites.length === 0 ? (
-                    <li className="px-3 py-4 text-md text-fg-muted">No one yet. Add people below, or share the invite code.</li>
-                  ) : null}
+                  {invites.length === 0 ? <li className="px-3 py-4 text-md text-fg-muted">No one yet. Add people below, or share the invite code.</li> : null}
                 </ul>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                  <Field label="Add by email" error={emailError} className="flex-1">
+                  <Field label={tr('Add by email')} error={emailError} className="flex-1">
                     <Input
                       type="email"
                       value={newEmail}
@@ -258,7 +272,8 @@ export function Welcome() {
                     />
                   </Field>
                   <Button className="sm:mt-6" onClick={addInvite}>
-                    Add
+                    {' '}
+                    {tr('Add')}{' '}
                   </Button>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-surface-muted p-3">
@@ -271,7 +286,7 @@ export function Welcome() {
                   <div className="flex items-center gap-2">
                     <span className="rounded-md bg-surface px-2 py-1 font-mono text-md tracking-wide select-all">{code}</span>
                     <Button size="sm" icon={copied ? <Check /> : <Copy />} onClick={copyCode}>
-                      {copied ? 'Copied' : 'Copy'}
+                      {copied ? tr('Copied') : tr('Copy')}
                     </Button>
                   </div>
                 </div>
@@ -285,13 +300,14 @@ export function Welcome() {
               <>
                 <div className="flex flex-col gap-1">
                   <Text as="h1" variant="heading">
-                    Choose how things get approved
+                    {' '}
+                    {tr('Choose how things get approved')}{' '}
                   </Text>
                   <Text tone="muted">Starter processes with sensible rules. Change any of them later in Process Builder.</Text>
                 </div>
                 {processError ? <Banner tone="critical">{processError}</Banner> : null}
                 <fieldset className="flex flex-col gap-3">
-                  <legend className="sr-only">Approval processes to turn on</legend>
+                  <legend className="sr-only">{tr('Approval processes to turn on')}</legend>
                   {state.processes.map((p) => (
                     <div key={p.id} className="rounded-lg border border-border p-3">
                       <Checkbox
@@ -314,21 +330,24 @@ export function Welcome() {
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
               {step > 0 ? (
                 <Button variant="tertiary" onClick={() => setStep(step - 1)}>
-                  Back
+                  {' '}
+                  {tr('Back')}{' '}
                 </Button>
               ) : (
                 <Button variant="tertiary" onClick={() => navigate('/')}>
-                  Cancel
+                  {' '}
+                  {tr('Cancel')}{' '}
                 </Button>
               )}
               <div className="flex gap-2">
                 {step === 1 ? (
                   <Button variant="tertiary" onClick={() => setStep(2)}>
-                    Skip for now
+                    {' '}
+                    {tr('Skip for now')}{' '}
                   </Button>
                 ) : null}
                 <Button type="submit" variant="primary">
-                  {step === 2 ? 'Create workspace' : 'Continue'}
+                  {step === 2 ? tr('Create workspace') : tr('Continue')}
                 </Button>
               </div>
             </div>

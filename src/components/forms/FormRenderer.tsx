@@ -2,6 +2,7 @@ import { Checkbox, Field, Input, RadioGroup, RadioGroupItem, Select, Text, Texta
 import { useRef, type KeyboardEvent } from 'react';
 import { useStore } from '../../data/store';
 import type { FormField, FormValues } from '../../data/types';
+import { useLocale } from '../../i18n/LocaleProvider';
 import { choicesFor, isQuestion, visibleFields } from '../../lib/forms';
 
 /**
@@ -56,7 +57,9 @@ export function ChoiceScale({
         aria-describedby={field?.describedBy}
         aria-invalid={invalid || undefined}
         className="grid gap-1"
-        style={{ gridTemplateColumns: `repeat(${choices.length}, minmax(0, 1fr))` }}
+        style={{
+          gridTemplateColumns: `repeat(${choices.length}, minmax(0, 1fr))`,
+        }}
       >
         {choices.map((c, i) => (
           <button
@@ -97,18 +100,32 @@ export function ChoiceScale({
 export const questionId = (prefix: string, fieldId: string) => `${prefix}-${fieldId}`;
 
 function PersonSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { t: tr } = useLocale();
   const { state } = useStore();
   return (
     <Select
       value={value}
-      placeholder="Choose a person"
+      placeholder={tr('Choose a person')}
       onChange={(e) => onChange(e.target.value)}
-      options={state.people.map((p) => ({ value: p.id, label: `${p.name} · ${p.role}` }))}
+      options={state.people.map((p) => ({
+        value: p.id,
+        label: `${p.name} · ${p.role}`,
+      }))}
     />
   );
 }
 
-const INPUT_TYPE: Partial<Record<FormField['kind'], { type: string; inputMode?: 'decimal' | 'email' | 'tel' | 'url'; autoComplete?: string; narrow?: boolean }>> = {
+const INPUT_TYPE: Partial<
+  Record<
+    FormField['kind'],
+    {
+      type: string;
+      inputMode?: 'decimal' | 'email' | 'tel' | 'url';
+      autoComplete?: string;
+      narrow?: boolean;
+    }
+  >
+> = {
   number: { type: 'text', inputMode: 'decimal', narrow: true },
   money: { type: 'text', inputMode: 'decimal', narrow: true },
   date: { type: 'date', narrow: true },
@@ -136,6 +153,7 @@ export function FormRenderer({
   /** Show "1.", "2."… before each question, as surveys do. Sections aren't counted. */
   numbered?: boolean;
 }) {
+  const { t: tr } = useLocale();
   const shown = visibleFields(fields, values);
   const set = (id: string, v: string | string[]) => onChange({ ...values, [id]: v });
   let n = 0;
@@ -160,7 +178,13 @@ export function FormRenderer({
         n += 1;
         const id = questionId(idPrefix, f.id);
         const label = numbered ? `${n}. ${f.label || 'Untitled question'}` : f.label || 'Untitled question';
-        const common = { label, required: f.required, helpText: f.help || undefined, error: errors[f.id], disabled };
+        const common = {
+          label,
+          required: f.required,
+          helpText: f.help || undefined,
+          error: errors[f.id] ? tr(errors[f.id]!) : undefined,
+          disabled,
+        };
         const text = typeof values[f.id] === 'string' ? (values[f.id] as string) : '';
         const list = Array.isArray(values[f.id]) ? (values[f.id] as string[]) : [];
 
@@ -177,11 +201,14 @@ export function FormRenderer({
               <Field key={f.id} id={id} {...common}>
                 <Select
                   value={text}
-                  placeholder="Choose an answer"
+                  placeholder={tr('Choose an answer')}
                   onChange={(e) => set(f.id, e.target.value)}
                   options={choicesFor(f)
                     .filter(Boolean)
-                    .map((o) => ({ value: o, label: o }))}
+                    .map((o) => ({
+                      value: o,
+                      label: f.kind === 'yesno' ? tr(o) : o,
+                    }))}
                 />
               </Field>
             );
@@ -195,16 +222,11 @@ export function FormRenderer({
           case 'yesno':
             return (
               <Field key={f.id} group {...common}>
-                <RadioGroup
-                  id={id}
-                  value={text}
-                  onValueChange={(v) => set(f.id, v)}
-                  orientation={f.kind === 'yesno' ? 'horizontal' : 'vertical'}
-                >
+                <RadioGroup id={id} value={text} onValueChange={(v) => set(f.id, v)} orientation={f.kind === 'yesno' ? 'horizontal' : 'vertical'}>
                   {choicesFor(f)
                     .filter(Boolean)
                     .map((o) => (
-                      <RadioGroupItem key={o} value={o} label={o} />
+                      <RadioGroupItem key={o} value={o} label={f.kind === 'yesno' ? tr(o) : o} />
                     ))}
                 </RadioGroup>
               </Field>
@@ -233,8 +255,8 @@ export function FormRenderer({
                     choices={choicesFor(f)}
                     value={text}
                     onChange={(v) => set(f.id, v)}
-                    low={f.kind === 'rating' ? 'Poor' : 'Not at all'}
-                    high={f.kind === 'rating' ? 'Excellent' : 'Extremely'}
+                    low={f.kind === 'rating' ? tr('Poor') : tr('Not at all')}
+                    high={f.kind === 'rating' ? tr('Excellent') : tr('Extremely')}
                     invalid={Boolean(errors[f.id])}
                     disabled={disabled}
                   />
@@ -269,6 +291,8 @@ export function focusFirstError(fields: FormField[], errors: Record<string, stri
   const first = fields.find((f) => errors[f.id]);
   if (!first) return;
   const el = document.getElementById(questionId(idPrefix, first.id));
-  const target = el?.matches('input, textarea, select, button') ? el : el?.querySelector<HTMLElement>('input, textarea, select, button, [role="radio"][tabindex="0"]');
+  const target = el?.matches('input, textarea, select, button')
+    ? el
+    : el?.querySelector<HTMLElement>('input, textarea, select, button, [role="radio"][tabindex="0"]');
   (target as HTMLElement | null | undefined)?.focus();
 }

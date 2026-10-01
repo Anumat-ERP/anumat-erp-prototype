@@ -1,27 +1,13 @@
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Badge, Button, Card, DescriptionList, Text, cn } from '@repo/ui';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-  Badge,
-  Button,
-  Card,
-  DescriptionList,
-  Text,
-  cn,
-} from '@repo/ui';
-import {
-  CalendarDays,
   CheckCircle2,
+  Circle,
   CircleCheck,
   CircleHelp,
   Clock,
-  Circle,
   FileText,
-  FolderOpen,
   History,
   Inbox,
-  ListChecks,
   Lock,
   Plane,
   Receipt,
@@ -37,8 +23,10 @@ import {
 import { useRef, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ContactChannels } from '../components/ContactChannels';
-import { Logo } from '../components/Logo';
 import { useTour } from '../components/DemoTour';
+import { Logo } from '../components/Logo';
+import { LanguageSwitch } from '../i18n/LanguageSwitch';
+import { useLocale } from '../i18n/LocaleProvider';
 import { useReveal } from '../lib/motion';
 
 const NAV = [
@@ -61,27 +49,57 @@ function FooterColumn({ title, children }: { title: string; children: ReactNode 
 }
 
 const PROBLEMS = [
-  { icon: SearchX, title: 'Lost requests', text: 'Important requests get buried in email and chat threads.' },
-  { icon: UserX, title: 'Unclear ownership', text: 'Nobody is sure who decides, or what happens next.' },
-  { icon: Timer, title: 'Slow decisions', text: 'Approvals wait for days because nobody knows they’re stuck.' },
-  { icon: CircleHelp, title: 'Missing evidence', text: 'Quotes, context and the reason for a decision are hard to find later.' },
+  {
+    icon: SearchX,
+    title: 'Lost requests',
+    text: 'Important requests get buried in email and chat threads.',
+  },
+  {
+    icon: UserX,
+    title: 'Unclear ownership',
+    text: 'Nobody is sure who decides, or what happens next.',
+  },
+  {
+    icon: Timer,
+    title: 'Slow decisions',
+    text: 'Approvals wait for days because nobody knows they’re stuck.',
+  },
+  {
+    icon: CircleHelp,
+    title: 'Missing evidence',
+    text: 'Quotes, context and the reason for a decision are hard to find later.',
+  },
 ];
 
 const FLOW = [
-  { title: 'Request', text: 'Raise it once, with every detail and file attached.' },
+  {
+    title: 'Request',
+    text: 'Raise it once, with every detail and file attached.',
+  },
   { title: 'Review', text: 'It goes to the right people, by your rules.' },
   { title: 'Approve', text: 'A clear decision, with a reason on record.' },
-  { title: 'Act', text: 'Decisions turn into tasks with owners and deadlines.' },
   { title: 'Track', text: 'See what’s moving, what’s stuck and why.' },
 ];
 
 const MODULES = [
-  { icon: FileText, color: 'var(--an-mod-requests)', title: 'Requests', text: 'Purchases, leave, expenses and contracts in one form.' },
-  { icon: CheckCircle2, color: 'var(--an-mod-approvals)', title: 'Approvals', text: 'Routes by type and amount, with bulk approve.' },
-  { icon: CalendarDays, color: 'var(--an-mod-meetings)', title: 'Meetings', text: 'Agendas, recorded decisions and action items.' },
-  { icon: FolderOpen, color: 'var(--an-mod-documents)', title: 'Documents', text: 'Files linked to the decision they support, with versions.' },
-  { icon: ListChecks, color: 'var(--an-mod-tasks)', title: 'Tasks', text: 'Follow-ups with an owner, a deadline and a source.' },
-  { icon: Workflow, color: 'var(--an-mod-process)', title: 'Process Builder', text: 'Change who approves what, without code.' },
+  {
+    icon: FileText,
+    color: 'var(--an-mod-requests)',
+    title: 'Requests',
+    text: 'Purchases, leave, expenses and contracts in one form.',
+  },
+  {
+    icon: CheckCircle2,
+    color: 'var(--an-mod-approvals)',
+    title: 'Approvals',
+    text: 'Routes by type and amount, with bulk approve.',
+  },
+  {
+    icon: Workflow,
+    color: 'var(--an-mod-process)',
+    title: 'Approval processes',
+    text: 'Change who approves what, without code.',
+  },
 ];
 
 const USE_CASES = [
@@ -89,15 +107,35 @@ const USE_CASES = [
   { icon: Plane, label: 'Leave and time off' },
   { icon: Receipt, label: 'Expense claims' },
   { icon: Signature, label: 'Contract review' },
-  { icon: FolderOpen, label: 'Policies and documents' },
-  { icon: Users, label: 'Meeting decisions' },
 ];
 
-const TRUST: { icon: typeof Lock; title: string; text: string; planned?: boolean }[] = [
-  { icon: Users, title: 'Role-based access', text: 'Admins, approvers and members each see what they need.' },
-  { icon: History, title: 'Audit trail', text: 'Every submission, decision and comment is recorded with who and when.' },
-  { icon: FileText, title: 'Version history', text: 'Documents keep every version, so you know what was approved.' },
-  { icon: Lock, title: 'Encryption', text: 'In transit and at rest, with data kept separate per company.', planned: true },
+const TRUST: {
+  icon: typeof Lock;
+  title: string;
+  text: string;
+  planned?: boolean;
+}[] = [
+  {
+    icon: Users,
+    title: 'Role-based access',
+    text: 'Admins, approvers and members each see what they need.',
+  },
+  {
+    icon: History,
+    title: 'Audit trail',
+    text: 'Every submission, decision and comment is recorded with who and when.',
+  },
+  {
+    icon: FileText,
+    title: 'Version history',
+    text: 'Documents keep every version, so you know what was approved.',
+  },
+  {
+    icon: Lock,
+    title: 'Encryption',
+    text: 'In transit and at rest, with data kept separate per company.',
+    planned: true,
+  },
 ];
 
 const FAQ = [
@@ -137,10 +175,29 @@ function Section({ id, eyebrow, title, children, className }: { id?: string; eye
 
 /** A static, non-interactive miniature of the request screen, built from the real components. */
 function ProductPreview() {
+  const { t: tr } = useLocale();
   const steps = [
-    { name: 'Manager review', who: 'Dara Sok', state: 'Approved', Icon: CircleCheck, tone: 'text-success' },
-    { name: 'Finance review', who: 'Priya Shah', state: 'Waiting', Icon: Clock, tone: 'text-warning-subtle-fg' },
-    { name: 'Final approval', who: 'Sokha Chan', state: 'Not started', Icon: Circle, tone: 'text-fg-subtle' },
+    {
+      name: 'Manager review',
+      who: 'Dara Sok',
+      state: 'Approved',
+      Icon: CircleCheck,
+      tone: 'text-success',
+    },
+    {
+      name: 'Finance review',
+      who: 'Priya Shah',
+      state: 'Waiting',
+      Icon: Clock,
+      tone: 'text-warning-subtle-fg',
+    },
+    {
+      name: 'Final approval',
+      who: 'Sokha Chan',
+      state: 'Not started',
+      Icon: Circle,
+      tone: 'text-fg-subtle',
+    },
   ];
   return (
     <div className="relative">
@@ -153,19 +210,26 @@ function ProductPreview() {
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-0.5">
               <span className="text-xs text-fg-muted">Purchase request · PR-1042</span>
-              <span className="text-lg font-semibold text-fg">Laptops for new team members</span>
+              <span className="text-lg font-semibold text-fg">{tr('Laptops for new team members')}</span>
             </div>
             <Badge tone="warning" dot>
-              Pending
+              {' '}
+              {tr('Pending')}{' '}
             </Badge>
           </div>
           <DescriptionList
             layout="inline"
             spacing="tight"
             items={[
-              { term: 'Requested by', description: 'Alex Tan · Operations' },
-              { term: 'Amount', description: <span className="font-semibold tabular-nums">$12,500.00</span> },
-              { term: 'Attached', description: 'Laptop_Proposal.pdf' },
+              {
+                term: tr('Requested by'),
+                description: 'Alex Tan · Operations',
+              },
+              {
+                term: tr('Amount'),
+                description: <span className="font-semibold tabular-nums">$12,500.00</span>,
+              },
+              { term: tr('Attached'), description: 'Laptop_Proposal.pdf' },
             ]}
           />
           <ol className="flex flex-col gap-2.5 rounded-lg bg-surface-sunken p-3">
@@ -181,10 +245,12 @@ function ProductPreview() {
           </ol>
           <div className="flex justify-end gap-2">
             <Button size="sm" tabIndex={-1}>
-              Request changes
+              {' '}
+              {tr('Request changes')}{' '}
             </Button>
             <Button size="sm" variant="primary" tabIndex={-1}>
-              Approve
+              {' '}
+              {tr('Approve')}{' '}
             </Button>
           </div>
         </div>
@@ -194,6 +260,7 @@ function ProductPreview() {
 }
 
 export function Landing() {
+  const { t: tr } = useLocale();
   const navigate = useNavigate();
   const tour = useTour();
   // During the demo tour, sign-up opens with the company already filled in.
@@ -207,24 +274,38 @@ export function Landing() {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-(--a-z-index-toast) focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:shadow-md"
       >
-        Skip to content
+        {' '}
+        {tr('Skip to content')}{' '}
       </a>
+      <div className="fixed bottom-4 right-4 z-50">
+        <LanguageSwitch />
+      </div>
       <header className="sticky top-0 z-(--a-z-index-sticky) border-b border-border bg-bg/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 md:px-6">
-          <Link to="/" aria-label="Anumat home" className="rounded-md text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+          <Link
+            to="/"
+            aria-label={tr('Anumat home')}
+            className="rounded-md text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
             <Logo className="h-7 w-auto" />
           </Link>
           <nav aria-label="Page sections" className="hidden md:block">
             <ul className="flex gap-5 text-md">
               {NAV.map((n) => (
                 <li key={n.href}>
-                  <a href={n.href} className="rounded-sm text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                  <a
+                    href={n.href}
+                    className="rounded-sm text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                  >
                     {n.label}
                   </a>
                 </li>
               ))}
               <li>
-                <Link to="/pricing" className="rounded-sm text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                <Link
+                  to="/pricing"
+                  className="rounded-sm text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                >
                   Pricing
                 </Link>
               </li>
@@ -232,7 +313,8 @@ export function Landing() {
           </nav>
           <div className="ms-auto flex items-center gap-2">
             <Button variant="tertiary" onClick={() => navigate('/signin')}>
-              Sign in
+              {' '}
+              {tr('Sign in')}{' '}
             </Button>
             <Button variant="primary" onClick={startFree}>
               Start free
@@ -247,13 +329,10 @@ export function Landing() {
           <div className="flex flex-col gap-6">
             <span className="text-xs font-semibold tracking-wide text-fg-link uppercase">Decision &amp; operations ERP</span>
             <h1 className="text-[clamp(2.25rem,5.2vw,3.75rem)] leading-[1.05] font-bold tracking-tight text-balance">
-              Every request becomes a{' '}
-              <span className="text-fg-link">
-                clear decision.
-              </span>
+              Every request becomes a <span className="text-fg-link">clear decision.</span>
             </h1>
             <p className="max-w-xl text-lg text-fg-muted">
-              Requests, approvals, meetings, documents and tasks in one workspace. Everyone knows who decides, what was decided, and what happens next.
+              Requests, approvals and approval processes in one workspace. Everyone knows who decides, what was decided, and what happens next.
             </p>
             <div className="flex flex-wrap gap-3">
               <Button size="lg" variant="primary" onClick={startFree}>
@@ -303,7 +382,9 @@ export function Landing() {
                   {i < FLOW.length - 1 ? <span aria-hidden className="hidden h-0.5 flex-1 bg-border-strong lg:block" /> : null}
                 </span>
                 <Text as="h3" variant="subtitle">
-                  <span className="sr-only">Step {i + 1}: </span>
+                  <span className="sr-only">
+                    {tr('Step')} {i + 1}:{' '}
+                  </span>
                   {s.title}
                 </Text>
                 <Text tone="muted">{s.text}</Text>
@@ -321,7 +402,10 @@ export function Landing() {
                   <span
                     aria-hidden
                     className="flex size-10 shrink-0 items-center justify-center rounded-lg"
-                    style={{ color, background: `color-mix(in oklch, ${color} 14%, var(--a-color-surface))` }}
+                    style={{
+                      color,
+                      background: `color-mix(in oklch, ${color} 14%, var(--a-color-surface))`,
+                    }}
                   >
                     <Icon className="size-5" />
                   </span>
@@ -377,9 +461,21 @@ export function Landing() {
           <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <ul className="grid gap-4 sm:grid-cols-3">
               {[
-                { icon: Shield, title: 'Free while it lasts', text: 'No fee during the pilot, with fair-use limits.' },
-                { icon: Timer, title: 'Live in a minute', text: 'Starter processes for purchases, expenses, leave and contracts.' },
-                { icon: Inbox, title: 'Direct line to us', text: 'Your feedback goes straight into the roadmap.' },
+                {
+                  icon: Shield,
+                  title: 'Free while it lasts',
+                  text: 'No fee during the pilot, with fair-use limits.',
+                },
+                {
+                  icon: Timer,
+                  title: 'Live in a minute',
+                  text: 'Starter processes for purchases, expenses, leave and contracts.',
+                },
+                {
+                  icon: Inbox,
+                  title: 'Direct line to us',
+                  text: 'Your feedback goes straight into the roadmap.',
+                },
               ].map(({ icon: Icon, title, text }) => (
                 <li key={title} className="flex flex-col gap-2">
                   <Icon aria-hidden className="size-5 text-fg-link" />
@@ -402,7 +498,10 @@ export function Landing() {
                 <Button onClick={tour.start}>Take the tour</Button>
               </div>
               <Text variant="bodySm" tone="muted">
-                Need your own cloud or on-premise? <Link to="/pricing" className="text-fg-link underline">See deployment options</Link>
+                Need your own cloud or on-premise?{' '}
+                <Link to="/pricing" className="text-fg-link underline">
+                  See deployment options
+                </Link>
               </Text>
             </Card>
           </div>
@@ -456,10 +555,11 @@ export function Landing() {
               </li>
             ))}
           </FooterColumn>
-          <FooterColumn title="Get started">
+          <FooterColumn title={tr('Get started')}>
             <li>
               <Link to="/pricing" className={FOOTER_LINK}>
-                Pricing &amp; deployment
+                {' '}
+                {tr('Pricing & deployment')}{' '}
               </Link>
             </li>
             <li>
@@ -469,7 +569,8 @@ export function Landing() {
             </li>
             <li>
               <Link to="/signin" className={FOOTER_LINK}>
-                Sign in
+                {' '}
+                {tr('Sign in')}{' '}
               </Link>
             </li>
           </FooterColumn>

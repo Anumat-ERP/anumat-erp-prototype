@@ -1,33 +1,56 @@
 import type { BadgeTone } from '@repo/ui';
 import type { DocumentStatus, Process, RequestStatus, RequestType, StepStatus } from '../data/types';
+import { intlLocale, type Locale } from '../i18n/locale';
 
-const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+const money = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+});
 export const formatMoney = (n?: number) => (n === undefined ? '—' : money.format(n));
 
 export const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  new Date(iso).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 
 export const formatShortDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
 export const formatTime = (iso: string) =>
-  new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  new Date(iso).toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
 export const formatDateTime = (iso: string) => `${formatShortDate(iso)}, ${formatTime(iso)}`;
 
 export const formatWeekday = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  new Date(iso).toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
 
 /** “3 hours ago”, “in 2 days”. */
-export function formatRelative(iso: string) {
+export function formatRelative(iso: string, locale: Locale = 'en') {
   const diff = new Date(iso).getTime() - Date.now();
-  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat(intlLocale(locale), {
+    numeric: 'auto',
+  });
+  const relative = (value: number, unit: Intl.RelativeTimeFormatUnit) => {
+    if (locale !== 'km') return rtf.format(value, unit);
+    if (value === 0) return 'ឥឡូវនេះ';
+    const label = unit === 'minute' ? 'នាទី' : unit === 'hour' ? 'ម៉ោង' : 'ថ្ងៃ';
+    return value < 0 ? `${Math.abs(value)} ${label}មុន` : `ក្នុងរយៈពេល ${value} ${label}`;
+  };
   const abs = Math.abs(diff);
   const minute = 60_000;
   const hour = 60 * minute;
   const day = 24 * hour;
-  if (abs < hour) return rtf.format(Math.round(diff / minute), 'minute');
-  if (abs < day) return rtf.format(Math.round(diff / hour), 'hour');
-  return rtf.format(Math.round(diff / day), 'day');
+  if (abs < hour) return relative(Math.round(diff / minute), 'minute');
+  if (abs < day) return relative(Math.round(diff / hour), 'hour');
+  return relative(Math.round(diff / day), 'day');
 }
 
 /** Whole days from today to the date (negative = overdue). */
@@ -62,7 +85,6 @@ export const stepStatus: Record<StepStatus, string> = {
   returned: 'Changes requested',
   declined: 'Declined',
 };
-
 
 export const docStatus: Record<DocumentStatus, { label: string; tone: BadgeTone }> = {
   draft: { label: 'Draft', tone: 'neutral' },

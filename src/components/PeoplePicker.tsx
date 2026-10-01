@@ -1,6 +1,7 @@
 import { Select, Tag, Text } from '@repo/ui';
 import { useId } from 'react';
 import { useStore } from '../data/store';
+import { useLocale } from '../i18n/LocaleProvider';
 
 /** Pick several people: removable tags plus an "Add person" menu. */
 export function PeoplePicker({
@@ -18,6 +19,7 @@ export function PeoplePicker({
   disabled?: boolean;
   emptyText?: string;
 }) {
+  const { t: tr } = useLocale();
   const { state, person } = useStore();
   const id = useId();
   const available = state.people.filter((p) => !value.includes(p.id) && !exclude.includes(p.id));
@@ -49,7 +51,13 @@ export function PeoplePicker({
           aria-label={`Add someone to ${label.toLowerCase()}`}
           value=""
           onChange={(e) => e.target.value && onChange([...value, e.target.value])}
-          options={[{ value: '', label: 'Add person…' }, ...available.map((p) => ({ value: p.id, label: `${p.name} · ${p.role}` }))]}
+          options={[
+            { value: '', label: tr('Add person…') },
+            ...available.map((p) => ({
+              value: p.id,
+              label: `${p.name} · ${p.role}`,
+            })),
+          ]}
           className="w-56"
         />
       ) : null}

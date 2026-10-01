@@ -1,8 +1,9 @@
 import { Kbd, Modal, cn } from '@repo/ui';
-import { ArrowRight, ClipboardList, CalendarDays, CornerDownLeft, FileText, Search, User } from 'lucide-react';
+import { ArrowRight, CornerDownLeft, FileText, Search, User } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
-import { canManageSurveys, useStore } from '../data/store';
+import { useStore } from '../data/store';
+import { useLocale } from '../i18n/LocaleProvider';
 import { typeName } from '../lib/format';
 
 interface Item {
@@ -25,6 +26,7 @@ export const commandKey = isMac ? '⌘' : 'Ctrl';
  * A combobox: arrow keys move, Enter opens, Escape closes.
  */
 export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { t: tr } = useLocale();
   const { state } = useStore();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -32,22 +34,30 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   const listRef = useRef<HTMLUListElement>(null);
 
   const items = useMemo<Item[]>(() => {
-    const go = (label: string, href: string, keywords = ''): Item => ({ id: `go-${href}`, group: 'Go to', label, href, icon: <ArrowRight />, keywords });
+    const go = (label: string, href: string, keywords = ''): Item => ({
+      id: `go-${href}`,
+      group: 'Go to',
+      label,
+      href,
+      icon: <ArrowRight />,
+      keywords,
+    });
     return [
-      go('Home', '/home'),
-      go('Requests', '/requests'),
-      go('Approvals', '/approvals', 'waiting decide'),
-      go('Meetings', '/meetings'),
-      go('Documents', '/documents', 'files'),
-      go('Tasks', '/tasks', 'todo'),
-      go('Surveys', '/surveys'),
-      go('Insights', '/insights', 'reports charts'),
-      go('Process Builder', '/processes', 'workflow approval route'),
-      go('People & roles', '/settings/people', 'team members permissions'),
-      go('Notification settings', '/settings/notifications', 'telegram email'),
-      { id: 'new-request', group: 'Create', label: 'New request', href: '/requests/new', icon: <FileText />, keywords: 'purchase leave expense' },
-      { id: 'new-meeting', group: 'Create', label: 'New meeting', href: '/meetings/new', icon: <CalendarDays /> },
-      ...(canManageSurveys(state) ? [{ id: 'new-survey', group: 'Create' as const, label: 'New survey', href: '/surveys/new', icon: <ClipboardList /> }] : []),
+      go(tr('Home'), '/home'),
+      go(tr('Requests'), '/requests'),
+      go(tr('Approvals'), '/approvals', 'waiting decide'),
+      go(tr('Insights'), '/insights', 'reports charts'),
+      go(tr('Approval processes'), '/processes', 'workflow approval route'),
+      go(tr('People & roles'), '/settings/people', 'team members permissions'),
+      go(tr('Notification settings'), '/settings/notifications', 'telegram email'),
+      {
+        id: 'new-request',
+        group: 'Create',
+        label: tr('New request'),
+        href: '/requests/new',
+        icon: <FileText />,
+        keywords: 'purchase leave expense',
+      },
       ...state.requests
         .filter((r) => r.status !== 'draft' || r.requesterId === state.meId)
         .map((r) => ({
@@ -59,10 +69,6 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
           icon: <FileText />,
           keywords: `${r.id} ${r.department}`,
         })),
-      ...state.surveys
-        .filter((s) => s.status !== 'draft' || canManageSurveys(state))
-        .map((s) => ({ id: `s-${s.id}`, group: 'Surveys' as const, label: s.title, href: `/surveys/${s.id}`, icon: <ClipboardList /> })),
-      ...state.meetings.map((m) => ({ id: `m-${m.id}`, group: 'Meetings' as const, label: m.title, href: `/meetings/${m.id}`, icon: <CalendarDays /> })),
       ...state.people.map((p) => ({
         id: `p-${p.id}`,
         group: 'People' as const,
@@ -72,7 +78,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
         icon: <User />,
       })),
     ];
-  }, [state]);
+  }, [state, tr]);
 
   const q = query.trim().toLowerCase();
   const results = useMemo(() => {
@@ -105,7 +111,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
 
   let lastGroup = '';
   return (
-    <Modal open={open} onOpenChange={(o) => (onOpenChange(o), o ? undefined : setQuery(''))} title="Search" hideTitle size="md">
+    <Modal open={open} onOpenChange={(o) => (onOpenChange(o), o ? undefined : setQuery(''))} title={tr('Search')} hideTitle size="md">
       <div className="-m-2 flex flex-col">
         <div className="flex items-center gap-2 border-b border-border px-2 pb-3">
           <Search aria-hidden className="size-4 shrink-0 text-fg-muted" />
@@ -115,8 +121,8 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             aria-expanded="true"
             aria-controls="command-list"
             aria-activedescendant={results[active] ? `cmd-${results[active].id}` : undefined}
-            aria-label="Search pages, requests, surveys, meetings and people"
-            placeholder="Search or jump to…"
+            aria-label={tr('Search pages, requests and people')}
+            placeholder={tr('Search or jump to…')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -127,7 +133,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             className="h-9 min-w-0 flex-1 bg-transparent text-md text-fg outline-none placeholder:text-fg-subtle"
           />
         </div>
-        <ul id="command-list" role="listbox" aria-label="Results" ref={listRef} className="max-h-[min(24rem,60vh)] overflow-y-auto py-2">
+        <ul id="command-list" role="listbox" aria-label={tr('Results')} ref={listRef} className="max-h-[min(24rem,60vh)] overflow-y-auto py-2">
           {results.length === 0 ? (
             <li className="px-3 py-6 text-center text-md text-fg-muted" role="presentation">
               Nothing matches “{query}”.
@@ -140,7 +146,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
               <li key={item.id} role="presentation">
                 {heading ? (
                   <div role="presentation" className="px-3 pt-2 pb-1 text-xs font-medium tracking-wide text-fg-subtle uppercase">
-                    {heading}
+                    {tr(heading)}
                   </div>
                 ) : null}
                 <div
@@ -169,13 +175,13 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
         <div aria-hidden className="flex items-center gap-4 border-t border-border px-3 pt-3 text-xs text-fg-subtle">
           <span className="inline-flex items-center gap-1">
             <Kbd size="sm">↑</Kbd>
-            <Kbd size="sm">↓</Kbd> move
+            <Kbd size="sm">↓</Kbd> {tr('move')}{' '}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Kbd size="sm">↵</Kbd> open
+            <Kbd size="sm">↵</Kbd> {tr('open')}{' '}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Kbd size="sm">Esc</Kbd> close
+            <Kbd size="sm">Esc</Kbd> {tr('close')}{' '}
           </span>
         </div>
       </div>

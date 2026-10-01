@@ -1,16 +1,18 @@
 import { ActionMenu, AppShell, Avatar, Badge, Button, IconButton, KbdShortcut, Navigation, useToast, type NavigationSection } from '@repo/ui';
-import { BarChart3, CalendarDays, Check, CircleHelp, ClipboardList, Presentation, UsersRound, CheckSquare, FileText, Home, Inbox, ListChecks, Moon, RotateCcw, Search, Sun, Workflow } from 'lucide-react';
+import { BarChart3, Check, CircleHelp, FileText, Home, Inbox, Moon, Presentation, RotateCcw, Search, Sun, UsersRound, Workflow } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
-import { Logo } from '../components/Logo';
+import { CommandPalette, commandKey } from '../components/CommandPalette';
+import { useTour } from '../components/DemoTour';
+import { FeedbackDialog } from '../components/Feedback';
+import { navLink } from '../components/links';
+import { Logo, LogoMark } from '../components/Logo';
 import { Notifications } from '../components/Notifications';
 import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
-import { FeedbackDialog, SurveyPrompt } from '../components/Feedback';
-import { useTour } from '../components/DemoTour';
+import { useStore, waitingOnMe } from '../data/store';
+import { LanguageSwitch } from '../i18n/LanguageSwitch';
+import { useLocale } from '../i18n/LocaleProvider';
 import { withViewTransition } from '../lib/motion';
-import { CommandPalette, commandKey } from '../components/CommandPalette';
-import { navLink } from '../components/links';
-import { isDone, surveysToAnswer, useStore, waitingOnMe } from '../data/store';
 
 type Theme = 'light' | 'dark';
 
@@ -56,6 +58,7 @@ function useDensity() {
 }
 
 export function Shell() {
+  const { t: tr } = useLocale();
   const { state, me, dispatch } = useStore();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -79,49 +82,54 @@ export function Shell() {
   const [feedback, setFeedback] = useState<'feedback' | 'problem' | null>(null);
 
   const waiting = waitingOnMe(state).length;
-  const myOpenTasks = state.tasks.filter((t) => t.ownerId === me.id && !isDone(state, t)).length;
-  const toAnswer = surveysToAnswer(state).length;
   const at = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   const sections: NavigationSection[] = [
     {
       items: [
-        { label: 'Home', href: '/home', icon: <Home />, selected: at('/home') },
-        { label: 'Requests', href: '/requests', icon: <FileText />, selected: at('/requests') },
         {
-          label: 'Approvals',
+          label: tr('Home'),
+          href: '/home',
+          icon: <Home />,
+          selected: at('/home'),
+        },
+        {
+          label: tr('Requests'),
+          href: '/requests',
+          icon: <FileText />,
+          selected: at('/requests'),
+        },
+        {
+          label: tr('Approvals'),
           href: '/approvals',
           icon: <Inbox />,
           selected: at('/approvals'),
           badge: waiting || undefined,
           badgeLabel: `${waiting} waiting on you`,
         },
-        { label: 'Meetings', href: '/meetings', icon: <CalendarDays />, selected: at('/meetings') },
-        { label: 'Documents', href: '/documents', icon: <ListChecks />, selected: at('/documents') },
-        {
-          label: 'Tasks',
-          href: '/tasks',
-          icon: <CheckSquare />,
-          selected: at('/tasks'),
-          badge: myOpenTasks || undefined,
-          badgeLabel: `${myOpenTasks} open tasks assigned to you`,
-        },
-        {
-          label: 'Surveys',
-          href: '/surveys',
-          icon: <ClipboardList />,
-          selected: at('/surveys'),
-          badge: toAnswer || undefined,
-          badgeLabel: `${toAnswer} surveys waiting for your answer`,
-        },
       ],
     },
     {
-      title: 'Workspace',
+      title: tr('Administration'),
       items: [
-        { label: 'Insights', href: '/insights', icon: <BarChart3 />, selected: at('/insights') },
-        { label: 'Process Builder', href: '/processes', icon: <Workflow />, selected: at('/processes') },
-        { label: 'People & roles', href: '/settings/people', icon: <UsersRound />, selected: at('/settings/people') },
+        {
+          label: tr('Insights'),
+          href: '/insights',
+          icon: <BarChart3 />,
+          selected: at('/insights'),
+        },
+        {
+          label: tr('Approval processes'),
+          href: '/processes',
+          icon: <Workflow />,
+          selected: at('/processes'),
+        },
+        {
+          label: tr('People & roles'),
+          href: '/settings/people',
+          icon: <UsersRound />,
+          selected: at('/settings/people'),
+        },
       ],
     },
   ];
@@ -132,10 +140,14 @@ export function Shell() {
         to="/home"
         className="flex shrink-0 items-center gap-2 rounded-md text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
-        <Logo className="h-7 w-auto" />
+        <Logo className="hidden h-7 w-auto sm:block" />
+        <span className="sm:hidden" aria-label="Anumat">
+          <LogoMark className="size-7" />
+        </span>
       </Link>
       <Badge tone="primary" size="sm" className="hidden sm:inline-flex">
-        Prototype
+        {' '}
+        {tr('Prototype')}{' '}
       </Badge>
       <button
         type="button"
@@ -144,38 +156,56 @@ export function Shell() {
         className="ms-auto hidden h-8 w-full max-w-80 items-center gap-2 rounded-md border border-border-input/60 bg-surface px-2.5 text-start text-md text-fg-subtle hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:flex"
       >
         <Search aria-hidden className="size-4" />
-        <span className="flex-1">Search or jump to…</span>
+        <span className="flex-1">{tr('Search or jump to…')}</span>
         <KbdShortcut size="sm" keys={[commandKey, 'K']} />
       </button>
-      <IconButton icon={<Search />} label="Search" className="ms-auto sm:hidden" onClick={() => setSearching(true)} />
+      <IconButton icon={<Search />} label={tr('Search')} className="ms-auto sm:hidden" onClick={() => setSearching(true)} />
       <Button
         size="sm"
         variant="tertiary"
         icon={<Presentation />}
         className="ms-auto hidden sm:ms-0 md:inline-flex"
         onClick={tour.start}
-        title="Resets the demo data and walks through a 3-minute pitch"
+        title={tr('Resets the demo data and walks through a 3-minute pitch')}
       >
-        Demo tour
+        {' '}
+        {tr('Demo tour')}{' '}
       </Button>
+      <LanguageSwitch />
       <span>
         <Notifications />
       </span>
       <ActionMenu
         align="end"
-        trigger={<IconButton icon={<CircleHelp />} label="Help" />}
+        trigger={<IconButton icon={<CircleHelp />} label={tr('Help')} />}
         items={[
-          { content: 'Help & support', onAction: () => navigate('/support') },
-          { content: 'Send feedback', onAction: () => setFeedback('feedback') },
-          { content: 'Report a problem', onAction: () => setFeedback('problem') },
-          { content: 'Pricing & deployment', onAction: () => navigate('/pricing') },
-          { content: 'Start demo tour', icon: <Presentation />, onAction: tour.start },
+          {
+            content: tr('Help & support'),
+            onAction: () => navigate('/support'),
+          },
+          {
+            content: tr('Send feedback'),
+            onAction: () => setFeedback('feedback'),
+          },
+          {
+            content: tr('Report a problem'),
+            onAction: () => setFeedback('problem'),
+          },
+          {
+            content: tr('Pricing & deployment'),
+            onAction: () => navigate('/pricing'),
+          },
+          {
+            content: tr('Start demo tour'),
+            icon: <Presentation />,
+            onAction: tour.start,
+          },
         ]}
       />
       {/* Phones: the theme switch lives in the account menu, so the top bar fits. */}
       <IconButton
         icon={theme === 'dark' ? <Sun /> : <Moon />}
-        label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        label={theme === 'dark' ? tr('Switch to light theme') : tr('Switch to dark theme')}
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         className="hidden sm:inline-flex"
       />
@@ -196,7 +226,7 @@ export function Shell() {
         }
         sections={[
           {
-            title: 'View the prototype as',
+            title: tr('View the prototype as'),
             items: state.people.map((p) => ({
               content: p.name,
               helpText: p.role,
@@ -204,51 +234,54 @@ export function Shell() {
               onAction: () => {
                 if (p.id === me.id) return;
                 dispatch({ type: 'switchUser', personId: p.id });
-                toast({ title: `Now viewing as ${p.name}`, description: p.role });
+                toast({
+                  title: `Now viewing as ${p.name}`,
+                  description: p.role,
+                });
               },
             })),
           },
           {
             items: [
               {
-                content: 'Notification settings',
-                helpText: 'Email and Telegram, per kind of event.',
+                content: tr('Notification settings'),
+                helpText: tr('Email and Telegram, per kind of event.'),
                 onAction: () => navigate('/settings/notifications'),
               },
               {
-                content: theme === 'dark' ? 'Light theme' : 'Dark theme',
+                content: theme === 'dark' ? tr('Light theme') : tr('Dark theme'),
                 icon: theme === 'dark' ? <Sun /> : <Moon />,
                 onAction: () => setTheme(theme === 'dark' ? 'light' : 'dark'),
               },
               {
-                content: density === 'compact' ? 'Comfortable spacing' : 'Compact spacing',
-                helpText: density === 'compact' ? 'Roomier rows and text.' : 'Fit more on screen: tighter rows and text.',
+                content: density === 'compact' ? tr('Comfortable spacing') : tr('Compact spacing'),
+                helpText: density === 'compact' ? tr('Roomier rows and text.') : tr('Fit more on screen: tighter rows and text.'),
                 onAction: () => setDensity(density === 'compact' ? 'comfortable' : 'compact'),
               },
               {
-                content: 'Telegram preview',
-                helpText: 'See and act on what the bot sends you.',
+                content: tr('Telegram preview'),
+                helpText: tr('See and act on what the bot sends you.'),
                 onAction: () => navigate('/telegram'),
               },
               {
-                content: 'Create a new workspace',
-                helpText: 'See sign-up as a new company. Keeps the demo data.',
+                content: tr('Create a new workspace'),
+                helpText: tr('See sign-up as a new company. Keeps the demo data.'),
                 onAction: () => navigate('/welcome'),
               },
               {
-                content: 'Start demo tour',
+                content: tr('Start demo tour'),
                 icon: <Presentation />,
-                helpText: 'Resets the demo data and walks through a 3-minute pitch.',
+                helpText: tr('Resets the demo data and walks through a 3-minute pitch.'),
                 onAction: tour.start,
               },
               {
-                content: 'Reset demo data',
+                content: tr('Reset demo data'),
                 icon: <RotateCcw />,
-                helpText: 'Undo everything you changed in this prototype.',
+                helpText: tr('Undo everything you changed in this prototype.'),
                 onAction: () => {
                   dispatch({ type: 'reset' });
                   navigate('/home');
-                  toast({ title: 'Demo data reset' });
+                  toast({ title: tr('Demo data reset') });
                 },
               },
             ],
@@ -259,17 +292,21 @@ export function Shell() {
   );
 
   return (
-    <AppShell topBar={topBar} navigation={
+    <AppShell
+      topBar={topBar}
+      navigation={
         <>
           <WorkspaceSwitcher />
-          <Navigation sections={sections} renderLink={navLink} />
+          <Navigation className="an-navigation" sections={sections} renderLink={navLink} />
         </>
-      } mainClassName="md:p-8">
+      }
+      mainClassName="md:p-8"
+    >
       <div key={pathname} className="an-page mx-auto flex w-full max-w-6xl flex-col gap-6">
         <Outlet />
       </div>
       <CommandPalette open={searching} onOpenChange={setSearching} />
-      <SurveyPrompt />
+
       <FeedbackDialog kind={feedback} onClose={() => setFeedback(null)} />
     </AppShell>
   );

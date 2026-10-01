@@ -1,9 +1,10 @@
 import { Text, cn } from '@repo/ui';
 import { Circle, CircleCheck, CircleX, Clock, Undo2 } from 'lucide-react';
-import { formatAnswer, questionsOf, visibleFields } from '../lib/forms';
 import { useStore } from '../data/store';
 import type { ApprovalStep } from '../data/types';
+import { useLocale } from '../i18n/LocaleProvider';
 import { formatDateTime, stepStatus } from '../lib/format';
+import { formatAnswer, questionsOf, visibleFields } from '../lib/forms';
 import { Changed } from '../lib/motion';
 
 const ICON = {
@@ -16,11 +17,13 @@ const ICON = {
 
 /** The approval route of a request, top to bottom, with who decided what. */
 export function ApprovalTimeline({ steps }: { steps: ApprovalStep[] }) {
+  const { t: tr } = useLocale();
   const { person, me } = useStore();
   if (steps.length === 0) {
     return (
       <Text tone="muted" variant="bodySm">
-        The route is set when the request is submitted.
+        {' '}
+        {tr('The route is set when the request is submitted.')}{' '}
       </Text>
     );
   }
@@ -40,7 +43,7 @@ export function ApprovalTimeline({ steps }: { steps: ApprovalStep[] }) {
               </Text>
               <Changed value={step.status} className="-mx-1 px-1">
                 <Text as="span" variant="bodySm" tone="muted">
-                  {approver.id === me.id ? 'You' : approver.name} · {stepStatus[step.status]}
+                  {approver.id === me.id ? tr('You') : approver.name} · {stepStatus[step.status]}
                   {step.at ? ` · ${formatDateTime(step.at)}` : ''}
                 </Text>
               </Changed>
@@ -54,9 +57,7 @@ export function ApprovalTimeline({ steps }: { steps: ApprovalStep[] }) {
                   ))}
                 </dl>
               ) : null}
-              {step.comment ? (
-                <p className="mt-1 rounded-md bg-surface-sunken px-3 py-2 text-sm text-fg">“{step.comment}”</p>
-              ) : null}
+              {step.comment ? <p className="mt-1 rounded-md bg-surface-sunken px-3 py-2 text-sm text-fg">“{step.comment}”</p> : null}
             </div>
           </li>
         );

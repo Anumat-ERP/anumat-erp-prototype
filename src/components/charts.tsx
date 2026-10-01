@@ -1,5 +1,6 @@
 import { Text, Tooltip, cn } from '@repo/ui';
 import type { ReactNode } from 'react';
+import { useLocale } from '../i18n/LocaleProvider';
 
 export interface BarSegment {
   value: number;
@@ -37,14 +38,25 @@ export function BarTable({
   valueHeader: string;
   targetLabel?: string;
 }) {
-  const top = max ?? Math.max(1, ...rows.map((r) => Math.max(r.target ?? 0, r.segments.reduce((a, s) => a + s.value, 0))));
+  const { t: tr } = useLocale();
+  const top =
+    max ??
+    Math.max(
+      1,
+      ...rows.map((r) =>
+        Math.max(
+          r.target ?? 0,
+          r.segments.reduce((a, s) => a + s.value, 0),
+        ),
+      ),
+    );
   return (
     <table className="w-full border-collapse text-md">
       <caption className="sr-only">{caption}</caption>
       <thead className="sr-only">
         <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Chart</th>
+          <th scope="col">{tr('Name')}</th>
+          <th scope="col">{tr('Chart')}</th>
           <th scope="col">{valueHeader}</th>
         </tr>
       </thead>
@@ -64,7 +76,11 @@ export function BarTable({
                         <div
                           key={s.label}
                           className={cn('an-grow-x h-full', i === list.length - 1 && 'rounded-e-sm')}
-                          style={{ width: `${(s.value / top) * 100}%`, background: s.color, animationDelay: `${row * 40}ms` }}
+                          style={{
+                            width: `${(s.value / top) * 100}%`,
+                            background: s.color,
+                            animationDelay: `${row * 40}ms`,
+                          }}
                         />
                       ))}
                   </div>
@@ -125,10 +141,19 @@ export function ColumnChart({ caption, points }: { caption: string; points: { la
           return (
             <Tooltip key={p.label} content={p.detail}>
               <div className="relative flex flex-1 flex-col items-center justify-end" aria-hidden>
-                {labelled ? <Text as="span" variant="caption" weight="medium" numeric className="mb-1">{p.value}</Text> : null}
+                {labelled ? (
+                  <Text as="span" variant="caption" weight="medium" numeric className="mb-1">
+                    {p.value}
+                  </Text>
+                ) : null}
                 <div
                   className="an-grow-y w-full max-w-10 rounded-t-sm"
-                  style={{ height: `${(p.value / nice) * 100}%`, background: 'var(--an-chart-1)', minHeight: p.value ? 2 : 0, animationDelay: `${i * 30}ms` }}
+                  style={{
+                    height: `${(p.value / nice) * 100}%`,
+                    background: 'var(--an-chart-1)',
+                    minHeight: p.value ? 2 : 0,
+                    animationDelay: `${i * 30}ms`,
+                  }}
                 />
               </div>
             </Tooltip>

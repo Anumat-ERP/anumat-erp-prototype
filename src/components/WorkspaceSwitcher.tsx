@@ -2,6 +2,7 @@ import { ActionMenu, useToast } from '@repo/ui';
 import { Check, ChevronsUpDown, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useStore } from '../data/store';
+import { useLocale } from '../i18n/LocaleProvider';
 
 const ACCESS = { owner: 'Owner', admin: 'Admin', member: 'Member' } as const;
 
@@ -15,6 +16,7 @@ const initials = (name: string) =>
 
 /** Top of the sidebar: which company you're in, and switching between them. */
 export function WorkspaceSwitcher() {
+  const { t: tr } = useLocale();
   const { state, workspaces, activeWorkspace, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -41,7 +43,7 @@ export function WorkspaceSwitcher() {
         }
         sections={[
           {
-            title: 'Your workspaces',
+            title: tr('Your workspaces'),
             items: workspaces.map((w) => ({
               content: w.name,
               helpText: w.access ? `You’re ${w.access === 'admin' ? 'an admin' : w.access === 'owner' ? 'the owner' : 'a member'}` : undefined,
@@ -54,7 +56,15 @@ export function WorkspaceSwitcher() {
               },
             })),
           },
-          { items: [{ content: 'Create a workspace', icon: <Plus />, onAction: () => navigate('/welcome') }] },
+          {
+            items: [
+              {
+                content: tr('Create a workspace'),
+                icon: <Plus />,
+                onAction: () => navigate('/welcome'),
+              },
+            ],
+          },
         ]}
       />
     </div>

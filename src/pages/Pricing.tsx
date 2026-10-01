@@ -7,8 +7,17 @@ import { Logo } from '../components/Logo';
 import { CONFIG, isSet } from '../config';
 import { useStore } from '../data/store';
 import type { Lead } from '../data/types';
+import { useLocale } from '../i18n/LocaleProvider';
 
-const OPTIONS: { id: Lead['deployment']; icon: typeof Cloud; name: string; tagline: string; price: string; points: string[]; badge?: string }[] = [
+const OPTIONS: {
+  id: Lead['deployment'];
+  icon: typeof Cloud;
+  name: string;
+  tagline: string;
+  price: string;
+  points: string[];
+  badge?: string;
+}[] = [
   {
     id: 'cloud',
     icon: Cloud,
@@ -45,9 +54,17 @@ const COMPARE: [string, string, string, string][] = [
 ];
 
 export function Pricing() {
+  const { t: tr } = useLocale();
   const { dispatch } = useStore();
   const { toast } = useToast();
-  const [form, setForm] = useState({ name: '', email: '', company: '', size: '50–199', deployment: 'not-sure' as Lead['deployment'], message: '' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    company: '',
+    size: '50–199',
+    deployment: 'not-sure' as Lead['deployment'],
+    message: '',
+  });
   const [errors, setErrors] = useState<Partial<Record<'name' | 'email' | 'company', string>>>({});
   const [sent, setSent] = useState(false);
 
@@ -64,7 +81,16 @@ export function Pricing() {
     if (!form.company.trim()) next.company = 'Enter your company’s name.';
     setErrors(next);
     if (Object.keys(next).length) return;
-    dispatch({ type: 'addLead', lead: { ...form, name: form.name.trim(), email: form.email.trim(), company: form.company.trim(), message: form.message.trim() } });
+    dispatch({
+      type: 'addLead',
+      lead: {
+        ...form,
+        name: form.name.trim(),
+        email: form.email.trim(),
+        company: form.company.trim(),
+        message: form.message.trim(),
+      },
+    });
     setSent(true);
     toast({ tone: 'success', title: 'Message received' });
   };
@@ -73,7 +99,11 @@ export function Pricing() {
     <div className="an-marketing min-h-dvh bg-bg text-fg">
       <header className="border-b border-border">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 md:px-6">
-          <Link to="/" aria-label="Anumat home" className="rounded-md text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+          <Link
+            to="/"
+            aria-label={tr('Anumat home')}
+            className="rounded-md text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
             <Logo className="h-7 w-auto" />
           </Link>
           <Link to="/welcome" className="text-md font-medium text-fg-link underline underline-offset-2">
@@ -83,7 +113,7 @@ export function Pricing() {
       </header>
       <main id="main-content" tabIndex={-1} className="mx-auto flex max-w-6xl flex-col gap-12 px-4 py-12 outline-none md:px-6 md:py-16">
         <div className="flex max-w-2xl flex-col gap-3">
-          <span className="text-xs font-semibold tracking-wide text-fg-link uppercase">Pricing &amp; deployment</span>
+          <span className="text-xs font-semibold tracking-wide text-fg-link uppercase">{tr('Pricing & deployment')}</span>
           <h1 className="text-[clamp(2rem,4.5vw,3rem)] leading-tight font-bold tracking-tight text-balance">Run Anumat where your data needs to live.</h1>
           <Text tone="muted" className="text-lg">
             The same product in all three. Free while we run the pilot; we’ll agree pricing with pilot companies before it ends.
@@ -137,7 +167,7 @@ export function Pricing() {
             <thead>
               <tr className="border-b border-border text-start">
                 <th scope="col" className="p-3 text-start font-medium text-fg-muted">
-                  <span className="sr-only">Question</span>
+                  <span className="sr-only">{tr('Question')}</span>
                 </th>
                 {OPTIONS.map((o) => (
                   <th key={o.id} scope="col" className="p-3 text-start font-semibold">
@@ -209,16 +239,16 @@ export function Pricing() {
             ) : (
               <form noValidate onSubmit={submit} className="flex flex-col gap-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Your name" required error={errors.name}>
+                  <Field label={tr('Your name')} required error={errors.name}>
                     <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" />
                   </Field>
-                  <Field label="Work email" required error={errors.email}>
+                  <Field label={tr('Work email')} required error={errors.email}>
                     <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" />
                   </Field>
-                  <Field label="Company" required error={errors.company}>
+                  <Field label={tr('Company')} required error={errors.company}>
                     <Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} autoComplete="organization" />
                   </Field>
-                  <Field label="Company size">
+                  <Field label={tr('Company size')}>
                     <Select
                       value={form.size}
                       onChange={(e) => setForm({ ...form, size: e.target.value })}
@@ -229,11 +259,13 @@ export function Pricing() {
                 <Field label="Where do you want to run Anumat?">
                   <Select
                     value={form.deployment}
-                    onChange={(e) => setForm({ ...form, deployment: e.target.value as Lead['deployment'] })}
-                    options={[
-                      { value: 'not-sure', label: 'Not sure yet' },
-                      ...OPTIONS.map((o) => ({ value: o.id, label: o.name })),
-                    ]}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        deployment: e.target.value as Lead['deployment'],
+                      })
+                    }
+                    options={[{ value: 'not-sure', label: 'Not sure yet' }, ...OPTIONS.map((o) => ({ value: o.id, label: o.name }))]}
                   />
                 </Field>
                 <Field label="Anything we should know?" optional>

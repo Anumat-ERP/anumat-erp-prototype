@@ -3,6 +3,7 @@ import { ChevronDown, Eye, EyeOff, Presentation, X } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { useStore } from '../data/store';
+import { useLocale } from '../i18n/LocaleProvider';
 
 interface Step {
   title: string;
@@ -52,25 +53,11 @@ export const TOUR: Step[] = [
     doThis: 'Tap “Approve · Q4 equipment” on the laptops message.',
   },
   {
-    title: 'Decide together',
-    as: 'dara',
-    to: '/meetings/ops-weekly',
-    say: 'Bigger calls happen in meetings. The decision is recorded next to the request it belongs to.',
-    doThis: 'Record a decision, then add an action item for Alex.',
-  },
-  {
-    title: 'Act',
-    as: 'alex',
-    to: '/tasks',
-    say: 'That action item is now Alex’s task, due this week, linked to the decision. RACI is built in: Alex is responsible, Dara accountable, and the rest of the meeting is kept informed.',
-    doThis: 'Point at it under “This week”, open it to show where it came from, then tick it: it goes to Dara for sign-off.',
-  },
-  {
     title: 'Change the rules',
     as: 'dara',
     to: '/processes/proc-purchase',
     say: 'Operations owns the process, not IT. Change who approves and when, without code.',
-    doThis: 'Optional: open the bell to show Alex’s sign-off request. Then raise the Finance threshold and use “Try it”.',
+    doThis: 'Raise the Finance threshold and use “Try it”.',
   },
   {
     title: 'Track',
@@ -158,6 +145,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
 /** The presenter's panel, pinned to the bottom corner while a tour runs. */
 export function TourPanel() {
+  const { t: tr } = useLocale();
   const { step, go, end } = useTour();
   const { person } = useStore();
   const [minimized, setMinimized] = useState(false);
@@ -196,7 +184,7 @@ export function TourPanel() {
   }
   return (
     <aside
-      aria-label="Demo tour"
+      aria-label={tr('Demo tour')}
       className="fixed end-4 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] z-(--a-z-index-overlay) flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-3 rounded-lg border border-border bg-surface p-4 shadow-lg"
     >
       <div className="flex items-start justify-between gap-2">
@@ -237,7 +225,8 @@ export function TourPanel() {
       </ol>
       <div className="flex items-center justify-between gap-2">
         <Button size="sm" variant="tertiary" disabled={step === 0} onClick={() => go(step - 1)}>
-          Back
+          {' '}
+          {tr('Back')}{' '}
         </Button>
         <div className="flex gap-2">
           <Button size="sm" onClick={() => go(step)}>
@@ -245,7 +234,8 @@ export function TourPanel() {
           </Button>
           {last ? (
             <Button size="sm" variant="primary" onClick={end}>
-              Finish
+              {' '}
+              {tr('Finish')}{' '}
             </Button>
           ) : (
             <Button size="sm" variant="primary" onClick={() => go(step + 1)}>

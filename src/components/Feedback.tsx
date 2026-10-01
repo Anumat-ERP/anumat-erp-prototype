@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { CONFIG, isSet } from '../config';
 import { surveyDue, useStore } from '../data/store';
+import { useLocale } from '../i18n/LocaleProvider';
 import { useTour } from './DemoTour';
 
 type Kind = 'survey' | 'feedback' | 'problem';
@@ -60,6 +61,7 @@ const COPY: Record<Kind, { title: string; label: string; help: string; placehold
 
 /** One dialog for the survey, general feedback and problem reports. */
 export function FeedbackDialog({ kind, onClose }: { kind: Kind | null; onClose: () => void }) {
+  const { t: tr } = useLocale();
   const { dispatch } = useStore();
   const { toast } = useToast();
   const [score, setScore] = useState<number | null>(null);
@@ -77,8 +79,17 @@ export function FeedbackDialog({ kind, onClose }: { kind: Kind | null; onClose: 
     if (!kind) return;
     if (kind === 'survey' && score === null) return setError('Pick a number from 0 to 10.');
     if (kind !== 'survey' && !text.trim()) return setError('Write a sentence or two, so we know what you mean.');
-    dispatch({ type: 'addFeedback', kind, score: score ?? undefined, text: text.trim() });
-    toast({ tone: 'success', title: 'Thank you', description: kind === 'problem' ? 'We’ll look into it.' : 'Your feedback shapes what we build next.' });
+    dispatch({
+      type: 'addFeedback',
+      kind,
+      score: score ?? undefined,
+      text: text.trim(),
+    });
+    toast({
+      tone: 'success',
+      title: tr('Thank you'),
+      description: kind === 'problem' ? 'We’ll look into it.' : 'Your feedback shapes what we build next.',
+    });
     onClose();
   };
 
@@ -87,13 +98,13 @@ export function FeedbackDialog({ kind, onClose }: { kind: Kind | null; onClose: 
       open={kind !== null}
       onOpenChange={(o) => (o ? undefined : onClose())}
       title={copy.title}
-      primaryAction={{ content: 'Send', onAction: submit }}
-      secondaryActions={[{ content: 'Cancel', onAction: onClose }]}
+      primaryAction={{ content: tr('Send'), onAction: submit }}
+      secondaryActions={[{ content: tr('Cancel'), onAction: onClose }]}
     >
       <div className="flex flex-col gap-4">
         {kind === 'survey' ? (
           <fieldset className="flex flex-col gap-2">
-            <legend className="mb-2 text-md font-medium">How likely are you to recommend Anumat to a colleague?</legend>
+            <legend className="mb-2 text-md font-medium">{tr('How likely are you to recommend Anumat to a colleague?')}</legend>
             <ScoreScale value={score} onChange={(n) => (setScore(n), setError(undefined))} />
           </fieldset>
         ) : null}
@@ -123,6 +134,7 @@ export function FeedbackDialog({ kind, onClose }: { kind: Kind | null; onClose: 
  * a decision. Never during the demo tour; at most every 30 days.
  */
 export function SurveyPrompt() {
+  const { t: tr } = useLocale();
   const { state, dispatch } = useStore();
   const { step } = useTour();
   const decisions = state.requests.reduce((n, r) => n + r.steps.filter((s) => s.approverId === state.meId && s.at && s.status !== 'current').length, 0);
@@ -155,9 +167,9 @@ export function SurveyPrompt() {
         <Text as="h2" variant="label">
           Quick question
         </Text>
-        <IconButton size="sm" icon={<X />} label="Not now" onClick={() => close(true)} />
+        <IconButton size="sm" icon={<X />} label={tr('Not now')} onClick={() => close(true)} />
       </div>
-      <Text>How likely are you to recommend Anumat to a colleague?</Text>
+      <Text>{tr('How likely are you to recommend Anumat to a colleague?')}</Text>
       <ScoreScale value={score} onChange={setScore} />
       {score !== null ? (
         <>
@@ -169,11 +181,17 @@ export function SurveyPrompt() {
             size="sm"
             className="self-end"
             onClick={() => {
-              dispatch({ type: 'addFeedback', kind: 'survey', score, text: text.trim() });
+              dispatch({
+                type: 'addFeedback',
+                kind: 'survey',
+                score,
+                text: text.trim(),
+              });
               close(false);
             }}
           >
-            Send
+            {' '}
+            {tr('Send')}{' '}
           </Button>
         </>
       ) : null}

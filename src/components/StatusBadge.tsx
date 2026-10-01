@@ -1,5 +1,6 @@
 import { cn } from '@repo/ui';
 import type { RequestStatus } from '../data/types';
+import { useLocale } from '../i18n/LocaleProvider';
 import { requestStatus } from '../lib/format';
 
 const DOT: Record<string, string> = {
@@ -13,11 +14,12 @@ const DOT: Record<string, string> = {
 
 /** Status as a small coloured dot and a word: calm in long lists, still clear at a glance. */
 export function StatusBadge({ status, size = 'md' }: { status: RequestStatus; size?: 'sm' | 'md' }) {
+  const { t: tr } = useLocale();
   const s = requestStatus[status];
   return (
     <span className={cn('inline-flex shrink-0 items-center gap-1.5 font-medium whitespace-nowrap text-fg', size === 'sm' ? 'text-sm' : 'text-md')}>
       <span aria-hidden className={cn('size-2 rounded-full', DOT[s.tone] ?? DOT.neutral)} />
-      {s.label}
+      {tr(s.label)}
     </span>
   );
 }

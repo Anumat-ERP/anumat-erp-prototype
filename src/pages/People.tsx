@@ -2,6 +2,7 @@ import { Avatar, Badge, Banner, Card, CardHeader, Checkbox, PageHeader, Select, 
 import { AppLink } from '../components/links';
 import { isAdmin, useStore } from '../data/store';
 import type { Access } from '../data/types';
+import { useLocale } from '../i18n/LocaleProvider';
 import { formatMoney } from '../lib/format';
 
 const ROLES: { access: Access; name: string; can: string[] }[] = [
@@ -13,16 +14,17 @@ const ROLES: { access: Access; name: string; can: string[] }[] = [
   {
     access: 'admin',
     name: 'Admin',
-    can: ['Manage people and roles', 'Edit approval processes and task statuses', 'Change any task'],
+    can: ['Manage people and roles', 'Edit approval processes', 'Review requests assigned to them'],
   },
   {
     access: 'member',
     name: 'Member',
-    can: ['Raise requests, create tasks and meetings', 'Change tasks they own or assigned', 'Build processes, if an admin allows it'],
+    can: ['Raise and track requests', 'Edit their drafts and returned requests', 'Build processes, if an admin allows it'],
   },
 ];
 
 export function People() {
+  const { t: tr } = useLocale();
   const { state, me, dispatch } = useStore();
   const { toast } = useToast();
   const admin = isAdmin(state);
@@ -39,10 +41,15 @@ export function People() {
 
   return (
     <>
-      <PageHeader title="People & roles" subtitle={`Who is in ${state.org.name}, and what they can do.`} />
+      <PageHeader
+        title={tr('People & roles')}
+        subtitle={tr('Who is in {company}, and what they can do.', {
+          company: state.org.name,
+        })}
+      />
 
       {!admin ? (
-        <Banner tone="info" title="Only admins can change roles">
+        <Banner tone="info" title={tr('Only admins can change roles')}>
           You’re a member. Ask an admin, like {state.people.find((p) => p.access === 'owner')?.name}, if someone needs a different role.
         </Banner>
       ) : null}
@@ -51,11 +58,11 @@ export function People() {
         {ROLES.map((r) => (
           <Card key={r.access} className="flex flex-col gap-2">
             <Text as="h2" variant="subtitle">
-              {r.name}
+              {tr(r.name)}
             </Text>
             <ul className="flex list-disc flex-col gap-1 ps-5 text-md text-fg-muted">
               {r.can.map((c) => (
-                <li key={c}>{c}</li>
+                <li key={c}>{tr(c)}</li>
               ))}
             </ul>
           </Card>
@@ -65,11 +72,12 @@ export function People() {
       <Card flush>
         <div className="p-4 pb-2">
           <CardHeader
-            title={`${state.people.length} people`}
+            title={tr('{count} people', { count: state.people.length })}
             description={
               <>
-                Approving isn’t a role: it comes from the steps in <AppLink to="/processes">Process Builder</AppLink>, so it follows your
-                org chart.
+                {' '}
+                {tr('Approving isn’t a role: it comes from the steps in')} <AppLink to="/processes">{tr('Process Builder')}</AppLink>, so it follows your org
+                chart.
               </>
             }
           />
@@ -84,7 +92,7 @@ export function People() {
                   <span className="flex min-w-0 flex-col">
                     <span className="font-medium">
                       {p.name}
-                      {p.id === me.id ? <span className="font-regular text-fg-muted"> (you)</span> : null}
+                      {p.id === me.id ? <span className="font-regular text-fg-muted"> {tr('(you)')}</span> : null}
                     </span>
                     <Text as="span" variant="bodySm" tone="muted">
                       {p.role} · {p.department}
@@ -102,17 +110,24 @@ export function People() {
                   )}
                 </span>
                 <Checkbox
-                  label="Can build processes"
+                  label={tr('Can build processes')}
                   checked={p.access !== 'member' || Boolean(p.canBuildProcesses)}
                   disabled={!admin || p.access !== 'member'}
                   onCheckedChange={(c) => {
-                    dispatch({ type: 'setBuilder', personId: p.id, on: c === true });
-                    toast({ title: c === true ? `${p.name} can now build processes` : `${p.name} can no longer build processes` });
+                    dispatch({
+                      type: 'setBuilder',
+                      personId: p.id,
+                      on: c === true,
+                    });
+                    toast({
+                      title: c === true ? `${p.name} can now build processes` : `${p.name} can no longer build processes`,
+                    });
                   }}
                 />
                 {p.access === 'owner' ? (
                   <Badge tone="primary" className="w-36 justify-center">
-                    Owner
+                    {' '}
+                    {tr('Owner')}{' '}
                   </Badge>
                 ) : (
                   <Select
@@ -123,11 +138,13 @@ export function People() {
                     onChange={(e) => {
                       const access = e.target.value as Access;
                       dispatch({ type: 'setAccess', personId: p.id, access });
-                      toast({ title: `${p.name} is now ${access === 'admin' ? 'an admin' : 'a member'}` });
+                      toast({
+                        title: `${p.name} is now ${access === 'admin' ? 'an admin' : 'a member'}`,
+                      });
                     }}
                     options={[
-                      { value: 'admin', label: 'Admin' },
-                      { value: 'member', label: 'Member' },
+                      { value: 'admin', label: tr('Admin') },
+                      { value: 'member', label: tr('Member') },
                     ]}
                     className="w-36"
                   />
@@ -138,7 +155,8 @@ export function People() {
         </ul>
       </Card>
       <Text variant="bodySm" tone="muted">
-        You can’t change your own role. Ownership transfer isn’t in this prototype.
+        {' '}
+        {tr('You can’t change your own role. Ownership transfer isn’t in this prototype.')}{' '}
       </Text>
     </>
   );

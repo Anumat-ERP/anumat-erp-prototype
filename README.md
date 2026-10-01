@@ -1,7 +1,7 @@
 # Anumat ERP prototype · hackathon edition
 
 A clickable prototype of **Anumat**, the decision and operations ERP:
-requests, approvals, meetings, documents, tasks and approval processes in one
+requests, approvals and approval processes in one
 workspace. Built with the Anumat design system and deployed to GitHub Pages.
 
 **Live:** https://anumat-erp.github.io/anumat-erp-prototype-hackathon/
@@ -18,47 +18,25 @@ Everything runs in the browser with demo data. Changes you make (approving a
 request, adding a task, editing a process) are saved in your browser only.
 Use the account menu → **Reset demo data** to start over.
 
-## What you can try
+## MVP experience
 
-The site opens on the Anumat landing page. Click **See how it works** (or
-**Demo tour** in the app's top bar) for a 9-step, 3-minute walkthrough that
-resets the data and switches people for you. The full hackathon plan and demo
-script are in [docs/HACKATHON.md](docs/HACKATHON.md).
+The main menu focuses on **Home, Requests and Approvals**. **Administration**
+contains approval processes, people and roles, and insights. Meetings, tasks,
+documents and surveys remain accessible by their existing routes for historical
+prototype demos, but are hidden from navigation, search and the home screen.
+The guided tour follows the approval MVP.
 
-| Screen | Try this |
-|---|---|
-| Landing (`/`) | The marketing page: what Anumat does, with Start free and See how it works |
-| Sign in (`/signin`) | Any email works; `alex@…`, `priya@…` or `sokha@…` sign in as that person |
-| Sign-up (`/welcome`) | Create a workspace: company name, invite the team with roles, pick starter processes. Also in the account menu |
-| Home (`/home`) | See what is waiting on you, upcoming meetings, your tasks |
-| Requests | Search and filter; open **PR-1042** |
-| Request detail | **Approve**, **Request changes** or **Decline**; schedule a meeting about it; withdraw your own |
-| New request | Pick a type and amount; the approval route updates live. Attach files, save a draft |
-| Edit and resubmit | As Alex Tan, open **PR-1036** (changes requested) and resubmit |
-| Approvals | Select several requests and approve them in one go |
-| Meetings | Schedule one; record a decision; add an action item, which becomes a task |
-| Documents | Open a document to see its version history |
-| Tasks | **List** grouped by due date (Overdue, Today, This week, Later, Done in the last 7 days) or **Board** by status. Filter by person, source or search; open a task to edit it; **Manage statuses** to add your own, like “QA check” |
-| Insights | Time to decision, where requests wait, spend by department |
-| Process Builder | Edit a route, add a step, change thresholds; **Try it** shows which steps run |
-| People & roles (`/settings/people`) | Owner / Admin / Member, and where each person approves. Admins change roles |
-| RACI | Open a task: **R** owner and **A** assigner are shown; add **C**onsulted and **I**nformed people. As **Priya**, filter *Where I’m consulted* and comment. Each request page shows a RACI worked out from its approval route |
-| Workspaces | The switcher at the top of the sidebar moves between **Lotus Logistics** and **Mekong Freight**; each has its own people, data and your role there |
-| Notifications (`/settings/notifications`) | Pick Email or Telegram per event; **Connect Telegram** with a one-time code |
-| Telegram preview (`/telegram`) | As **Priya**, see what the bot sends and tap **Approve**: the request is approved in Anumat |
-| Add to calendar | Open a meeting: **Add to Google Calendar** or download an **.ics** for Outlook and Apple |
-| New process | As an admin (or a member with *Can build processes*), Processes → **New process**: name, ID prefix, amount on or off, form fields, who can submit |
-| Dynamic forms | Request forms, approval-step forms and surveys share one builder with 17 types: short answer, paragraph, email, phone, link, multiple choice, checkboxes, dropdown, yes/no, rating 1–5, scale 0–10, number, money, date, person, department, and section headings. Help text, placeholders, required, reorder, duplicate, and **Only ask when** an earlier answer is (or isn't) a value |
-| Approval-step forms | Purchase → Finance review asks **Budget line** (required) and a ledger note. Priya fills it in when approving, on the web or with one tap per budget line on Telegram; the answers show on the approval route. Bulk approve skips steps that need details |
-| Routing on answers | Purchase asks **Is this a new supplier?** Yes adds a **Supplier check** by Legal. In Process Builder, a step can run when "A form answer matches…", and **Try it** lets you answer to see the route |
-| Surveys (`/surveys`) | As Dara, answer **Hybrid work pulse** (anonymous), then see charts per question. **New survey** → start from a template, add questions, choose everyone or departments, anonymous, closing day; the live preview shows follow-up questions appear. As **Lina**, answer from Home or the bell |
-| Pricing (`/pricing`) | Cloud, your own cloud or on-premise; **Contact sales** form |
-| Help & support | The **?** menu: contact channels, send feedback, report a problem. Admins see these and sales enquiries under Surveys → **Feedback & enquiries** |
-| Permissions | As **Lina**, Alex's tasks are view only. As **Alex**, ticking a task Dara assigned sends it to her for sign-off; moving to Blocked asks why. As **Dara**, sign it off from the list or the bell |
+Choose **English / ខ្មែរ** in the header or sign-in screen. The core approval
+interface supports Khmer; the choice is remembered on this device and switching
+preserves unsaved forms. Company names, configured process names, form questions
+and entered content retain their original language. Some marketing, tour narration,
+advanced configuration and legacy module copy remains English.
 
-Use the account menu to **view the prototype as** any of the eight people
-(requester, manager, finance, legal, CEO…). Each has their own queue and
-notifications. Light and dark themes follow your system.
+Light and dark themes use Anumat Blue, warm light surfaces and navy dark surfaces,
+with a self-hosted Noto Sans Khmer font. Existing design-system components are kept.
+
+Everything here is a browser-only demo. Use the account menu to switch among demo
+people, choose a theme, or reset demo data. No real email or Telegram messages are sent.
 
 ## How it is built
 

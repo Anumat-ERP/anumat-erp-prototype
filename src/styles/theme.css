@@ -1,0 +1,114 @@
+/* Prototype refinement of Anumat Blue. Keep shared components on semantic tokens. */
+@font-face {
+  font-family: 'Noto Sans Khmer';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/NotoSansKhmer-variable.ttf') format('truetype');
+  unicode-range: U+1780-17FF, U+19E0-19FF, U+200B-200D, U+25CC;
+}
+
+:root {
+  --a-font-sans: 'Inter Variable', Inter, 'Noto Sans Khmer', ui-sans-serif, system-ui, sans-serif;
+  --an-font-display: 'Plus Jakarta Sans', 'Inter Variable', 'Noto Sans Khmer', ui-sans-serif, system-ui, sans-serif;
+  --an-paper: #f7f6f2;
+  --an-ink: #14243b;
+}
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --a-color-bg: var(--an-paper);
+  --a-color-surface: #ffffff;
+  --a-color-surface-muted: #faf9f6;
+  --a-color-surface-sunken: #eeede8;
+  --a-color-surface-hover: #f0f2f5;
+  --a-color-surface-active: #e5eaf1;
+  --a-color-surface-selected: #e6eefb;
+  --a-color-border: #dedfdc;
+  --a-color-border-subtle: #e9e9e4;
+  --a-color-border-strong: #bdc4ce;
+  --a-color-border-input: #7a8595;
+  --a-color-fg: #14243b;
+  --a-color-fg-muted: #4d5b6e;
+  --a-color-fg-subtle: #5b6879;
+  --a-color-ring: #1459c4;
+  --a-color-primary-subtle: #e6eefb;
+  --a-color-primary-subtle-fg: #012b6d;
+  --a-color-primary-border: #a7c2ec;
+  /* Gold stays a supporting brand detail; amber status tokens retain their meaning. */
+  --an-accent: #93651b;
+  --an-accent-subtle: #f7ecd5;
+  --an-chart-1: #1459c4;
+  --an-chart-2: #93651b;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --a-color-bg: #101722;
+  --a-color-surface: #182230;
+  --a-color-surface-muted: #1c2736;
+  --a-color-surface-sunken: #0c131e;
+  --a-color-surface-hover: #243246;
+  --a-color-surface-active: #2c3c52;
+  --a-color-surface-selected: #243b5a;
+  --a-color-border: #334256;
+  --a-color-border-subtle: #293749;
+  --a-color-border-strong: #53647a;
+  --a-color-border-input: #74859c;
+  --a-color-fg: #edf1f6;
+  --a-color-fg-muted: #b6c2d2;
+  --a-color-fg-subtle: #a3b1c4;
+  --a-color-ring: #91b9ff;
+  --a-color-fg-link: #a9c9ff;
+  --a-color-primary: #91b9ff;
+  --a-color-primary-hover: #b0cdff;
+  --a-color-primary-active: #c4dbfe;
+  --a-color-primary-fg: var(--an-ink);
+  --a-color-primary-subtle: #243b5a;
+  --a-color-primary-subtle-fg: #c4dbfe;
+  --a-color-primary-border: #5379a9;
+  --an-accent: #dfb76d;
+  --an-accent-subtle: #382e20;
+  --an-chart-1: #91b9ff;
+  --an-chart-2: #dfb76d;
+}
+
+@layer base {
+  html {
+    scrollbar-color: var(--a-color-border-input) var(--a-color-bg);
+  }
+
+  :is(input, textarea, [contenteditable='true']) {
+    caret-color: var(--a-color-fg-link);
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+  }
+}
+
+/* Selection is also indicated by weight and aria-current, on desktop and phones. */
+.an-navigation [aria-current='page'] {
+  background-color: var(--a-color-surface-selected);
+  color: var(--a-color-primary-subtle-fg);
+  font-weight: var(--a-font-weight-semibold);
+}
+
+.an-navigation [aria-current='page'] svg {
+  color: var(--a-color-fg-link);
+}
+
+/* Khmer combining marks need more vertical room, especially in compact controls. */
+html[lang='km'] {
+  --a-text-xs-line-height: 1.25rem;
+  --a-text-sm-line-height: 1.5rem;
+  --a-text-md-line-height: 1.5rem;
+  --a-text-lg-line-height: 1.75rem;
+  --a-text-xl-line-height: 2rem;
+  --a-text-2xl-line-height: 2.25rem;
+}
+
+html[lang='km'] .an-navigation a {
+  min-height: 2.5rem;
+}

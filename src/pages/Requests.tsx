@@ -5,19 +5,24 @@ import { CheckGroup } from '../components/CheckGroup';
 import { Person } from '../components/Person';
 import { RequestIcon } from '../components/RequestIcon';
 import { StatusBadge } from '../components/StatusBadge';
+import { Time } from '../components/Time';
 import { useStore } from '../data/store';
 import type { Request, RequestStatus, RequestType } from '../data/types';
-import { formatMoney, formatRelative, requestStatus, typeLabel, typeName } from '../lib/format';
-import { Time } from '../components/Time';
+import { useLocale } from '../i18n/LocaleProvider';
+import { formatMoney, requestStatus, typeName } from '../lib/format';
 
 const STATUS_OPTIONS = (Object.keys(requestStatus) as RequestStatus[]).map((s) => ({ value: s, label: requestStatus[s].label }));
 
 export function Requests() {
+  const { t: tr } = useLocale();
   const { state, me } = useStore();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [scope, setScope] = useState<'all' | 'mine'>('all');
-  const TYPE_OPTIONS = state.processes.map((p) => ({ value: p.requestType, label: typeName(p.requestType, state.processes) }));
+  const TYPE_OPTIONS = state.processes.map((p) => ({
+    value: p.requestType,
+    label: tr(typeName(p.requestType, state.processes)),
+  }));
   const query = params.get('q') ?? '';
   const statuses = (params.get('status')?.split(',').filter(Boolean) ?? []) as RequestStatus[];
   const types = (params.get('type')?.split(',').filter(Boolean) ?? []) as RequestType[];
@@ -48,57 +53,71 @@ export function Requests() {
   const columns: DataTableColumn<Request>[] = [
     {
       id: 'title',
-      header: 'Request',
+      header: tr('Request'),
       sortable: true,
       sortValue: (r) => r.title,
       cell: (r) => (
         <span className="flex min-w-0 items-center gap-3">
           <RequestIcon type={r.type} className="size-8" />
           <span className="flex min-w-0 flex-col">
-            <Link
-              to={`/requests/${r.id}`}
-              className="truncate font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring"
-            >
+            <Link to={`/requests/${r.id}`} className="truncate font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring">
               {r.title}
             </Link>
             <Text as="span" variant="caption" tone="muted">
-              {r.id} · {typeName(r.type, state.processes)}
+              {r.id} · {tr(typeName(r.type, state.processes))}
             </Text>
           </span>
         </span>
       ),
     },
-    { id: 'requester', header: 'Requested by', cell: (r) => <Person id={r.requesterId} size="xs" /> },
+    {
+      id: 'requester',
+      header: tr('Requested by'),
+      cell: (r) => <Person id={r.requesterId} size="xs" />,
+    },
     {
       id: 'amount',
-      header: 'Amount',
+      header: tr('Amount'),
       align: 'end',
       numeric: true,
       sortable: true,
       sortValue: (r) => r.amount ?? -1,
       cell: (r) => formatMoney(r.amount),
     },
-    { id: 'status', header: 'Status', sortable: true, sortValue: (r) => r.status, cell: (r) => <StatusBadge status={r.status} size="sm" /> },
+    {
+      id: 'status',
+      header: tr('Status'),
+      sortable: true,
+      sortValue: (r) => r.status,
+      cell: (r) => <StatusBadge status={r.status} size="sm" />,
+    },
     {
       id: 'updated',
       header: 'Updated',
       sortable: true,
       sortValue: (r) => r.updatedAt,
-      cell: (r) => <span className="text-fg-muted"><Time iso={r.updatedAt} /></span>,
+      cell: (r) => (
+        <span className="text-fg-muted">
+          <Time iso={r.updatedAt} />
+        </span>
+      ),
     },
   ];
 
   return (
     <>
       <PageHeader
-        title="Requests"
-        subtitle="Everything people have asked for, and where each one stands."
-        primaryAction={{ content: 'New request', onAction: () => navigate('/requests/new') }}
+        title={tr('Requests')}
+        subtitle={tr('Everything people have asked for, and where each one stands.')}
+        primaryAction={{
+          content: tr('New request'),
+          onAction: () => navigate('/requests/new'),
+        }}
       />
       <Tabs value={scope} onValueChange={(v) => setScope(v as 'all' | 'mine')}>
-        <TabsList aria-label="Whose requests">
-          <TabsTrigger value="all">All requests</TabsTrigger>
-          <TabsTrigger value="mine">Submitted by you</TabsTrigger>
+        <TabsList aria-label={tr('Whose requests')}>
+          <TabsTrigger value="all">{tr('All requests')}</TabsTrigger>
+          <TabsTrigger value="mine">{tr('Submitted by you')}</TabsTrigger>
         </TabsList>
       </Tabs>
       <IndexTable<Request>
@@ -120,36 +139,52 @@ export function Requests() {
           filters: [
             {
               key: 'status',
-              label: 'Status',
+              label: tr('Status'),
               pinned: true,
               filter: <CheckGroup legend="Status" options={STATUS_OPTIONS} value={statuses} onChange={(v) => set('status', v.join(','))} />,
             },
             {
               key: 'type',
-              label: 'Type',
+              label: tr('Type'),
               pinned: true,
               filter: <CheckGroup legend="Type" options={TYPE_OPTIONS} value={types} onChange={(v) => set('type', v.join(','))} />,
             },
           ],
           appliedFilters: [
             ...(statuses.length
-              ? [{ key: 'status', label: `Status: ${statuses.map((s) => requestStatus[s].label).join(', ')}`, onRemove: () => set('status', '') }]
+              ? [
+                  {
+                    key: 'status',
+                    label: `Status: ${statuses.map((s) => requestStatus[s].label).join(', ')}`,
+                    onRemove: () => set('status', ''),
+                  },
+                ]
               : []),
-            ...(types.length ? [{ key: 'type', label: `Type: ${types.map((t) => typeName(t, state.processes)).join(', ')}`, onRemove: () => set('type', '') }] : []),
+            ...(types.length
+              ? [
+                  {
+                    key: 'type',
+                    label: `Type: ${types.map((t) => tr(typeName(t, state.processes))).join(', ')}`,
+                    onRemove: () => set('type', ''),
+                  },
+                ]
+              : []),
           ],
         }}
         emptyState={
           filtered ? (
-            <EmptyState size="card" heading="No requests match these filters" action={<Button onClick={clearAll}>Clear filters</Button>}>
-              Try a different search, or clear the filters to see every request.
+            <EmptyState size="card" heading={tr('No requests match these filters')} action={<Button onClick={clearAll}>{tr('Clear filters')}</Button>}>
+              {' '}
+              {tr('Try a different search, or clear the filters to see every request.')}{' '}
             </EmptyState>
           ) : (
             <EmptyState
               size="card"
-              heading="Create your first request"
+              heading={tr('Create your first request')}
               action={
                 <Button variant="primary" onClick={() => navigate('/requests/new')}>
-                  New request
+                  {' '}
+                  {tr('New request')}{' '}
                 </Button>
               }
             >

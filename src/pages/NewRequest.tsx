@@ -22,11 +22,17 @@ import { FormRenderer } from '../components/forms/FormRenderer';
 import { headerLink } from '../components/links';
 import { canSubmit, routeFor, uid, useStore } from '../data/store';
 import type { Attachment, FormValues, Request, RequestType } from '../data/types';
-import { cleanValues, validateForm } from '../lib/forms';
+import { useLocale } from '../i18n/LocaleProvider';
 import { isBuiltInType, typeName } from '../lib/format';
+import { cleanValues, validateForm } from '../lib/forms';
 import { DEPARTMENTS } from '../lib/org';
 
-const PREFIX: Record<string, string> = { purchase: 'PR', leave: 'LV', expense: 'EX', contract: 'CT' };
+const PREFIX: Record<string, string> = {
+  purchase: 'PR',
+  leave: 'LV',
+  expense: 'EX',
+  contract: 'CT',
+};
 
 type Errors = Partial<Record<string, string>>;
 
@@ -34,6 +40,7 @@ const toDateInput = (iso?: string) => (iso ? iso.slice(0, 10) : '');
 
 /** New request, or editing one of your drafts / a request sent back for changes. */
 export function NewRequest() {
+  const { t: tr } = useLocale();
   const { id } = useParams();
   const [params] = useSearchParams();
   const { state, me } = useStore();
@@ -43,8 +50,12 @@ export function NewRequest() {
   const editable = existing && existing.requesterId === me.id && (existing.status === 'draft' || existing.status === 'changes');
   if (!existing || !editable) {
     return (
-      <EmptyState heading="You can’t edit this request" action={<Button onClick={() => navigate(existing ? `/requests/${id}` : '/requests')}>Go back</Button>}>
-        Only the requester can edit, and only while it is a draft or has been sent back for changes.
+      <EmptyState
+        heading={tr('You can’t edit this request')}
+        action={<Button onClick={() => navigate(existing ? `/requests/${id}` : '/requests')}>{tr('Go back')}</Button>}
+      >
+        {' '}
+        {tr('Only the requester can edit, and only while it is a draft or has been sent back for changes.')}{' '}
       </EmptyState>
     );
   }
@@ -67,6 +78,7 @@ const DEMO: Record<string, Partial<Request>> = {
 };
 
 function RequestForm({ existing: saved }: { existing?: Request }) {
+  const { t: tr } = useLocale();
   const [params] = useSearchParams();
   const demo = DEMO[params.get('demo') ?? ''];
   const existing = saved;
@@ -76,9 +88,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
   const navigate = useNavigate();
   const { toast } = useToast();
   // Start on a type this person may actually raise.
-  const [type, setType] = useState<RequestType>(
-    () => initial?.type ?? state.processes.find((p) => p.active && canSubmit(state, p))?.requestType ?? 'purchase',
-  );
+  const [type, setType] = useState<RequestType>(() => initial?.type ?? state.processes.find((p) => p.active && canSubmit(state, p))?.requestType ?? 'purchase');
   const [title, setTitle] = useState(initial?.title ?? '');
   const [amount, setAmount] = useState(initial?.amount !== undefined ? String(initial.amount) : '');
   const [startDate, setStartDate] = useState(toDateInput(initial?.startDate));
@@ -96,8 +106,15 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
 
   // Request types this person may raise: active processes open to their department.
   const allowed = state.processes.filter((p) => p.active && canSubmit(state, p));
-  const typeOptions = allowed.map((p) => ({ value: p.requestType, label: typeName(p.requestType, state.processes) }));
-  if (existing && !typeOptions.some((o) => o.value === type)) typeOptions.push({ value: type, label: typeName(type, state.processes) });
+  const typeOptions = allowed.map((p) => ({
+    value: p.requestType,
+    label: tr(typeName(p.requestType, state.processes)),
+  }));
+  if (existing && !typeOptions.some((o) => o.value === type))
+    typeOptions.push({
+      value: type,
+      label: tr(typeName(type, state.processes)),
+    });
   const process = state.processes.find((p) => p.requestType === type);
   const builtIn = isBuiltInType(type);
   const customFields = process?.fields ?? [];
@@ -124,7 +141,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
 
   const save = (submit: boolean) => (event?: FormEvent) => {
     event?.preventDefault();
-    const e = submit ? validate() : title.trim() ? {} : { title: 'A draft needs at least a title.' };
+    const e = submit ? validate() : title.trim() ? {} : { title: tr('A draft needs at least a title.') };
     setErrors(e);
     if (Object.keys(e).length) {
       // Take people to the first problem instead of leaving them to hunt for it.
@@ -144,7 +161,12 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
       form: customFields.length ? customFields : undefined,
     };
     if (existing) {
-      dispatch({ type: 'update', requestId: existing.id, patch: fields, submit });
+      dispatch({
+        type: 'update',
+        requestId: existing.id,
+        patch: fields,
+        submit,
+      });
       toast({
         tone: 'success',
         title: submit ? (existing.status === 'changes' ? `Resubmitted ${existing.id}` : `Submitted ${existing.id}`) : `Saved ${existing.id}`,
@@ -167,58 +189,83 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
         createdAt: time,
         updatedAt: time,
         steps: submit ? route : [],
-        activity: submit ? [{ id: uid('a'), at: time, personId: me.id, kind: 'event', text: 'submitted the request' }] : [],
+        activity: submit
+          ? [
+              {
+                id: uid('a'),
+                at: time,
+                personId: me.id,
+                kind: 'event',
+                text: tr('submitted the request'),
+              },
+            ]
+          : [],
       },
     });
-    toast({ tone: 'success', title: submit ? `Submitted ${id}` : `Saved ${id} as a draft` });
+    toast({
+      tone: 'success',
+      title: submit ? `Submitted ${id}` : `Saved ${id} as a draft`,
+    });
     navigate(`/requests/${id}`);
   };
 
   return (
     <>
       <PageHeader
-        title={existing ? `Edit ${existing.id}` : 'New request'}
-        subtitle={existing?.status === 'changes' ? 'Make the changes, then resubmit. It starts the approval route again.' : undefined}
-        backAction={existing ? { content: existing.title, href: `/requests/${existing.id}` } : { content: 'Requests', href: '/requests' }}
+        title={existing ? `Edit ${existing.id}` : tr('New request')}
+        subtitle={existing?.status === 'changes' ? tr('Make the changes, then resubmit. It starts the approval route again.') : undefined}
+        backAction={existing ? { content: existing.title, href: `/requests/${existing.id}` } : { content: tr('Requests'), href: '/requests' }}
         renderLink={headerLink}
       />
       <form noValidate onSubmit={save(true)} className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Card>
           <div className="flex flex-col gap-5">
             {returned?.comment ? (
-              <Banner tone="warning" title="What the approver asked for">
+              <Banner tone="warning" title={tr('What the approver asked for')}>
                 “{returned.comment}”
               </Banner>
             ) : null}
             {Object.keys(errors).length > 1 ? (
               <Banner tone="critical" title={`Fix ${Object.keys(errors).length} fields to submit`}>
-                Each problem is described next to its field.
+                {' '}
+                {tr('Each problem is described next to its field.')}{' '}
               </Banner>
             ) : null}
-            <Field label="What kind of request?" required disabled={existing !== undefined && existing.status !== 'draft'} error={errors.type}>
-              <Select
-                value={type}
-                onChange={(e) => setType(e.target.value as RequestType)}
-                options={typeOptions}
-              />
+            <Field
+              label={tr('What kind of request?')}
+              required
+              disabled={existing !== undefined && existing.status !== 'draft'}
+              error={errors.type ? tr(errors.type!) : undefined}
+            >
+              <Select value={type} onChange={(e) => setType(e.target.value as RequestType)} options={typeOptions} />
             </Field>
-            <Field label="Title" required error={errors.title}>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Laptops for new team members" maxLength={80} />
+            <Field label={tr('Title')} required error={errors.title ? tr(errors.title!) : undefined}>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tr('Laptops for new team members')} maxLength={80} />
             </Field>
             {hasAmount ? (
               <Field
-                label="Amount"
+                label={tr('Amount')}
                 required={type !== 'contract'}
-                optional={type === 'contract' ? 'Optional' : undefined}
-                helpText="In US dollars, including tax."
-                error={errors.amount}
+                optional={type === 'contract' ? tr('Optional') : undefined}
+                helpText={tr('In US dollars, including tax.')}
+                error={errors.amount ? tr(errors.amount!) : undefined}
               >
                 <Input prefix="$" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
               </Field>
             ) : type === 'leave' ? (
               <div className="grid gap-4 sm:grid-cols-2">
-                <DatePicker label="First day" value={startDate} onChange={(e) => setStartDate(e.target.value)} error={errors.startDate} />
-                <DatePicker label="Last day" value={endDate} onChange={(e) => setEndDate(e.target.value)} error={errors.endDate} />
+                <DatePicker
+                  label={tr('First day')}
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  error={errors.startDate ? tr(errors.startDate!) : undefined}
+                />
+                <DatePicker
+                  label={tr('Last day')}
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  error={errors.endDate ? tr(errors.endDate!) : undefined}
+                />
               </div>
             ) : null}
             {customFields.length ? (
@@ -230,56 +277,74 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
                 errors={Object.fromEntries(Object.entries(errors).flatMap(([k, v]) => (k.startsWith('field-') && v ? [[k.slice(6), v]] : [])))}
               />
             ) : null}
-            <Field label="Department" required>
+            <Field label={tr('Department')} required>
               <Select value={department} onChange={(e) => setDepartment(e.target.value)} options={DEPARTMENTS.map((d) => ({ value: d, label: d }))} />
             </Field>
-            <Field label="Description" required helpText="What it’s for and why now. Approvers read this first." error={errors.description}>
+            <Field
+              label={tr('Description')}
+              required
+              helpText={tr('What it’s for and why now. Approvers read this first.')}
+              error={errors.description ? tr(errors.description!) : undefined}
+            >
               <Textarea rows={4} autoGrow value={description} onChange={(e) => setDescription(e.target.value)} />
             </Field>
             <div className="flex flex-col gap-2">
               <DropZone
-                label="Attachments"
+                label={tr('Attachments')}
                 multiple
                 maxFiles={10}
                 maxSize={20_000_000}
-                hint="Quotes, receipts or contracts. PDF, images or spreadsheets, up to 20 MB each."
+                hint={tr('Quotes, receipts or contracts. PDF, images or spreadsheets, up to 20 MB each.')}
                 error={fileError}
                 size="sm"
                 onDrop={(accepted, rejected) => {
                   setAttachments((list) => [...list, ...accepted.map((f) => ({ name: f.name, size: f.size }))]);
                   setFileError(rejected[0]?.message);
                 }}
-              />
+              >
+                {tr('Choose files or drag them here')}
+              </DropZone>
               {attachments.length ? (
                 <DropZoneFileList
-                  files={attachments.map((a) => ({ id: a.name, name: a.name, size: a.size }))}
+                  files={attachments.map((a) => ({
+                    id: a.name,
+                    name: a.name,
+                    size: a.size,
+                  }))}
                   onRemove={(name) => setAttachments((list) => list.filter((a) => a.name !== name))}
                 />
               ) : null}
               <Text variant="caption" tone="muted">
-                In this prototype only the file name and size are kept.
+                {' '}
+                {tr('In this prototype only the file name and size are kept.')}{' '}
               </Text>
             </div>
             <div className="flex flex-wrap justify-end gap-2">
               {existing?.status !== 'changes' ? (
                 <Button type="button" onClick={save(false)}>
-                  Save draft
+                  {' '}
+                  {tr('Save draft')}{' '}
                 </Button>
               ) : null}
               <Button type="submit" variant="primary">
-                {existing?.status === 'changes' ? 'Resubmit' : 'Submit for approval'}
+                {existing?.status === 'changes' ? tr('Resubmit') : tr('Submit for approval')}
               </Button>
             </div>
           </div>
         </Card>
         <div className="flex flex-col gap-6">
           <Card>
-            <CardHeader title="Approval route" description="Who decides, based on the process for this type and amount." />
+            <CardHeader title={tr('Approval route')} description={tr('Who decides, based on the process for this type and amount.')} />
             <div className="mt-4">
               {route.length ? (
-                <ApprovalTimeline steps={route.map((s) => ({ ...s, status: 'waiting' as const }))} />
+                <ApprovalTimeline
+                  steps={route.map((s) => ({
+                    ...s,
+                    status: 'waiting' as const,
+                  }))}
+                />
               ) : (
-                <Text tone="muted">No active process for {typeName(type, state.processes).toLowerCase()} requests.</Text>
+                <Text tone="muted">No active process for {tr(typeName(type, state.processes)).toLowerCase()} requests.</Text>
               )}
             </div>
           </Card>

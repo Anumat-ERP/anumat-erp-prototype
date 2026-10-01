@@ -5,13 +5,20 @@ import { useNavigate } from 'react-router';
 import { CONFIG, isSet } from '../config';
 import { prefsFor, useStore } from '../data/store';
 import type { Channel, NotificationEvent } from '../data/types';
+import { useLocale } from '../i18n/LocaleProvider';
 import { formatDate } from '../lib/format';
 
 const EVENTS: { id: NotificationEvent; name: string; help: string }[] = [
-  { id: 'approvals', name: 'Waiting for my decision', help: 'A request reaches your approval step.' },
-  { id: 'requestUpdates', name: 'My requests', help: 'Approved, sent back, declined or commented on.' },
-  { id: 'tasks', name: 'Tasks', help: 'Assigned to you, due soon, sign-offs, and ones you follow.' },
-  { id: 'meetings', name: 'Meetings', help: 'Invitations and a reminder before each meeting.' },
+  {
+    id: 'approvals',
+    name: 'Waiting for my decision',
+    help: 'A request reaches your approval step.',
+  },
+  {
+    id: 'requestUpdates',
+    name: 'My requests',
+    help: 'Approved, sent back, declined or commented on.',
+  },
 ];
 
 const CHANNELS: { id: Channel; name: string }[] = [
@@ -20,6 +27,7 @@ const CHANNELS: { id: Channel; name: string }[] = [
 ];
 
 export function NotificationSettings() {
+  const { t: tr } = useLocale();
   const { state, me, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -29,7 +37,7 @@ export function NotificationSettings() {
   const [username, setUsername] = useState('');
   const [error, setError] = useState<string>();
   // A one-time code the person sends to the bot, so it knows which account to link.
-  const code = `ANU-${(me.id.charCodeAt(0) * 97 + me.id.length * 13) % 9000 + 1000}`;
+  const code = `ANU-${((me.id.charCodeAt(0) * 97 + me.id.length * 13) % 9000) + 1000}`;
   const bot = CONFIG.telegram.botUsername.replace(/^@/, '');
 
   const connect = () => {
@@ -40,22 +48,26 @@ export function NotificationSettings() {
     }
     dispatch({ type: 'connectTelegram', username: name });
     setConnecting(false);
-    toast({ tone: 'success', title: 'Telegram connected', description: 'Approvals and meeting reminders now come to Telegram too.' });
+    toast({
+      tone: 'success',
+      title: 'Telegram connected',
+      description: tr('Approval notifications now come to Telegram too.'),
+    });
   };
 
   return (
     <>
-      <PageHeader title="Notifications" subtitle="Choose where Anumat tells you about things. In-app notifications are always on." />
+      <PageHeader title={tr('Notifications')} subtitle={tr('Choose where Anumat tells you about things. In-app notifications are always on.')} />
 
       <Card className="flex flex-col gap-4">
         <CardHeader
           title={
             <span className="flex items-center gap-2">
-              <Send aria-hidden className="size-5 text-info" /> Telegram
+              <Send aria-hidden className="size-5 text-info" /> {tr('Telegram')}{' '}
             </span>
           }
           description="Get approvals and reminders where you already chat, and approve with one tap."
-          actions={connected ? <Badge tone="success">Connected</Badge> : null}
+          actions={connected ? <Badge tone="success">{tr('Connected')}</Badge> : null}
         />
         {connected ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-surface-sunken p-3">
@@ -64,7 +76,8 @@ export function NotificationSettings() {
             </Text>
             <div className="flex gap-2">
               <Button variant="primary" onClick={() => navigate('/telegram')}>
-                Open Telegram preview
+                {' '}
+                {tr('Open Telegram preview')}{' '}
               </Button>
               <Button
                 onClick={() => {
@@ -72,7 +85,8 @@ export function NotificationSettings() {
                   toast({ title: 'Telegram disconnected' });
                 }}
               >
-                Disconnect
+                {' '}
+                {tr('Disconnect')}{' '}
               </Button>
             </div>
           </div>
@@ -87,7 +101,8 @@ export function NotificationSettings() {
                 setConnecting(true);
               }}
             >
-              Connect Telegram
+              {' '}
+              {tr('Connect Telegram')}{' '}
             </Button>
           </div>
         )}
@@ -95,18 +110,20 @@ export function NotificationSettings() {
 
       <Card flush>
         <div className="p-4 pb-2">
-          <CardHeader title="What you hear about, and where" />
+          <CardHeader title={tr('What you hear about, and where')} />
         </div>
         <div className="relative overflow-x-auto">
           <table className="w-full min-w-[32rem] border-collapse text-md">
-            <caption className="sr-only">Notification channels for each kind of event</caption>
+            <caption className="sr-only">{tr('Notification channels for each kind of event')}</caption>
             <thead>
               <tr className="border-b border-border">
                 <th scope="col" className="px-4 py-2 text-start text-sm font-medium text-fg-muted">
-                  Event
+                  {' '}
+                  {tr('Event')}{' '}
                 </th>
                 <th scope="col" className="px-4 py-2 text-start text-sm font-medium text-fg-muted">
-                  In app
+                  {' '}
+                  {tr('In app')}{' '}
                 </th>
                 {CHANNELS.map((c) => (
                   <th key={c.id} scope="col" className="px-4 py-2 text-start text-sm font-medium text-fg-muted">
@@ -119,20 +136,27 @@ export function NotificationSettings() {
               {EVENTS.map((e) => (
                 <tr key={e.id} className="border-b border-border-subtle last:border-0">
                   <th scope="row" className="px-4 py-3 text-start font-regular">
-                    <span className="block font-medium">{e.name}</span>
-                    <span className="block text-sm text-fg-muted">{e.help}</span>
+                    <span className="block font-medium">{tr(e.name)}</span>
+                    <span className="block text-sm text-fg-muted">{tr(e.help)}</span>
                   </th>
                   <td className="px-4 py-3">
-                    <Checkbox label={`${e.name} in app`} labelHidden checked disabled />
+                    <Checkbox label={`${tr(e.name)} in app`} labelHidden checked disabled />
                   </td>
                   {CHANNELS.map((c) => (
                     <td key={c.id} className="px-4 py-3">
                       <Checkbox
-                        label={`${e.name} by ${c.name}`}
+                        label={`${tr(e.name)} by ${c.name}`}
                         labelHidden
                         checked={prefs.events[e.id].includes(c.id)}
                         disabled={c.id === 'telegram' && !connected}
-                        onCheckedChange={(on) => dispatch({ type: 'setChannel', event: e.id, channel: c.id, on: on === true })}
+                        onCheckedChange={(on) =>
+                          dispatch({
+                            type: 'setChannel',
+                            event: e.id,
+                            channel: c.id,
+                            on: on === true,
+                          })
+                        }
                       />
                     </td>
                   ))}
@@ -143,7 +167,8 @@ export function NotificationSettings() {
         </div>
         {!connected ? (
           <Text variant="bodySm" tone="muted" className="px-4 pb-4">
-            Connect Telegram to choose it for any event.
+            {' '}
+            {tr('Connect Telegram to choose it for any event.')}{' '}
           </Text>
         ) : null}
       </Card>
@@ -151,9 +176,9 @@ export function NotificationSettings() {
       <Modal
         open={connecting}
         onOpenChange={setConnecting}
-        title="Connect Telegram"
+        title={tr('Connect Telegram')}
         primaryAction={{ content: 'I’ve sent the code', onAction: connect }}
-        secondaryActions={[{ content: 'Cancel', onAction: () => setConnecting(false) }]}
+        secondaryActions={[{ content: tr('Cancel'), onAction: () => setConnecting(false) }]}
       >
         <div className="flex flex-col gap-4">
           <ol className="flex list-decimal flex-col gap-3 ps-5 text-md">

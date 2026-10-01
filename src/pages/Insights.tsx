@@ -1,12 +1,17 @@
 import { Card, CardHeader, PageHeader, Text } from '@repo/ui';
-import { AppLink } from '../components/links';
 import { BarTable, ColumnChart, Legend } from '../components/charts';
+import { AppLink } from '../components/links';
 import { useStore } from '../data/store';
 import type { DataState } from '../data/types';
+import { useLocale } from '../i18n/LocaleProvider';
 import { daysUntil, formatMoney, typeLabel } from '../lib/format';
 
 const HOUR = 3_600_000;
-const dollars = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+const dollars = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 0,
+});
 // Submissions in the seven weeks before the demo data starts (illustrative history).
 const HISTORY = [9, 12, 8, 14, 11, 15, 13];
 
@@ -46,6 +51,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint: stri
 }
 
 export function Insights() {
+  const { t: tr } = useLocale();
   const { state, person } = useStore();
 
   const waiting = state.requests.filter((r) => r.status === 'pending');
@@ -60,12 +66,10 @@ export function Insights() {
   const processRows = state.processes.map((p) => ({
     id: p.id,
     label: p.name,
-    segments: [{ value: p.avgHours, color: 'var(--an-chart-1)', label: 'Average' }],
+    segments: [{ value: p.avgHours, color: 'var(--an-chart-1)', label: tr('Average') }],
     target: p.steps.reduce((a, s) => a + s.slaHours, 0),
     display: formatHours(p.avgHours),
-    detail: `${p.name}: ${formatHours(p.avgHours)} on average over ${p.runs30d} requests. Target ${formatHours(
-      p.steps.reduce((a, s) => a + s.slaHours, 0),
-    )}.`,
+    detail: `${p.name}: ${formatHours(p.avgHours)} on average over ${p.runs30d} requests. Target ${formatHours(p.steps.reduce((a, s) => a + s.slaHours, 0))}.`,
   }));
 
   // Where pending requests are waiting right now.
@@ -86,7 +90,7 @@ export function Insights() {
       return {
         id,
         label: person(id).name,
-        segments: [{ value: v.count, color: 'var(--an-chart-1)', label: 'Waiting' }],
+        segments: [{ value: v.count, color: 'var(--an-chart-1)', label: tr('Waiting') }],
         display: String(v.count),
         detail: `${person(id).name} has ${v.count} waiting; the oldest for ${days} ${days === 1 ? 'day' : 'days'}.`,
       };
@@ -104,8 +108,16 @@ export function Insights() {
         id: d,
         label: d,
         segments: [
-          { value: approved, color: 'var(--an-chart-1)', label: 'Approved' },
-          { value: pending, color: 'var(--an-chart-2)', label: 'In approval' },
+          {
+            value: approved,
+            color: 'var(--an-chart-1)',
+            label: tr('Approved'),
+          },
+          {
+            value: pending,
+            color: 'var(--an-chart-2)',
+            label: tr('In approval'),
+          },
         ],
         display: dollars.format(approved + pending),
         detail: `${d}: ${formatMoney(approved)} approved, ${formatMoney(pending)} in approval.`,
@@ -121,36 +133,45 @@ export function Insights() {
     const start = new Date();
     start.setDate(start.getDate() - 7 * (all.length - 1 - i));
     const current = i === all.length - 1;
-    const label = current ? 'Now' : start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-    return { label, value, detail: `${current ? 'This week' : `Week of ${label}`}: ${value} requests submitted` };
+    const label = current ? tr('Now') : start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    return {
+      label,
+      value,
+      detail: `${current ? tr('This week') : `Week of ${label}`}: ${value} requests submitted`,
+    };
   });
 
   return (
     <>
-      <PageHeader title="Insights" subtitle="How fast decisions happen, and where they get stuck. Updates as you use the prototype." />
+      <PageHeader title={tr('Insights')} subtitle={tr('How fast decisions happen, and where they get stuck. Updates as you use the prototype.')} />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="Waiting for a decision" value={String(waiting.length)} hint="Requests in approval now" />
-        <Stat label="Average time to decision" value={formatHours(avgHours)} hint={`Across ${totalRuns} requests, last 30 days`} />
-        <Stat label="Decided on time" value={`${onTime}%`} hint="Steps finished within their target" />
-        <Stat label="Approved spend" value={dollars.format(approvedSpend)} hint="Last 30 days" />
+        <Stat label={tr('Waiting for a decision')} value={String(waiting.length)} hint={tr('Requests in approval now')} />
+        <Stat label={tr('Average time to decision')} value={formatHours(avgHours)} hint={`Across ${totalRuns} requests, last 30 days`} />
+        <Stat label={tr('Decided on time')} value={`${onTime}%`} hint="Steps finished within their target" />
+        <Stat label={tr('Approved spend')} value={dollars.format(approvedSpend)} hint="Last 30 days" />
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
         <Card className="flex flex-col gap-4">
-          <CardHeader title="Time to decision by process" description="Average over the last 30 days, against the target set in Process Builder." />
-          <Legend items={[{ label: 'Average time', color: 'var(--an-chart-1)' }, { label: 'Target', marker: 'target' }]} />
+          <CardHeader title={tr('Time to decision by process')} description="Average over the last 30 days, against the target set in Process Builder." />
+          <Legend
+            items={[
+              { label: tr('Average time'), color: 'var(--an-chart-1)' },
+              { label: tr('Target'), marker: 'target' },
+            ]}
+          />
           <BarTable caption="Average time to decision by process" valueHeader="Average time" rows={processRows} targetLabel="Target" />
           <Text variant="bodySm" tone="muted">
-            Contract review runs longest: legal review alone has a 3-day target. <AppLink to="/processes/proc-contract">Edit the process</AppLink>
+            Contract review runs longest: legal review alone has a 3-day target. <AppLink to="/processes/proc-contract">{tr('Edit the process')}</AppLink>
           </Text>
         </Card>
 
         <Card className="flex flex-col gap-4">
-          <CardHeader title="Where requests are waiting" description="Pending requests by the person whose decision they need." />
+          <CardHeader title={tr('Where requests are waiting')} description="Pending requests by the person whose decision they need." />
           {bottleneckRows.length ? (
             <BarTable caption="Pending requests by current approver" valueHeader="Waiting" rows={bottleneckRows} />
           ) : (
-            <Text tone="muted">Nothing is waiting on anyone.</Text>
+            <Text tone="muted">{tr('Nothing is waiting on anyone.')}</Text>
           )}
           <Text variant="bodySm" tone="muted">
             Hover a bar to see how long the oldest one has waited.
@@ -158,18 +179,18 @@ export function Insights() {
         </Card>
 
         <Card className="flex flex-col gap-4">
-          <CardHeader title="Spend by department" description="Purchases, expenses and contracts with an amount." />
+          <CardHeader title={tr('Spend by department')} description="Purchases, expenses and contracts with an amount." />
           <Legend
             items={[
-              { label: 'Approved', color: 'var(--an-chart-1)' },
-              { label: 'In approval', color: 'var(--an-chart-2)' },
+              { label: tr('Approved'), color: 'var(--an-chart-1)' },
+              { label: tr('In approval'), color: 'var(--an-chart-2)' },
             ]}
           />
           <BarTable caption="Approved and in-approval spend by department" valueHeader="Total" rows={spendRows} />
         </Card>
 
         <Card className="flex flex-col gap-4">
-          <CardHeader title="Requests submitted per week" description={`All types: ${Object.values(typeLabel).join(', ').toLowerCase()}.`} />
+          <CardHeader title={tr('Requests submitted per week')} description={`All types: ${Object.values(typeLabel).join(', ').toLowerCase()}.`} />
           <ColumnChart caption="Requests submitted per week, last 8 weeks" points={weeks} />
         </Card>
       </div>
