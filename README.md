@@ -26,6 +26,13 @@ documents and surveys remain accessible by their existing routes for historical
 prototype demos, but are hidden from navigation, search and the home screen.
 The guided tour follows the approval MVP.
 
+Under **Approval processes → Preset marketplace**, search six starter presets by
+name or purpose, filter by category, and preview form fields and approval rules.
+Choose an approver for every step and select **Use this preset** to create an
+independent, paused process. Review it in the editor, save any changes, then enable
+it from **Your processes**. Only admins and members with process-building access
+can add presets. All preset installations remain browser-local demo data.
+
 Choose **English / ខ្មែរ** in the header or sign-in screen. The core approval
 interface supports Khmer; the choice is remembered on this device and switching
 preserves unsaved forms. Company names, configured process names, form questions
