@@ -265,7 +265,7 @@ test('dashboard request links keep the personal scope and status on reload', asy
   await page.reload();
   await expect(page.locator('tbody tr')).toHaveCount(2);
   await page.goto('/home');
-  await personal.getByRole('link', { name: 'Drafts' }).click();
+  await personal.getByRole('link', { name: /^To do/ }).click();
   await expect(page.locator('tbody tr')).toHaveCount(1);
   await expect(page.locator('tbody')).toContainText('Warehouse barcode scanners');
 });
