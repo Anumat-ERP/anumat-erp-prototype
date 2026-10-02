@@ -1,4 +1,5 @@
-import { Banner, Button, cn, Card, CardHeader, EmptyState, Field, Input, Modal, PageHeader, Switch, Text, Textarea, useToast } from '@repo/ui';
+import { ButtonBase } from '@mui/material';
+import { Banner, Button, cn, Card, CardHeader, EmptyState, Field, Input, Modal, PageHeader, Switch, Text, Textarea, useToast } from '@app/ui';
 import { CalendarCheck, ClipboardList, GraduationCap, HeartPulse, RotateCcw } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router';
@@ -178,7 +179,7 @@ export function SurveyEditor() {
       {/* Phones and tablets: switch between building and previewing instead of scrolling past the whole form. */}
       <div role="tablist" aria-label="Editor view" className="grid grid-cols-2 gap-1 rounded-lg bg-surface-sunken p-1 lg:hidden">
         {(['build', 'preview'] as const).map((v) => (
-          <button
+          <ButtonBase
             key={v}
             type="button"
             role="tab"
@@ -190,7 +191,7 @@ export function SurveyEditor() {
             )}
           >
             {v === 'build' ? 'Build' : `Preview${questionsOf(draft.fields).length ? ` (${questionsOf(draft.fields).length})` : ''}`}
-          </button>
+          </ButtonBase>
         ))}
       </div>
 
@@ -201,7 +202,7 @@ export function SurveyEditor() {
               <CardHeader title="Start from a template" description="Or add your own questions below." />
               <div className="grid gap-2 sm:grid-cols-3">
                 {TEMPLATES.map((t) => (
-                  <button
+                  <ButtonBase
                     key={t.id}
                     type="button"
                     onClick={() => {
@@ -220,7 +221,7 @@ export function SurveyEditor() {
                       <span className="font-medium text-fg">{t.name}</span>
                       <span className="text-sm text-fg-muted">{t.hint}</span>
                     </span>
-                  </button>
+                  </ButtonBase>
                 ))}
               </div>
             </Card>

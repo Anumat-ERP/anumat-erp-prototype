@@ -14,7 +14,7 @@ import {
   Text,
   Textarea,
   useToast,
-} from '@repo/ui';
+} from '@app/ui';
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { ApprovalTimeline } from '../components/ApprovalTimeline';

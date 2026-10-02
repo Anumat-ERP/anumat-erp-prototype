@@ -1,4 +1,4 @@
-import { Text } from '@repo/ui';
+import { Text } from '@app/ui';
 import { Mail, MessageCircle, Send } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { CONFIG, isSet } from '../config';

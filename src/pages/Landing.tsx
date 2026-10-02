@@ -1,595 +1,82 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Badge, Button, Card, DescriptionList, Text, cn } from '@repo/ui';
-import {
-  CheckCircle2,
-  Circle,
-  CircleCheck,
-  CircleHelp,
-  Clock,
-  FileText,
-  History,
-  Inbox,
-  Lock,
-  Plane,
-  Receipt,
-  SearchX,
-  Shield,
-  ShoppingCart,
-  Signature,
-  Timer,
-  UserX,
-  Users,
-  Workflow,
-} from 'lucide-react';
-import { useRef, type ReactNode } from 'react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button } from '@app/ui';
+import { ArrowRight, Check, FileText, History, Inbox, ShieldCheck, Workflow } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { ContactChannels } from '../components/ContactChannels';
 import { useTour } from '../components/DemoTour';
 import { Logo } from '../components/Logo';
-import { LanguageSwitch } from '../i18n/LanguageSwitch';
+import { PublicHeader } from '../components/PublicHeader';
 import { useLocale } from '../i18n/LocaleProvider';
-import { useReveal } from '../lib/motion';
-
-const NAV = [
-  { href: '#how', label: 'How it works' },
-  { href: '#product', label: 'Product' },
-  { href: '#trust', label: 'Security' },
-  { href: '#faq', label: 'FAQ' },
-];
-
-const FOOTER_LINK =
-  'rounded-sm text-fg-muted underline-offset-4 hover:text-fg hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
-
-function FooterColumn({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <nav aria-label={`${title} links`} className="flex flex-col gap-4">
-      <h2 className="text-sm font-semibold tracking-wide text-fg uppercase">{title}</h2>
-      <ul className="flex flex-col gap-3 text-md">{children}</ul>
-    </nav>
-  );
-}
-
-const PROBLEMS = [
-  {
-    icon: SearchX,
-    title: 'Lost requests',
-    text: 'Important requests get buried in email and chat threads.',
-  },
-  {
-    icon: UserX,
-    title: 'Unclear ownership',
-    text: 'Nobody is sure who decides, or what happens next.',
-  },
-  {
-    icon: Timer,
-    title: 'Slow decisions',
-    text: 'Approvals wait for days because nobody knows they’re stuck.',
-  },
-  {
-    icon: CircleHelp,
-    title: 'Missing evidence',
-    text: 'Quotes, context and the reason for a decision are hard to find later.',
-  },
-];
-
-const FLOW = [
-  {
-    title: 'Request',
-    text: 'Raise it once, with every detail and file attached.',
-  },
-  { title: 'Review', text: 'It goes to the right people, by your rules.' },
-  { title: 'Approve', text: 'A clear decision, with a reason on record.' },
-  { title: 'Track', text: 'See what’s moving, what’s stuck and why.' },
-];
+import workspaceArt from '../assets/illustrations/workspace-folder.webp';
+import dashboardPreview from '../assets/illustrations/dashboard-preview.webp';
 
 const MODULES = [
-  {
-    icon: FileText,
-    color: 'var(--an-mod-requests)',
-    title: 'Requests',
-    text: 'Purchases, leave, expenses and contracts in one form.',
-  },
-  {
-    icon: CheckCircle2,
-    color: 'var(--an-mod-approvals)',
-    title: 'Approvals',
-    text: 'Routes by type and amount, with bulk approve.',
-  },
-  {
-    icon: Workflow,
-    color: 'var(--an-mod-process)',
-    title: 'Approval processes',
-    text: 'Change who approves what, without code.',
-  },
+  { icon: FileText, title: 'Requests', text: 'Purchases, leave, expenses and contracts. Raise a request with the details your approvers need.', to: '/requests', tone: 'blue' },
+  { icon: Inbox, title: 'Approvals', text: 'A focused queue for each approver. Review the context, make a decision and keep work moving.', to: '/approvals', tone: 'purple' },
+  { icon: Workflow, title: 'Approval processes', text: 'Choose who approves what. Route requests by type and amount, with rules you can change.', to: '/processes', tone: 'green' },
 ];
-
-const USE_CASES = [
-  { icon: ShoppingCart, label: 'Purchase requests' },
-  { icon: Plane, label: 'Leave and time off' },
-  { icon: Receipt, label: 'Expense claims' },
-  { icon: Signature, label: 'Contract review' },
+const FLOW = [
+  { title: 'Raise a request', text: 'Add the context, amount and supporting files in one place.' },
+  { title: 'Send it to the right people', text: 'Your approval process decides the route, so ownership is clear.' },
+  { title: 'Make a decision', text: 'Approve, decline or ask for changes, with a reason on record.' },
+  { title: 'Keep the full picture', text: 'Follow the status and return to the history whenever you need it.' },
 ];
-
-const TRUST: {
-  icon: typeof Lock;
-  title: string;
-  text: string;
-  planned?: boolean;
-}[] = [
-  {
-    icon: Users,
-    title: 'Role-based access',
-    text: 'Admins, approvers and members each see what they need.',
-  },
-  {
-    icon: History,
-    title: 'Audit trail',
-    text: 'Every submission, decision and comment is recorded with who and when.',
-  },
-  {
-    icon: FileText,
-    title: 'Version history',
-    text: 'Documents keep every version, so you know what was approved.',
-  },
-  {
-    icon: Lock,
-    title: 'Encryption',
-    text: 'In transit and at rest, with data kept separate per company.',
-    planned: true,
-  },
-];
-
 const FAQ = [
-  {
-    q: 'What is Anumat?',
-    a: 'A decision and operations workspace. Requests, approvals, meetings, documents and tasks live in one place, linked to each other, so every request ends in a clear decision and the work that follows it.',
-  },
-  {
-    q: 'Who is it for?',
-    a: 'Operations, finance and people teams at companies of roughly 20 to 500 people who approve spend, leave and contracts over email today.',
-  },
-  {
-    q: 'How does pricing work?',
-    a: 'It’s free during the pilot, with fair-use limits on things that cost us to run, like AI summaries and file storage. We’ll agree pricing with pilot companies before it ends.',
-  },
-  {
-    q: 'Is my data secure?',
-    a: 'Access follows roles, and every action is recorded. This page links to a prototype that keeps demo data in your browser only; the pilot adds encryption in transit and at rest and keeps each company’s data separate.',
-  },
+  { q: 'What is Anumat?', a: 'A decision and operations workspace. Requests, approvals and approval processes live in one place, so everyone knows who decides and what happens next.' },
+  { q: 'What can I try in the prototype?', a: 'Submit requests, review approvals, build approval processes and switch between demo people. Changes are saved in your browser. Reset the demo from the account menu whenever you want.' },
+  { q: 'How does pricing work?', a: 'It’s free during the pilot, with fair-use limits. Pricing will be agreed with pilot companies before the pilot ends. Cloud, private cloud and on-premise deployment options are described on the pricing page.' },
+  { q: 'Does this prototype send real messages?', a: 'No. This prototype keeps demo data in your browser. Email, Telegram and sign-in interactions are demonstrations.' },
 ];
-
-function Section({ id, eyebrow, title, children, className }: { id?: string; eyebrow?: string; title: string; children: ReactNode; className?: string }) {
-  return (
-    <section id={id} aria-labelledby={id ? `${id}-title` : undefined} className={cn('scroll-mt-20 py-16 md:py-20', className)}>
-      <div data-reveal="" className="mx-auto flex max-w-6xl flex-col gap-10 px-4 md:px-6">
-        <div className="flex max-w-2xl flex-col gap-3">
-          {eyebrow ? <span className="text-xs font-semibold tracking-wide text-fg-link uppercase">{eyebrow}</span> : null}
-          <h2 id={id ? `${id}-title` : undefined} className="text-[clamp(1.625rem,3.2vw,2.25rem)] leading-tight font-bold tracking-tight text-balance text-fg">
-            {title}
-          </h2>
-        </div>
-        {children}
-      </div>
-    </section>
-  );
-}
-
-/** A static, non-interactive miniature of the request screen, built from the real components. */
-function ProductPreview() {
-  const { t: tr } = useLocale();
-  const steps = [
-    {
-      name: 'Manager review',
-      who: 'Dara Sok',
-      state: 'Approved',
-      Icon: CircleCheck,
-      tone: 'text-success',
-    },
-    {
-      name: 'Finance review',
-      who: 'Priya Shah',
-      state: 'Waiting',
-      Icon: Clock,
-      tone: 'text-warning-subtle-fg',
-    },
-    {
-      name: 'Final approval',
-      who: 'Sokha Chan',
-      state: 'Not started',
-      Icon: Circle,
-      tone: 'text-fg-subtle',
-    },
-  ];
-  return (
-    <div className="relative">
-      <div
-        role="img"
-        aria-label="Preview of a purchase request in Anumat: $12,500 for laptops, approved by the manager and waiting on finance review."
-        className="relative rotate-[0.6deg] rounded-xl border border-border bg-surface p-5 shadow-lg"
-      >
-        <div aria-hidden inert className="flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-fg-muted">Purchase request · PR-1042</span>
-              <span className="text-lg font-semibold text-fg">{tr('Laptops for new team members')}</span>
-            </div>
-            <Badge tone="warning" dot>
-              {' '}
-              {tr('Pending')}{' '}
-            </Badge>
-          </div>
-          <DescriptionList
-            layout="inline"
-            spacing="tight"
-            items={[
-              {
-                term: tr('Requested by'),
-                description: 'Alex Tan · Operations',
-              },
-              {
-                term: tr('Amount'),
-                description: <span className="font-semibold tabular-nums">$12,500.00</span>,
-              },
-              { term: tr('Attached'), description: 'Laptop_Proposal.pdf' },
-            ]}
-          />
-          <ol className="flex flex-col gap-2.5 rounded-lg bg-surface-sunken p-3">
-            {steps.map(({ name, who, state, Icon, tone }) => (
-              <li key={name} className="flex items-center gap-2.5 text-sm">
-                <Icon className={cn('size-4 shrink-0', tone)} />
-                <span className="font-medium text-fg">{name}</span>
-                <span className="ms-auto text-fg-muted">
-                  {who} · {state}
-                </span>
-              </li>
-            ))}
-          </ol>
-          <div className="flex justify-end gap-2">
-            <Button size="sm" tabIndex={-1}>
-              {' '}
-              {tr('Request changes')}{' '}
-            </Button>
-            <Button size="sm" variant="primary" tabIndex={-1}>
-              {' '}
-              {tr('Approve')}{' '}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function Landing() {
   const { t: tr } = useLocale();
   const navigate = useNavigate();
   const tour = useTour();
-  // During the demo tour, sign-up opens with the company already filled in.
   const startFree = () => navigate(tour.step !== null ? '/welcome?demo=1' : '/welcome');
-  const root = useRef<HTMLDivElement>(null);
-  useReveal(root);
-
-  return (
-    <div ref={root} id="top" className="an-marketing min-h-dvh bg-bg text-fg">
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-(--a-z-index-toast) focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:shadow-md"
-      >
-        {' '}
-        {tr('Skip to content')}{' '}
-      </a>
-      <div className="fixed bottom-4 right-4 z-50">
-        <LanguageSwitch />
+  return <div className="an-marketing min-h-dvh bg-bg text-fg">
+    <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-surface focus:p-3">{tr('Skip to content')}</a>
+    <PublicHeader />
+    <main id="main-content" tabIndex={-1} className="outline-none">
+      <section className="an-marketing-hero" aria-labelledby="hero-title">
+        <div className="an-hero-copy">
+          <h1 id="hero-title">{tr('Requests + approvals.')}<br />{tr('All together.')}</h1>
+          <p>{tr('One workspace for the decisions that keep your company moving. Request, review and approve with clear ownership at every step.')}</p>
+          <div className="flex flex-wrap gap-4">
+            <Button variant="primary" size="lg" trailingIcon={<ArrowRight />} onClick={tour.start}>{tr('See how it works')}</Button>
+            <Button size="lg" onClick={startFree}>{tr('Create a workspace')}</Button>
+          </div>
+          <p className="an-hero-note">{tr('Explore the prototype with demo data. No account needed.')}</p>
+        </div>
+        <div className="an-hero-preview">
+          <span className="an-preview-tag"><Check aria-hidden className="size-4" />{tr('Clear decisions')}</span>
+          <img src={dashboardPreview} alt={tr('Anumat dashboard with requests waiting for approval and a team overview.')} width="1440" height="1000" fetchPriority="high" />
+          <div className="an-preview-decision"><span className="an-preview-check"><Check aria-hidden className="size-5" /></span><div><strong>{tr('A decision, with context')}</strong><p>{tr('Every step stays on record.')}</p></div></div>
+        </div>
+      </section>
+      <div className="an-use-cases" aria-label={tr('Request types')}>
+        {['Purchase requests', 'Leave and time off', 'Expense claims', 'Contract review'].map((label) => <span key={label}><Check aria-hidden className="size-4" />{tr(label)}</span>)}
       </div>
-      <header className="sticky top-0 z-(--a-z-index-sticky) border-b border-border bg-bg/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 md:px-6">
-          <Link
-            to="/"
-            aria-label={tr('Anumat home')}
-            className="rounded-md text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            <Logo className="h-7 w-auto" />
-          </Link>
-          <nav aria-label="Page sections" className="hidden md:block">
-            <ul className="flex gap-5 text-md">
-              {NAV.map((n) => (
-                <li key={n.href}>
-                  <a
-                    href={n.href}
-                    className="rounded-sm text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                  >
-                    {n.label}
-                  </a>
-                </li>
-              ))}
-              <li>
-                <Link
-                  to="/pricing"
-                  className="rounded-sm text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                >
-                  Pricing
-                </Link>
-              </li>
-            </ul>
-          </nav>
-          <div className="ms-auto flex items-center gap-2">
-            <Button variant="tertiary" onClick={() => navigate('/signin')}>
-              {' '}
-              {tr('Sign in')}{' '}
-            </Button>
-            <Button variant="primary" onClick={startFree}>
-              Start free
-            </Button>
-          </div>
+      <section id="how" className="an-public-section an-flow-section" aria-labelledby="how-title">
+        <div className="an-flow-art"><img src={workspaceArt} alt="" width="1024" height="1024" loading="lazy" /></div>
+        <div>
+
+          <h2 id="how-title">{tr('Good decisions start with a clear process.')}</h2>
+          <ol className="an-flow-list">{FLOW.map((step, i) => <li key={step.title}><span aria-hidden>{i + 1}</span><div><h3>{tr(step.title)}</h3><p>{tr(step.text)}</p></div></li>)}</ol>
+          <Button variant="primary" trailingIcon={<ArrowRight />} onClick={() => navigate('/home')}>{tr('Open the prototype')}</Button>
         </div>
-      </header>
-
-      <main id="main-content" tabIndex={-1} className="outline-none">
-        {/* Hero */}
-        <div className="an-stagger mx-auto grid max-w-6xl items-center gap-12 px-4 pt-12 pb-20 md:px-6 md:pt-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-          <div className="flex flex-col gap-6">
-            <span className="text-xs font-semibold tracking-wide text-fg-link uppercase">Decision &amp; operations ERP</span>
-            <h1 className="text-[clamp(2.25rem,5.2vw,3.75rem)] leading-[1.05] font-bold tracking-tight text-balance">
-              Every request becomes a <span className="text-fg-link">clear decision.</span>
-            </h1>
-            <p className="max-w-xl text-lg text-fg-muted">
-              Requests, approvals and approval processes in one workspace. Everyone knows who decides, what was decided, and what happens next.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button size="lg" variant="primary" onClick={startFree}>
-                Start free
-              </Button>
-              <Button size="lg" onClick={tour.start}>
-                See how it works
-              </Button>
-            </div>
-            <Text variant="bodySm" tone="muted">
-              Free during the pilot. Set up your company in about a minute.
-            </Text>
-          </div>
-          <div className="lg:ps-6">
-            <ProductPreview />
-          </div>
-        </div>
-
-        {/* Problem */}
-        <Section eyebrow="The problem" title="Work slows down when decisions are scattered." className="border-t border-border bg-surface">
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PROBLEMS.map(({ icon: Icon, title, text }) => (
-              <li key={title}>
-                <Card className="flex h-full flex-col gap-3 p-5">
-                  <span aria-hidden className="flex size-10 items-center justify-center rounded-lg bg-primary-subtle text-primary-subtle-fg">
-                    <Icon className="size-5" />
-                  </span>
-                  <Text as="h3" variant="subtitle">
-                    {title}
-                  </Text>
-                  <Text tone="muted">{text}</Text>
-                </Card>
-              </li>
-            ))}
-          </ul>
-        </Section>
-
-        {/* Flow */}
-        <Section id="how" eyebrow="How it works" title="One simple flow for faster, better decisions.">
-          <ol className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
-            {FLOW.map((s, i) => (
-              <li key={s.title} className="relative flex flex-col gap-2">
-                <span className="flex items-center gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-fg" aria-hidden>
-                    {i + 1}
-                  </span>
-                  {i < FLOW.length - 1 ? <span aria-hidden className="hidden h-0.5 flex-1 bg-border-strong lg:block" /> : null}
-                </span>
-                <Text as="h3" variant="subtitle">
-                  <span className="sr-only">
-                    {tr('Step')} {i + 1}:{' '}
-                  </span>
-                  {s.title}
-                </Text>
-                <Text tone="muted">{s.text}</Text>
-              </li>
-            ))}
-          </ol>
-        </Section>
-
-        {/* Modules */}
-        <Section id="product" eyebrow="Product" title="One workspace, from request to result." className="border-t border-border bg-surface">
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {MODULES.map(({ icon: Icon, color, title, text }) => (
-              <li key={title}>
-                <Card className="flex h-full gap-4 p-5">
-                  <span
-                    aria-hidden
-                    className="flex size-10 shrink-0 items-center justify-center rounded-lg"
-                    style={{
-                      color,
-                      background: `color-mix(in oklch, ${color} 14%, var(--a-color-surface))`,
-                    }}
-                  >
-                    <Icon className="size-5" />
-                  </span>
-                  <span className="flex flex-col gap-1">
-                    <Text as="h3" variant="subtitle">
-                      {title}
-                    </Text>
-                    <Text tone="muted">{text}</Text>
-                  </span>
-                </Card>
-              </li>
-            ))}
-          </ul>
-          <div className="flex flex-col gap-3">
-            <Text as="h3" variant="label">
-              Built for the way your teams already work
-            </Text>
-            <ul className="flex flex-wrap gap-2">
-              {USE_CASES.map(({ icon: Icon, label }) => (
-                <li key={label} className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-md">
-                  <Icon aria-hidden className="size-4 text-fg-muted" />
-                  {label}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Section>
-
-        {/* Trust */}
-        <Section id="trust" eyebrow="Security" title="Built for decisions that need accountability.">
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {TRUST.map(({ icon: Icon, title, text, planned }) => (
-              <li key={title} className="flex flex-col gap-2 rounded-lg border border-border p-5">
-                <span className="flex items-center justify-between gap-2">
-                  <Icon aria-hidden className="size-5 text-fg" />
-                  {planned ? (
-                    <Badge size="sm" tone="info">
-                      In the pilot
-                    </Badge>
-                  ) : null}
-                </span>
-                <Text as="h3" variant="subtitle">
-                  {title}
-                </Text>
-                <Text tone="muted">{text}</Text>
-              </li>
-            ))}
-          </ul>
-        </Section>
-
-        {/* Pilot (in place of a testimonial until pilot users can be quoted) */}
-        <Section eyebrow="Pilot" title="Join the pilot and shape what we build." className="border-t border-border bg-surface">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-            <ul className="grid gap-4 sm:grid-cols-3">
-              {[
-                {
-                  icon: Shield,
-                  title: 'Free while it lasts',
-                  text: 'No fee during the pilot, with fair-use limits.',
-                },
-                {
-                  icon: Timer,
-                  title: 'Live in a minute',
-                  text: 'Starter processes for purchases, expenses, leave and contracts.',
-                },
-                {
-                  icon: Inbox,
-                  title: 'Direct line to us',
-                  text: 'Your feedback goes straight into the roadmap.',
-                },
-              ].map(({ icon: Icon, title, text }) => (
-                <li key={title} className="flex flex-col gap-2">
-                  <Icon aria-hidden className="size-5 text-fg-link" />
-                  <Text as="h3" variant="subtitle">
-                    {title}
-                  </Text>
-                  <Text tone="muted">{text}</Text>
-                </li>
-              ))}
-            </ul>
-            <Card className="flex flex-col gap-3 p-5">
-              <Text as="h3" variant="subtitle">
-                Try it now
-              </Text>
-              <Text tone="muted">Create a workspace with demo data, or take the 3-minute guided tour.</Text>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="primary" onClick={startFree}>
-                  Start free
-                </Button>
-                <Button onClick={tour.start}>Take the tour</Button>
-              </div>
-              <Text variant="bodySm" tone="muted">
-                Need your own cloud or on-premise?{' '}
-                <Link to="/pricing" className="text-fg-link underline">
-                  See deployment options
-                </Link>
-              </Text>
-            </Card>
-          </div>
-        </Section>
-
-        {/* FAQ */}
-        <Section id="faq" eyebrow="FAQ" title="Questions people ask first.">
-          <Accordion type="single" collapsible className="max-w-3xl">
-            {FAQ.map((f) => (
-              <AccordionItem key={f.q} value={f.q}>
-                <AccordionTrigger>{f.q}</AccordionTrigger>
-                <AccordionContent>
-                  <Text tone="muted" className="max-w-prose">
-                    {f.a}
-                  </Text>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </Section>
-
-        {/* Closing CTA */}
-        <section aria-labelledby="cta-title" className="bg-surface-inverse text-fg-inverse">
-          <div className="mx-auto flex max-w-6xl flex-col items-start gap-5 px-4 py-16 md:px-6 md:py-20">
-            <h2 id="cta-title" className="text-[clamp(1.75rem,3.6vw,2.5rem)] leading-tight font-bold tracking-tight text-balance">
-              Bring clarity to every decision.
-            </h2>
-            <p className="max-w-xl text-lg opacity-80">Join the teams moving faster with Anumat.</p>
-            <Button size="lg" variant="primary" onClick={startFree}>
-              Start free
-            </Button>
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t border-border">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-10 px-4 py-12 md:grid-cols-3 md:px-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-x-10">
-          <div className="col-span-2 flex max-w-sm flex-col items-start gap-4 md:col-span-3 lg:col-span-1">
-            <Logo className="h-7 w-auto" />
-            <Text tone="muted">Decision &amp; operations ERP for modern teams. Ask, approve, move forward.</Text>
-            <Button variant="primary" onClick={startFree}>
-              Start free
-            </Button>
-          </div>
-          <FooterColumn title="Product">
-            {NAV.map((n) => (
-              <li key={n.href}>
-                <a href={n.href} className={FOOTER_LINK}>
-                  {n.label}
-                </a>
-              </li>
-            ))}
-          </FooterColumn>
-          <FooterColumn title={tr('Get started')}>
-            <li>
-              <Link to="/pricing" className={FOOTER_LINK}>
-                {' '}
-                {tr('Pricing & deployment')}{' '}
-              </Link>
-            </li>
-            <li>
-              <button type="button" onClick={() => tour.start()} className={cn(FOOTER_LINK, 'text-start')}>
-                3-minute tour
-              </button>
-            </li>
-            <li>
-              <Link to="/signin" className={FOOTER_LINK}>
-                {' '}
-                {tr('Sign in')}{' '}
-              </Link>
-            </li>
-          </FooterColumn>
-          <section aria-labelledby="footer-contact" className="col-span-2 flex flex-col gap-4 md:col-span-1">
-            <h2 id="footer-contact" className="text-sm font-semibold tracking-wide text-fg uppercase">
-              Talk to us
-            </h2>
-            <ContactChannels compact />
-          </section>
-        </div>
-        <div className="border-t border-border">
-          <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-sm text-fg-muted sm:flex-row sm:items-center sm:justify-between md:px-6">
-            <p>© 2026 Anumat. Prototype for demonstration.</p>
-            <a href="#top" className={FOOTER_LINK}>
-              Back to top ↑
-            </a>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
+      </section>
+      <section id="product" className="an-public-section" aria-labelledby="product-title">
+        <div className="an-section-intro"><h2 id="product-title">{tr('One workspace. Less back and forth.')}</h2><p>{tr('Keep the request, the people and the decision connected.')}</p></div>
+        <div className="an-module-grid">{MODULES.map(({ icon: Icon, title, text, to, tone }) => <Link className="an-module-card" to={to} key={title}>
+          <span className={`an-module-icon an-module-${tone}`} aria-hidden><Icon className="size-6" /></span><h3>{tr(title)}</h3><p>{tr(text)}</p><span className="an-module-link">{tr('Explore')}<ArrowRight aria-hidden className="size-4" /></span>
+        </Link>)}</div>
+      </section>
+      <section id="trust" className="an-public-section an-trust-section" aria-labelledby="trust-title">
+        <div><h2 id="trust-title">{tr('Know who decides. Know what happened.')}</h2><p>{tr('Approvers are assigned by your process. Decisions and comments stay with the request, so the history is easy to follow.')}</p></div>
+        <div className="an-trust-list"><div><ShieldCheck aria-hidden /><h3>{tr('People and roles')}</h3><p>{tr('Choose who manages your workspace and who reviews each request.')}</p></div><div><History aria-hidden /><h3>{tr('A history you can follow')}</h3><p>{tr('See every submission, decision and comment, with who and when.')}</p></div></div>
+      </section>
+      <section id="faq" className="an-public-section an-faq-section" aria-labelledby="faq-title"><h2 id="faq-title">{tr('A few things to know')}</h2><Accordion type="single" collapsible>{FAQ.map(({q,a},i) => <AccordionItem value={`faq-${i}`} key={q}><AccordionTrigger>{tr(q)}</AccordionTrigger><AccordionContent>{tr(a)}</AccordionContent></AccordionItem>)}</Accordion></section>
+      <section className="an-public-section an-public-close"><h2>{tr('Make the next decision clearer.')}</h2><p>{tr('Try the approval workflow with a ready-to-use demo workspace.')}</p><Button size="lg" trailingIcon={<ArrowRight />} variant="primary" onClick={() => navigate('/home')}>{tr('Open the prototype')}</Button></section>
+    </main>
+    <footer className="an-public-footer"><div><Logo className="h-8 w-auto" /><p>{tr('Requests, approvals and a clear way forward.')}</p><p className="text-sm text-fg-muted">{tr('Browser-only prototype. Changes stay on this device.')}</p></div><nav aria-label="Footer"><Link to="/pricing">{tr('Pricing & deployment')}</Link><Link to="/signin">{tr('Sign in')}</Link><Link to="/support">{tr('Help & support')}</Link><ContactChannels /></nav></footer>
+  </div>;
 }

@@ -1,4 +1,4 @@
-import { Kbd, Modal, cn } from '@repo/ui';
+import { Input, Kbd, Modal, cn } from '@app/ui';
 import { ArrowRight, CornerDownLeft, FileText, Search, User } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
@@ -115,7 +115,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       <div className="-m-2 flex flex-col">
         <div className="flex items-center gap-2 border-b border-border px-2 pb-3">
           <Search aria-hidden className="size-4 shrink-0 text-fg-muted" />
-          <input
+          <Input
             autoFocus
             role="combobox"
             aria-expanded="true"
@@ -130,7 +130,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
               else if (e.key === 'ArrowUp') (e.preventDefault(), setActive((a) => Math.max(0, a - 1)));
               else if (e.key === 'Enter') (e.preventDefault(), choose(results[active]));
             }}
-            className="h-9 min-w-0 flex-1 bg-transparent text-md text-fg outline-none placeholder:text-fg-subtle"
+            className="min-w-0 flex-1"
           />
         </div>
         <ul id="command-list" role="listbox" aria-label={tr('Results')} ref={listRef} className="max-h-[min(24rem,60vh)] overflow-y-auto py-2">

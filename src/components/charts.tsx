@@ -1,4 +1,4 @@
-import { Text, Tooltip, cn } from '@repo/ui';
+import { Text, Tooltip, cn } from '@app/ui';
 import type { ReactNode } from 'react';
 import { useLocale } from '../i18n/LocaleProvider';
 

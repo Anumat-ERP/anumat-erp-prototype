@@ -1,4 +1,4 @@
-import { Text, cn } from '@repo/ui';
+import { Text, cn } from '@app/ui';
 import { Circle, CircleCheck, CircleX, Clock, Undo2 } from 'lucide-react';
 import { useStore } from '../data/store';
 import type { ApprovalStep } from '../data/types';

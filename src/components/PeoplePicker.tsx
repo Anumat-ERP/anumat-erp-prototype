@@ -1,4 +1,4 @@
-import { Select, Tag, Text } from '@repo/ui';
+import { Select, Tag, Text } from '@app/ui';
 import { useId } from 'react';
 import { useStore } from '../data/store';
 import { useLocale } from '../i18n/LocaleProvider';

@@ -1,4 +1,4 @@
-import { ActionMenu, Badge, Button, Checkbox, Field, IconButton, Input, Select, Text } from '@repo/ui';
+import { ActionMenu, Badge, Button, Checkbox, Field, IconButton, Input, Select, Text } from '@app/ui';
 import { ArrowDown, ArrowUp, Copy, GitBranch, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { uid } from '../../data/store';

@@ -9,20 +9,23 @@
     "build": "tsc --noEmit && vite build && cp dist/index.html dist/404.html",
     "preview": "vite preview",
     "check-types": "tsc --noEmit",
-    "sync-ui": "scripts/sync-ui.sh",
-    "build:artifact": "tsc --noEmit && vite build --mode artifact && node scripts/build-artifact.mjs"
+    "build:artifact": "tsc --noEmit && vite build --mode artifact && node scripts/build-artifact.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^9.4.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.0.0",
-    "radix-ui": "^1.4.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router": "^7.9.0",
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.1.0",
     "@types/node": "^22",
     "@types/react": "^19.2.0",

@@ -1,4 +1,5 @@
-import { Button, EmptyState, PageHeader, Text, cn, useToast } from '@repo/ui';
+import { ButtonBase } from '@mui/material';
+import { Button, EmptyState, PageHeader, Text, cn, useToast } from '@app/ui';
 import { ArrowLeft, Send } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -29,9 +30,9 @@ function InlineButton({ children, onClick, href }: { children: ReactNode; onClic
       </a>
     );
   return (
-    <button type="button" onClick={onClick} className={cls}>
+    <ButtonBase type="button" onClick={onClick} className={cls}>
       {children}
-    </button>
+    </ButtonBase>
   );
 }
 

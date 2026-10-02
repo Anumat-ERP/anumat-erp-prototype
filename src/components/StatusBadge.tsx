@@ -1,4 +1,4 @@
-import { cn } from '@repo/ui';
+import { cn } from '@app/ui';
 import type { RequestStatus } from '../data/types';
 import { useLocale } from '../i18n/LocaleProvider';
 import { requestStatus } from '../lib/format';

@@ -30,11 +30,12 @@ import { Welcome } from './pages/Welcome';
 
 /** Scroll to the top and move focus to <main> when the page changes. */
 function RouteFocus() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
+    else window.scrollTo(0, 0);
     document.getElementById('main-content')?.focus({ preventScroll: true });
-  }, [pathname]);
+  }, [pathname, hash]);
   return null;
 }
 

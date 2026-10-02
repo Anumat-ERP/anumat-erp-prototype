@@ -1,4 +1,4 @@
-import { Badge, Banner, Button, Checkbox, IconButton, Input, Modal, Select, Text, useToast } from '@repo/ui';
+import { Badge, Banner, Button, Checkbox, IconButton, Input, Modal, Select, Text, useToast } from '@app/ui';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { uid, useStore } from '../data/store';

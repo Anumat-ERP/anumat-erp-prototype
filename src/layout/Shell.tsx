@@ -1,12 +1,13 @@
-import { ActionMenu, AppShell, Avatar, Badge, Button, IconButton, KbdShortcut, Navigation, useToast, type NavigationSection } from '@repo/ui';
-import { BarChart3, Check, CircleHelp, FileText, Home, Inbox, Moon, Presentation, RotateCcw, Search, Sun, UsersRound, Workflow } from 'lucide-react';
+import { ButtonBase } from '@mui/material';
+import { ActionMenu, AppShell, Avatar, IconButton, Navigation, useToast, type NavigationSection } from '@app/ui';
+import { BarChart3, Check, CircleHelp, FileText, Home, Inbox, MoreHorizontal, Moon, Presentation, RotateCcw, Search, Sun, UsersRound, Workflow } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
-import { CommandPalette, commandKey } from '../components/CommandPalette';
+import { CommandPalette } from '../components/CommandPalette';
 import { useTour } from '../components/DemoTour';
 import { FeedbackDialog } from '../components/Feedback';
 import { navLink } from '../components/links';
-import { Logo, LogoMark } from '../components/Logo';
+import { Logo } from '../components/Logo';
 import { Notifications } from '../components/Notifications';
 import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
 import { useStore, waitingOnMe } from '../data/store';
@@ -134,95 +135,22 @@ export function Shell() {
     },
   ];
 
-  const topBar = (
-    <>
-      <Link
-        to="/home"
-        className="flex shrink-0 items-center gap-2 rounded-md text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      >
-        <Logo className="hidden h-7 w-auto sm:block" />
-        <span className="sm:hidden" aria-label="Anumat">
-          <LogoMark className="size-7" />
-        </span>
-      </Link>
-      <Badge tone="primary" size="sm" className="hidden sm:inline-flex">
-        {' '}
-        {tr('Prototype')}{' '}
-      </Badge>
-      <button
-        type="button"
-        onClick={() => setSearching(true)}
-        aria-keyshortcuts="Meta+K Control+K"
-        className="ms-auto hidden h-8 w-full max-w-80 items-center gap-2 rounded-md border border-border-input/60 bg-surface px-2.5 text-start text-md text-fg-subtle hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:flex"
-      >
-        <Search aria-hidden className="size-4" />
-        <span className="flex-1">{tr('Search or jump to…')}</span>
-        <KbdShortcut size="sm" keys={[commandKey, 'K']} />
-      </button>
-      <IconButton icon={<Search />} label={tr('Search')} className="ms-auto sm:hidden" onClick={() => setSearching(true)} />
-      <Button
-        size="sm"
-        variant="tertiary"
-        icon={<Presentation />}
-        className="ms-auto hidden sm:ms-0 md:inline-flex"
-        onClick={tour.start}
-        title={tr('Resets the demo data and walks through a 3-minute pitch')}
-      >
-        {' '}
-        {tr('Demo tour')}{' '}
-      </Button>
-      <LanguageSwitch />
-      <span>
-        <Notifications />
-      </span>
-      <ActionMenu
-        align="end"
-        trigger={<IconButton icon={<CircleHelp />} label={tr('Help')} />}
-        items={[
-          {
-            content: tr('Help & support'),
-            onAction: () => navigate('/support'),
-          },
-          {
-            content: tr('Send feedback'),
-            onAction: () => setFeedback('feedback'),
-          },
-          {
-            content: tr('Report a problem'),
-            onAction: () => setFeedback('problem'),
-          },
-          {
-            content: tr('Pricing & deployment'),
-            onAction: () => navigate('/pricing'),
-          },
-          {
-            content: tr('Start demo tour'),
-            icon: <Presentation />,
-            onAction: tour.start,
-          },
-        ]}
-      />
-      {/* Phones: the theme switch lives in the account menu, so the top bar fits. */}
-      <IconButton
-        icon={theme === 'dark' ? <Sun /> : <Moon />}
-        label={theme === 'dark' ? tr('Switch to light theme') : tr('Switch to dark theme')}
-        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        className="hidden sm:inline-flex"
-      />
+  const accountMenu = (
       <ActionMenu
         align="end"
         trigger={
-          <button
+          <ButtonBase
             type="button"
             aria-label={`Account: ${me.name}, ${me.role}. Switch who you are viewing as.`}
-            className="flex items-center gap-2 rounded-full py-0.5 ps-0.5 pe-2 hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="an-account flex w-full items-center gap-3 rounded-xl p-3 text-start hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <Avatar name={me.name} size="sm" decorative />
-            <span className="hidden flex-col text-start leading-tight lg:flex">
-              <span className="text-sm font-medium text-fg">{me.name}</span>
+            <span className="an-account-copy flex min-w-0 flex-1 flex-col text-start leading-relaxed">
+              <span className="truncate text-md font-medium text-fg">{me.name}</span>
               <span className="text-xs text-fg-muted">{me.role}</span>
             </span>
-          </button>
+            <MoreHorizontal aria-hidden className="size-5 shrink-0 text-fg-muted" />
+          </ButtonBase>
         }
         sections={[
           {
@@ -288,21 +216,65 @@ export function Shell() {
           },
         ]}
       />
+  );
+
+
+  const topBar = (
+    <>
+      <IconButton icon={<Search />} label={tr('Search')} onClick={() => setSearching(true)} aria-keyshortcuts="Meta+K Control+K" />
+      <LanguageSwitch />
+      <ActionMenu
+        align="end"
+        trigger={<IconButton icon={<CircleHelp />} label={tr('Help')} />}
+        items={[
+          {
+            content: tr('Help & support'),
+            onAction: () => navigate('/support'),
+          },
+          {
+            content: tr('Send feedback'),
+            onAction: () => setFeedback('feedback'),
+          },
+          {
+            content: tr('Report a problem'),
+            onAction: () => setFeedback('problem'),
+          },
+          {
+            content: tr('Pricing & deployment'),
+            onAction: () => navigate('/pricing'),
+          },
+          {
+            content: tr('Start demo tour'),
+            icon: <Presentation />,
+            onAction: tour.start,
+          },
+        ]}
+      />
+      <Notifications />
     </>
   );
+
 
   return (
     <AppShell
       topBar={topBar}
+      sidebarHeader={
+        <>
+          <Link to="/home" aria-label="Anumat home" className="an-brand inline-flex rounded-lg focus-visible:outline-2 focus-visible:outline-ring">
+            <Logo className="h-9 w-auto" />
+          </Link>
+          <div className="an-workspace"><WorkspaceSwitcher /></div>
+        </>
+      }
+      sidebarFooter={accountMenu}
       navigation={
         <>
-          <WorkspaceSwitcher />
           <Navigation className="an-navigation" sections={sections} renderLink={navLink} />
         </>
       }
-      mainClassName="md:p-8"
+      mainClassName="an-main"
     >
-      <div key={pathname} className="an-page mx-auto flex w-full max-w-6xl flex-col gap-6">
+      <div key={pathname} className="an-page mx-auto flex w-full max-w-[1500px] flex-col gap-8">
         <Outlet />
       </div>
       <CommandPalette open={searching} onOpenChange={setSearching} />

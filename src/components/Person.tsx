@@ -1,4 +1,4 @@
-import { Avatar, Text } from '@repo/ui';
+import { Avatar, Text } from '@app/ui';
 import { useStore } from '../data/store';
 import { useLocale } from '../i18n/LocaleProvider';
 

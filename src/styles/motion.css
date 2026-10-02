@@ -5,8 +5,8 @@
  *   - what a number means (chart bars grow from zero once).
  * Only opacity and transform move, nothing bounces, nothing loops, and
  * everything is off when the system asks for reduced motion (see the end, and
- * the global clamp in @repo/ui motion.css). Durations and easings are the
- * @repo/ui tokens: fast 100ms, base 150ms, slow 250ms, slower 400ms.
+ * the global clamp in @app/ui motion.css). Durations and easings are the
+ * @app/ui tokens: fast 100ms, base 150ms, slow 250ms, slower 400ms.
  */
 
 /* 1. Hover and focus colors fade instead of snapping. :where() keeps this at

@@ -1,10 +1,11 @@
-import { Avatar, Banner, Button, Card, Checkbox, cn, Field, IconButton, Input, RadioGroup, RadioGroupItem, Select, Text, useToast } from '@repo/ui';
+import { Avatar, Banner, Button, Checkbox, cn, Field, IconButton, Input, Select, Text, useToast } from '@app/ui';
 import { Check, Copy, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { Logo } from '../components/Logo';
+import { PublicHeader } from '../components/PublicHeader';
+import { RequestIcon } from '../components/RequestIcon';
+import onboardingArt from '../assets/illustrations/workspace-folder.webp';
 import { useStore } from '../data/store';
-import { LanguageSwitch } from '../i18n/LanguageSwitch';
 import { useLocale } from '../i18n/LocaleProvider';
 import { formatMoney } from '../lib/format';
 
@@ -151,13 +152,10 @@ export function Welcome() {
   };
 
   return (
-    <div className="min-h-dvh bg-bg px-4 py-8 text-fg sm:py-12">
-      <main id="main-content" tabIndex={-1} className="mx-auto flex w-full max-w-2xl flex-col gap-6 outline-none">
-        <div className="self-end">
-          <LanguageSwitch />
-        </div>
-        <Logo className="h-8 w-auto self-start" />
-
+    <div className="an-setup min-h-dvh bg-bg text-fg">
+      <PublicHeader setup={tr('Set up account')} progress={(step + 1) / 3 * 100} onBack={() => step ? setStep(step - 1) : navigate('/')} />
+      <main id="main-content" tabIndex={-1} className={cn('an-setup-main outline-none', step === 2 && 'an-setup-main-wide')}>
+        <div className="an-setup-copy">
         <ol className="flex flex-wrap gap-x-6 gap-y-2" aria-label="Sign-up steps">
           {STEPS.map((label, i) => (
             <li key={label} aria-current={i === step ? 'step' : undefined} className="flex items-center gap-2 text-sm">
@@ -173,7 +171,7 @@ export function Welcome() {
                 {i < step ? <Check className="size-3.5" /> : i + 1}
               </span>
               <span className={i === step ? 'font-semibold text-fg' : 'text-fg-muted'}>
-                {label}
+                {tr(label)}
                 {i < step ? <span className="sr-only"> {tr('(done)')}</span> : null}
               </span>
             </li>
@@ -181,17 +179,17 @@ export function Welcome() {
         </ol>
 
         <form noValidate onSubmit={next}>
-          <Card className="flex flex-col gap-6 p-6">
+          <div className="an-setup-form flex flex-col gap-7">
             {step === 0 ? (
               <>
                 <div className="flex flex-col gap-1">
-                  <Text as="h1" variant="heading">
+                  <Text as="h1" variant="heading" className="an-setup-title">
                     {' '}
                     {tr('Create your workspace')}{' '}
                   </Text>
                   <Text tone="muted">{tr('One workspace for your whole company. You’ll be its owner.')}</Text>
                 </div>
-                <Field label={tr('Company name')} required error={nameError}>
+                <Field floating label={tr('Company name')} required error={nameError}>
                   <Input
                     autoFocus
                     value={name}
@@ -202,11 +200,9 @@ export function Welcome() {
                     placeholder="Lotus Logistics"
                   />
                 </Field>
-                <RadioGroup legend="How many people work there?" value={size} onValueChange={setSize}>
-                  {SIZES.map((s) => (
-                    <RadioGroupItem key={s.value} value={s.value} label={s.label} />
-                  ))}
-                </RadioGroup>
+                <Field floating label={tr('Company size')} required>
+                  <Select value={size} onChange={(e) => setSize(e.target.value)} options={SIZES.map((s) => ({ value: s.value, label: tr(s.label) }))} />
+                </Field>
                 <div className="flex items-center gap-3 rounded-md bg-surface-sunken p-3">
                   <Avatar name={me.name} size="sm" decorative />
                   <Text variant="bodySm" tone="muted">
@@ -219,7 +215,7 @@ export function Welcome() {
             {step === 1 ? (
               <>
                 <div className="flex flex-col gap-1">
-                  <Text as="h1" variant="heading">
+                  <Text as="h1" variant="heading" className="an-setup-title">
                     {' '}
                     {tr('Invite your team')}{' '}
                   </Text>
@@ -257,7 +253,7 @@ export function Welcome() {
                   {invites.length === 0 ? <li className="px-3 py-4 text-md text-fg-muted">No one yet. Add people below, or share the invite code.</li> : null}
                 </ul>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                  <Field label={tr('Add by email')} error={emailError} className="flex-1">
+                  <Field floating label={tr('Add by email')} error={emailError} className="flex-1">
                     <Input
                       type="email"
                       value={newEmail}
@@ -299,29 +295,29 @@ export function Welcome() {
             {step === 2 ? (
               <>
                 <div className="flex flex-col gap-1">
-                  <Text as="h1" variant="heading">
+                  <Text as="h1" variant="heading" className="an-setup-title">
                     {' '}
                     {tr('Choose how things get approved')}{' '}
                   </Text>
                   <Text tone="muted">Starter processes with sensible rules. Change any of them later in Process Builder.</Text>
                 </div>
                 {processError ? <Banner tone="critical">{processError}</Banner> : null}
-                <fieldset className="flex flex-col gap-3">
+                <fieldset className="an-process-choices grid gap-5 sm:grid-cols-2">
                   <legend className="sr-only">{tr('Approval processes to turn on')}</legend>
                   {state.processes.map((p) => (
-                    <div key={p.id} className="rounded-lg border border-border p-3">
-                      <Checkbox
-                        label={<span className="font-medium">{p.name}</span>}
-                        helpText={p.steps
-                          .map((s) => (s.minAmount === undefined ? s.name : `${s.name} over ${formatMoney(s.minAmount).replace('.00', '')}`))
-                          .join(' → ')}
-                        checked={processIds.includes(p.id)}
-                        onCheckedChange={(c) => {
-                          setProcessIds(c === true ? [...processIds, p.id] : processIds.filter((id) => id !== p.id));
-                          setProcessError(undefined);
-                        }}
-                      />
-                    </div>
+                    <label htmlFor={`setup-${p.id}`} key={p.id} className={cn('an-process-choice flex cursor-pointer flex-col rounded-[20px] bg-surface p-7', processIds.includes(p.id) && 'an-process-choice-selected')}>
+                      <span className="flex items-start justify-between gap-4">
+                        <RequestIcon type={p.requestType} className="size-12" />
+                        <Checkbox id={`setup-${p.id}`} label={p.name} labelHidden aria-describedby={`setup-${p.id}-description`}
+                          checked={processIds.includes(p.id)}
+                          onCheckedChange={(c) => {
+                            setProcessIds(c === true ? [...processIds, p.id] : processIds.filter((id) => id !== p.id));
+                            setProcessError(undefined);
+                          }} />
+                      </span>
+                      <span className="mt-7 block text-xl font-semibold">{p.name}</span>
+                      <span id={`setup-${p.id}-description`} className="mt-3 block text-sm leading-relaxed text-fg-muted">{p.steps.map((s) => s.minAmount === undefined ? s.name : `${s.name} over ${formatMoney(s.minAmount).replace('.00', '')}`).join(' → ')}</span>
+                    </label>
                   ))}
                 </fieldset>
               </>
@@ -351,11 +347,13 @@ export function Welcome() {
                 </Button>
               </div>
             </div>
-          </Card>
+          </div>
         </form>
         <Text variant="caption" tone="subtle" align="center">
-          Prototype: nothing leaves your browser and no emails are sent.
+          {tr('Prototype: nothing leaves your browser and no emails are sent.')}
         </Text>
+        </div>
+        {step < 2 ? <aside className="an-setup-art" aria-hidden="true"><img src={onboardingArt} alt="" width="1024" height="1024" /></aside> : null}
       </main>
     </div>
   );

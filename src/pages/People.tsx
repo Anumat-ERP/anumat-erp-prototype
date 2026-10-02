@@ -1,4 +1,4 @@
-import { Avatar, Badge, Banner, Card, CardHeader, Checkbox, PageHeader, Select, Text, useToast } from '@repo/ui';
+import { Avatar, Badge, Banner, Card, CardHeader, Checkbox, PageHeader, Select, Text, useToast } from '@app/ui';
 import { AppLink } from '../components/links';
 import { isAdmin, useStore } from '../data/store';
 import type { Access } from '../data/types';

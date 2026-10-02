@@ -2,23 +2,40 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Establish layers before Emotion inserts styles, in dev and static builds. -->
+    <style>
+      @layer theme, base, mui, components, utilities;
+    </style>
+    <meta name="emotion-insertion-point" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Anumat ERP</title>
     <meta name="theme-color" content="#003D96" />
-    <meta name="description" content="Clickable prototype of Anumat, the decision and operations ERP: requests, approvals, meetings, documents and tasks in one workspace." />
+    <meta
+      name="description"
+      content="Clickable prototype of Anumat, the decision and operations ERP: requests, approvals, meetings, documents and tasks in one workspace."
+    />
     <meta property="og:title" content="Anumat ERP" />
-    <meta property="og:description" content="Every request becomes a clear decision." />
+    <meta
+      property="og:description"
+      content="Every request becomes a clear decision."
+    />
     <meta property="og:image" content="%BASE_URL%og-image.png" />
     <link rel="icon" href="%BASE_URL%favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
     <script>
       // Apply the saved or system theme before first paint.
       try {
-        var t = localStorage.getItem('anumat-theme');
-        if (t !== 'light' && t !== 'dark') t = document.documentElement.dataset.theme;
-        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        var t = localStorage.getItem("anumat-theme");
+        if (t !== "light" && t !== "dark")
+          t = document.documentElement.dataset.theme;
+        if (t !== "light" && t !== "dark")
+          t = matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
         document.documentElement.dataset.theme = t;
-      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+      } catch (e) {
+        document.documentElement.dataset.theme = "light";
+      }
     </script>
   </head>
   <body>

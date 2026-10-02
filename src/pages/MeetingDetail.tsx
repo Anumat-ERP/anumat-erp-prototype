@@ -1,4 +1,4 @@
-import { Badge, Button, Card, CardHeader, Checkbox, EmptyState, Field, Input, List, PageHeader, Select, Text, cn, useToast } from '@repo/ui';
+import { Badge, Button, Card, CardHeader, Checkbox, EmptyState, Field, Input, List, PageHeader, Select, Text, cn, useToast } from '@app/ui';
 import { Gavel } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';

@@ -1,4 +1,4 @@
-import { Checkbox } from '@repo/ui';
+import { Checkbox } from '@app/ui';
 import { useLocale } from '../i18n/LocaleProvider';
 
 /** A fieldset of design-system checkboxes, for filter popovers. */

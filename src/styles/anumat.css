@@ -1,13 +1,5 @@
-/*
- * Anumat brand layer on top of the design system.
- *
- * @repo/ui ships a neutral violet theme. The prototype keeps every component
- * and semantic token name, and only re-points the brand-facing tokens to the
- * hackathon brand, Anumat Blue #003D96 (same values as
- * anumat-erp-web/packages/brand/ui-theme.css). Load after globals.css.
- *
- * Rule: text on Anumat Blue is white (9.96:1). Dark mode uses a lighter blue
- * with Ink text (6.2:1).
+/* Anumat brand tokens shared by Material UI and utility-based layouts.
+ * MaterialProvider uses the same light/dark palette and self-hosted fonts.
  */
 @font-face {
   font-family: 'Plus Jakarta Sans';

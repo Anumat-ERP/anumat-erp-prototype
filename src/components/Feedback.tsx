@@ -1,4 +1,5 @@
-import { Button, Field, IconButton, Modal, Text, Textarea, cn, useToast } from '@repo/ui';
+import { ButtonBase } from '@mui/material';
+import { Button, Field, IconButton, Modal, Text, Textarea, cn, useToast } from '@app/ui';
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { CONFIG, isSet } from '../config';
@@ -14,7 +15,7 @@ function ScoreScale({ value, onChange }: { value: number | null; onChange: (n: n
     <div className="flex flex-col gap-1.5">
       <div role="radiogroup" aria-label="How likely are you to recommend Anumat, from 0 (not at all) to 10 (extremely)" className="flex flex-wrap gap-1">
         {Array.from({ length: 11 }, (_, n) => (
-          <button
+          <ButtonBase
             key={n}
             type="button"
             role="radio"
@@ -27,7 +28,7 @@ function ScoreScale({ value, onChange }: { value: number | null; onChange: (n: n
             )}
           >
             {n}
-          </button>
+          </ButtonBase>
         ))}
       </div>
       <div className="flex justify-between text-xs text-fg-muted" aria-hidden>

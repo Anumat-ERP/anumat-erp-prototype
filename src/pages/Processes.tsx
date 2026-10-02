@@ -1,5 +1,5 @@
 import { ProcessMarketplace } from '../components/ProcessMarketplace';
-import { Button, Card, PageHeader, Switch, Tabs, TabsList, TabsTrigger, Text, useToast } from '@repo/ui';
+import { Button, Card, PageHeader, Switch, Tabs, TabsList, TabsTrigger, Text, useToast } from '@app/ui';
 import { ChevronRight, Timer } from 'lucide-react';
 import { Fragment } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';

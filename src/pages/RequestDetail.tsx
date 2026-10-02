@@ -1,4 +1,4 @@
-import { Banner, Button, Card, CardHeader, DescriptionList, EmptyState, Field, IconButton, Kbd, Modal, PageHeader, Text, Textarea, useToast } from '@repo/ui';
+import { Banner, Button, Card, CardHeader, DescriptionList, EmptyState, Field, IconButton, Kbd, Modal, PageHeader, Text, Textarea, useToast } from '@app/ui';
 import { Copy, Paperclip } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';

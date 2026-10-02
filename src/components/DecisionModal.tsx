@@ -1,4 +1,4 @@
-import { Field, Modal, Text, Textarea } from '@repo/ui';
+import { Field, Modal, Text, Textarea } from '@app/ui';
 import { useState } from 'react';
 import type { FormField, FormValues } from '../data/types';
 import { useLocale } from '../i18n/LocaleProvider';

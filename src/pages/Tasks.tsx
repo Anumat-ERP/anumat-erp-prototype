@@ -1,3 +1,4 @@
+import { ButtonBase } from '@mui/material';
 import {
   Avatar,
   Badge,
@@ -13,7 +14,7 @@ import {
   TabsTrigger,
   Text,
   cn,
-} from '@repo/ui';
+} from '@app/ui';
 import { ChevronDown, ChevronRight, Lock } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { StatusManager } from '../components/StatusManager';
@@ -64,7 +65,7 @@ function TaskRow({ task, state, onOpen, move }: { task: Task; state: DataState; 
         onCheckedChange={(c) => move(task, firstStatus(state, c === true ? 'done' : 'todo'))}
       />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <button
+        <ButtonBase
           type="button"
           onClick={onOpen}
           className={cn(
@@ -74,7 +75,7 @@ function TaskRow({ task, state, onOpen, move }: { task: Task; state: DataState; 
           title={task.title}
         >
           {task.title}
-        </button>
+        </ButtonBase>
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-muted">
           {status.category === 'active' ? (
             <Badge size="sm" tone={status.tone}>
@@ -174,7 +175,7 @@ function Group({
     <section aria-labelledby={id} className="flex flex-col">
       <h2 id={id} className="px-4 pt-4 pb-2">
         {collapsible ? (
-          <button
+          <ButtonBase
             type="button"
             aria-expanded={open}
             onClick={() => setOpen(!open)}
@@ -182,7 +183,7 @@ function Group({
           >
             {open ? <ChevronDown aria-hidden className="size-4" /> : <ChevronRight aria-hidden className="size-4" />}
             {heading}
-          </button>
+          </ButtonBase>
         ) : (
           heading
         )}
@@ -368,14 +369,14 @@ export function Tasks() {
                         return (
                           <li key={t.id}>
                             <Card className="flex flex-col gap-2 p-3">
-                              <button
+                              <ButtonBase
                                 type="button"
                                 onClick={() => setOpenId(t.id)}
                                 className="line-clamp-2 rounded-sm text-start text-md font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring"
                                 title={t.title}
                               >
                                 {t.title}
-                              </button>
+                              </ButtonBase>
                               <div className="flex items-center justify-between gap-2 text-sm">
                                 <span className="flex min-w-0 items-center gap-1.5 text-fg-muted">
                                   <Avatar name={person(t.ownerId).name} size="xs" decorative />

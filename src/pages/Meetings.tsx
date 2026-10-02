@@ -1,4 +1,4 @@
-import { Badge, Card, PageHeader, Text } from '@repo/ui';
+import { Badge, Card, PageHeader, Text } from '@app/ui';
 import { MapPin } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { AvatarGroup } from '../components/Person';

@@ -1,4 +1,4 @@
-import { Button, EmptyState } from '@repo/ui';
+import { Button, EmptyState } from '@app/ui';
 import { useNavigate } from 'react-router';
 import { useLocale } from '../i18n/LocaleProvider';
 

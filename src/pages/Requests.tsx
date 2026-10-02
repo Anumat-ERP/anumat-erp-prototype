@@ -1,5 +1,5 @@
-import { Button, EmptyState, IndexTable, PageHeader, Tabs, TabsList, TabsTrigger, Text, type DataTableColumn } from '@repo/ui';
-import { useMemo, useState } from 'react';
+import { Button, EmptyState, IndexTable, PageHeader, Tabs, TabsList, TabsTrigger, Text, type DataTableColumn } from '@app/ui';
+import { useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { CheckGroup } from '../components/CheckGroup';
 import { Person } from '../components/Person';
@@ -18,7 +18,9 @@ export function Requests() {
   const { state, me } = useStore();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const [scope, setScope] = useState<'all' | 'mine'>('all');
+  const pendingParams = useRef(params);
+  useEffect(() => { pendingParams.current = params; }, [params]);
+  const scope = params.get('mine') === '1' ? 'mine' : 'all';
   const TYPE_OPTIONS = state.processes.map((p) => ({
     value: p.requestType,
     label: tr(typeName(p.requestType, state.processes)),
@@ -27,15 +29,17 @@ export function Requests() {
   const statuses = (params.get('status')?.split(',').filter(Boolean) ?? []) as RequestStatus[];
   const types = (params.get('type')?.split(',').filter(Boolean) ?? []) as RequestType[];
 
-  const set = (key: string, value: string) =>
-    setParams(
-      (p) => {
-        if (value) p.set(key, value);
-        else p.delete(key);
-        return p;
-      },
-      { replace: true },
-    );
+  // Keep quick successive actions (clear filters, then switch view) on the same URL state.
+  const replaceParams = (next: URLSearchParams) => {
+    pendingParams.current = next;
+    setParams(next, { replace: true });
+  };
+  const set = (key: string, value: string) => {
+    const next = new URLSearchParams(pendingParams.current);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    replaceParams(next);
+  };
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -48,7 +52,7 @@ export function Requests() {
   }, [state.requests, scope, me.id, statuses, types, query]);
 
   const filtered = Boolean(query || statuses.length || types.length);
-  const clearAll = () => setParams({}, { replace: true });
+  const clearAll = () => replaceParams(new URLSearchParams(pendingParams.current.get('mine') === '1' ? { mine: '1' } : {}));
 
   const columns: DataTableColumn<Request>[] = [
     {
@@ -114,7 +118,7 @@ export function Requests() {
           onAction: () => navigate('/requests/new'),
         }}
       />
-      <Tabs value={scope} onValueChange={(v) => setScope(v as 'all' | 'mine')}>
+      <Tabs value={scope} onValueChange={(v) => set('mine', v === 'mine' ? '1' : '')}>
         <TabsList aria-label={tr('Whose requests')}>
           <TabsTrigger value="all">{tr('All requests')}</TabsTrigger>
           <TabsTrigger value="mine">{tr('Submitted by you')}</TabsTrigger>

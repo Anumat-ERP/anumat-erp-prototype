@@ -1,4 +1,4 @@
-import { Badge, Card, CardHeader, EmptyState, Text } from '@repo/ui';
+import { Badge, Card, CardHeader, EmptyState, Text } from '@app/ui';
 import { Person } from './Person';
 import { useStore } from '../data/store';
 import { formatDateTime } from '../lib/format';

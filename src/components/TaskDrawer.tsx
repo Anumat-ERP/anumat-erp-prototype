@@ -1,4 +1,4 @@
-import { Avatar, Banner, Button, DatePicker, Drawer, Field, Select, Text, Textarea, cn, useToast } from '@repo/ui';
+import { Avatar, Banner, Button, DatePicker, Drawer, Field, Select, Text, Textarea, cn, useToast } from '@app/ui';
 import { useEffect, useState } from 'react';
 import { at } from '../data/seed';
 import { canCommentOnTask, canEditTask, firstStatus, isAdmin, planMove, statusDef, uid, useStore } from '../data/store';

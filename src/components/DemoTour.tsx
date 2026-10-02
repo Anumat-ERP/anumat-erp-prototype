@@ -1,4 +1,4 @@
-import { Button, IconButton, Text } from '@repo/ui';
+import { Button, IconButton, Text } from '@app/ui';
 import { ChevronDown, Eye, EyeOff, Presentation, X } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';

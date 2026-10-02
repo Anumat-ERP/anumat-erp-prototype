@@ -1,4 +1,4 @@
-import { cn } from '@repo/ui';
+import { cn } from '@app/ui';
 import type { ReactNode } from 'react';
 import { useTour } from './DemoTour';
 

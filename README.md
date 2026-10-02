@@ -2,13 +2,17 @@
 
 A clickable prototype of **Anumat**, the decision and operations ERP:
 requests, approvals and approval processes in one
-workspace. Built with the Anumat design system and deployed to GitHub Pages.
+workspace. Built with Material UI, themed for Anumat, and deployed to GitHub Pages.
 
 **Live:** https://anumat-erp.github.io/anumat-erp-prototype-hackathon/
 
 This is the **demo-day copy** of [anumat-erp-prototype](https://github.com/Anumat-ERP/anumat-erp-prototype)
-in the hackathon brand: **Anumat Blue `#003D96`** and the submitted logo. Same screens
-and demo tour. The product UI follows the calm back-office principles in
+in the hackathon brand: **Anumat Blue `#003D96`** and the submitted logo. The complete interface follows the user-supplied Remote marketing, setup and dashboard references: a full-height
+sidebar, cool gray canvas, spacious white panels, task rows with pastel type icons,
+and a smaller team column. Public pages use large rounded headings, pill buttons,
+spacious floating-label setup forms and an original textured illustration.
+The Anumat logo keeps its original brand blue; interface
+actions use the brighter blue documented in [DESIGN.md](DESIGN.md). It also keeps the back-office interaction principles in
 [anumat-erp-web/packages/brand](https://github.com/Anumat-ERP/anumat-erp-web/tree/main/packages/brand):
 ⌘K / Ctrl+K search, A/R/D shortcuts for approvers, exact times on hover, compact
 spacing in the account menu. Motion is quiet and explains changes: pages settle in, what you just added or changed is briefly highlighted, charts grow once, and light/dark cross-fade (all off with reduced motion). Only fix demo-breaking bugs here; build new features in the main
@@ -33,14 +37,16 @@ independent, paused process. Review it in the editor, save any changes, then ena
 it from **Your processes**. Only admins and members with process-building access
 can add presets. All preset installations remain browser-local demo data.
 
-Choose **English / ខ្មែរ** in the header or sign-in screen. The core approval
+Choose **English / ខ្មែរ** in the app header. The core approval
 interface supports Khmer; the choice is remembered on this device and switching
 preserves unsaved forms. Company names, configured process names, form questions
 and entered content retain their original language. Some marketing, tour narration,
 advanced configuration and legacy module copy remains English.
 
-Light and dark themes use Anumat Blue, warm light surfaces and navy dark surfaces,
-with a self-hosted Noto Sans Khmer font. Existing design-system components are kept.
+Light and dark themes use Anumat Blue, cool gray light surfaces and navy dark surfaces,
+with a self-hosted Noto Sans Khmer font. Material UI components use the same palette and fonts in both themes.
+The shared setup layout supports all three existing onboarding steps, including
+large selectable process cards and field validation.
 
 Everything here is a browser-only demo. Use the account menu to switch among demo
 people, choose a theme, or reset demo data. No real email or Telegram messages are sent.
@@ -48,16 +54,26 @@ people, choose a theme, or reset demo data. No real email or Telegram messages a
 ## How it is built
 
 - **Vite + React 19 + TypeScript**, React Router, Tailwind CSS v4.
-- **Design system:** `@repo/ui` from
-  [anumat-erp-storybooks](https://github.com/Anumat-ERP/anumat-erp-storybooks),
-  vendored into `vendor/ui/` (components unchanged; stories and tests left out).
-  `vendor/ui/UPSTREAM.md` records the exact upstream commit.
+- **UI:** Material UI (`@mui/material`) with Emotion. `src/ui/` contains
+  app-owned adapters for the workflow-facing APIs, plus shared layout helpers.
+  Buttons, fields, tables, tabs, navigation, dialogs, drawers, menus, notifications
+  and typography render Material UI components. Custom clickable rows use MUI
+  ButtonBase. Native date/select/file controls retain browser and mobile behavior.
+- **Theme:** `src/ui/theme.tsx` configures the workspace palette, typography and
+  responsive breakpoints. It follows `data-theme` so portal content and the app
+  change themes together. CSS layers keep MUI above resets and below explicit
+  layout utilities; `index.html` declares the order before Emotion loads.
+- **Layout tokens:** `src/ui/styles/` and `src/ui/lib/` retain the original
+  Anumat semantic token names for existing screen layouts. The original
+  `vendor/ui/` is retained as migration provenance, excluded from application
+  imports and TypeScript compilation. It is no longer synced or used at runtime.
 - **Brand:** `src/styles/anumat.css` points the design system's tokens at the
   Anumat palette and fonts from
   [anumat-erp-branding](https://github.com/Anumat-ERP/anumat-erp-branding):
-  Anumat Blue #003D96 with white text on it, Navy Ink text, cool Paper background,
-  Angkor Gold highlights (values match anumat-erp-web/packages/brand), Plus Jakarta Sans and
-  JetBrains Mono.
+  Anumat Blue #003D96 remains in the logo and original palette.
+  `src/styles/theme.css` applies workspace blue #285FF0, cool gray #F3F5F9,
+  near-black text, Inter body copy, Plus Jakarta Sans headings and
+  JetBrains Mono identifiers. Both themes include Noto Sans Khmer.
 - **Data:** `src/data/seed.ts` and `src/data/seedMekong.ts` (two demo
   workspaces, dates relative to today) and `src/data/store.tsx` (reducer, saved
   to `localStorage`).
@@ -73,7 +89,8 @@ src/
   components/          app-level pieces (logo, approval timeline, decision modal…)
   data/                types, seed data, store
   styles/              app.css (entry) and anumat.css (brand layer)
-vendor/ui/             the design system, synced by scripts/sync-ui.sh
+src/ui/                Material UI adapters, theme and semantic layout tokens
+vendor/ui/             original upstream source (reference only)
 ```
 
 ## Develop
@@ -84,14 +101,33 @@ bun run dev            # http://localhost:5173
 bun run build          # type-check + production build into dist/
 ```
 
-## Update the design system
+## UI development and verification
+
+Edit the shared theme in `src/ui/theme.tsx` and the adapters in
+`src/ui/components/`. Application code imports `@app/ui`; it does not import
+`vendor/ui`. Tailwind remains for screen layouts and app-specific visuals.
+Lucide remains the icon set. Demo storage and request/process data are unchanged.
+No MUI X commercial packages are required.
 
 ```sh
-scripts/sync-ui.sh ../anumat-erp-storybooks   # path to a checkout of the design system
+bun run check-types
 bun run build
+bunx playwright install chromium  # once per development machine
+bun run test:e2e                  # desktop + mobile workflow checks
 ```
 
-Don't edit files in `vendor/ui/`; change them upstream and sync.
+Browser checks cover request filtering and submission, approval validation,
+bulk decisions, preset installation, keyboard menus, dark mode, Khmer, mobile
+navigation and the existing prototype routes. They also verify dashboard request
+links preserve personal filters after reload and that page actions do not overlap
+workspace utilities. Setup checks validate company details and process selection,
+create a workspace and confirm persistence; sign-in checks select a demo person.
+Each check uses isolated demo data. Authentication checks cover validation, password
+visibility, recovery/reset, code pasting and keyboard navigation, and remembered email.
+
+At `/signin`, use any email and password, then verification code **123456**.
+Login, SSO and recovery are interactive demos. Recovery opens a local reset preview;
+no email is sent and no password is saved. **Remember me** stores only the email.
 
 ## Deploy
 

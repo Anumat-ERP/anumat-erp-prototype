@@ -1,9 +1,9 @@
-import { Badge, Banner, Button, Card, Field, Input, Select, Text, Textarea, cn, useToast } from '@repo/ui';
+import { Badge, Banner, Button, Card, Field, Input, Select, Text, Textarea, cn, useToast } from '@app/ui';
 import { Building2, Check, Cloud, Server } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import { ContactChannels } from '../components/ContactChannels';
-import { Logo } from '../components/Logo';
+import { PublicHeader } from '../components/PublicHeader';
 import { CONFIG, isSet } from '../config';
 import { useStore } from '../data/store';
 import type { Lead } from '../data/types';
@@ -97,33 +97,19 @@ export function Pricing() {
 
   return (
     <div className="an-marketing min-h-dvh bg-bg text-fg">
-      <header className="border-b border-border">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 md:px-6">
-          <Link
-            to="/"
-            aria-label={tr('Anumat home')}
-            className="rounded-md text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            <Logo className="h-7 w-auto" />
-          </Link>
-          <Link to="/welcome" className="text-md font-medium text-fg-link underline underline-offset-2">
-            Start free
-          </Link>
-        </div>
-      </header>
-      <main id="main-content" tabIndex={-1} className="mx-auto flex max-w-6xl flex-col gap-12 px-4 py-12 outline-none md:px-6 md:py-16">
-        <div className="flex max-w-2xl flex-col gap-3">
-          <span className="text-xs font-semibold tracking-wide text-fg-link uppercase">{tr('Pricing & deployment')}</span>
-          <h1 className="text-[clamp(2rem,4.5vw,3rem)] leading-tight font-bold tracking-tight text-balance">Run Anumat where your data needs to live.</h1>
+      <PublicHeader />
+      <main id="main-content" tabIndex={-1} className="mx-auto flex max-w-[1440px] flex-col gap-16 px-5 py-16 outline-none md:px-12 md:py-20">
+        <div className="flex max-w-3xl flex-col gap-4">
+          <h1 className="text-[clamp(2.25rem,4.5vw,3.5rem)] leading-tight font-bold tracking-tight text-balance">Run Anumat where your data needs to live.</h1>
           <Text tone="muted" className="text-lg">
             The same product in all three. Free while we run the pilot; we’ll agree pricing with pilot companies before it ends.
           </Text>
         </div>
 
-        <ul className="grid gap-4 lg:grid-cols-3">
+        <ul className="grid gap-6 lg:grid-cols-3">
           {OPTIONS.map(({ id, icon: Icon, name, tagline, price, points, badge }) => (
             <li key={id}>
-              <Card className={cn('flex h-full flex-col gap-4 p-6', id === 'cloud' && 'border-primary-border')}>
+              <Card className={cn('an-price-card flex h-full flex-col gap-5 p-8', id === 'cloud' && 'border-primary-border')}>
                 <div className="flex items-start justify-between gap-2">
                   <span aria-hidden className="flex size-10 items-center justify-center rounded-lg bg-primary-subtle text-primary-subtle-fg">
                     <Icon className="size-5" />

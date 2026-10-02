@@ -1,5 +1,5 @@
-import type { NavigationLinkProps, PageHeaderRenderLinkProps } from '@repo/ui';
-import { Link as UiLink } from '@repo/ui';
+import type { NavigationLinkProps, PageHeaderRenderLinkProps } from '@app/ui';
+import { Link as UiLink } from '@app/ui';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
@@ -15,9 +15,9 @@ export function headerLink({ href, ...props }: PageHeaderRenderLinkProps) {
 }
 
 /** A design-system Link that navigates with the router. */
-export function AppLink({ to, children, tone }: { to: string; children: ReactNode; tone?: 'default' | 'muted' }) {
+export function AppLink({ to, children, tone, className }: { className?: string; to: string; children: ReactNode; tone?: 'default' | 'muted' }) {
   return (
-    <UiLink asChild tone={tone}>
+    <UiLink asChild tone={tone} className={className}>
       <Link to={to}>{children}</Link>
     </UiLink>
   );

@@ -1,4 +1,4 @@
-import { ToastProvider, TooltipProvider } from '@repo/ui';
+import { MaterialProvider, ToastProvider, TooltipProvider } from '@app/ui';
 import { StrictMode, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, MemoryRouter } from 'react-router';
@@ -13,23 +13,31 @@ import './styles/app.css';
 // artifact build can't own its URL, so it keeps the route in memory.
 const Router =
   import.meta.env.MODE === 'artifact'
-    ? ({ children }: { children: ReactNode }) => <MemoryRouter>{children}</MemoryRouter>
-    : ({ children }: { children: ReactNode }) => <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>{children}</BrowserRouter>;
+    ? ({ children }: { children: ReactNode }) => (
+        <MemoryRouter>{children}</MemoryRouter>
+      )
+    : ({ children }: { children: ReactNode }) => (
+        <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+          {children}
+        </BrowserRouter>
+      );
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <LocaleProvider>
-      <Router>
-        <StoreProvider>
-          <TooltipProvider>
-            <ToastProvider>
-              <TourProvider>
-                <App />
-              </TourProvider>
-            </ToastProvider>
-          </TooltipProvider>
-        </StoreProvider>
-      </Router>
-    </LocaleProvider>
+    <MaterialProvider>
+      <LocaleProvider>
+        <Router>
+          <StoreProvider>
+            <TooltipProvider>
+              <ToastProvider>
+                <TourProvider>
+                  <App />
+                </TourProvider>
+              </ToastProvider>
+            </TooltipProvider>
+          </StoreProvider>
+        </Router>
+      </LocaleProvider>
+    </MaterialProvider>
   </StrictMode>,
 );

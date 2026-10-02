@@ -1,4 +1,4 @@
-import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Tabs, TabsContent, TabsList, TabsTrigger, Text, type BadgeTone } from '@repo/ui';
+import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Tabs, TabsContent, TabsList, TabsTrigger, Text, type BadgeTone } from '@app/ui';
 import { EyeOff, Users } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { questionsOf } from '../lib/forms';

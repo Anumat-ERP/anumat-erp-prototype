@@ -1,4 +1,5 @@
-import { Badge, Drawer, EmptyState, IndexTable, PageHeader, Text, type DataTableColumn } from '@repo/ui';
+import { ButtonBase } from '@mui/material';
+import { Badge, Drawer, EmptyState, IndexTable, PageHeader, Text, type DataTableColumn } from '@app/ui';
 import { File, FileSpreadsheet, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { CheckGroup } from '../components/CheckGroup';
@@ -32,14 +33,14 @@ export function Documents() {
       cell: (d) => {
         const Icon = KIND_ICON[d.kind];
         return (
-          <button
+          <ButtonBase
             type="button"
             onClick={() => setOpenId(d.id)}
             className="flex min-w-0 items-center gap-2 rounded-sm text-start font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring"
           >
             <Icon aria-hidden className="size-4 shrink-0 text-fg-subtle" />
             <span className="truncate">{d.name}</span>
-          </button>
+          </ButtonBase>
         );
       },
     },

@@ -1,4 +1,4 @@
-import { Badge, Button, Card, Text } from '@repo/ui';
+import { Badge, Button, Card, Text } from '@app/ui';
 import { useState } from 'react';
 import type { FormField, Survey, SurveyResponse } from '../data/types';
 import { useStore } from '../data/store';

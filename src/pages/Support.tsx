@@ -1,4 +1,4 @@
-import { Button, Card, CardHeader, PageHeader, Text } from '@repo/ui';
+import { Button, Card, CardHeader, PageHeader, Text } from '@app/ui';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ContactChannels } from '../components/ContactChannels';

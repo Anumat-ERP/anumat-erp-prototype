@@ -1,4 +1,5 @@
-import { Checkbox, Field, Input, RadioGroup, RadioGroupItem, Select, Text, Textarea, cn, useField } from '@repo/ui';
+import { ButtonBase } from '@mui/material';
+import { Checkbox, Field, Input, RadioGroup, RadioGroupItem, Select, Text, Textarea, cn, useField } from '@app/ui';
 import { useRef, type KeyboardEvent } from 'react';
 import { useStore } from '../../data/store';
 import type { FormField, FormValues } from '../../data/types';
@@ -62,7 +63,7 @@ export function ChoiceScale({
         }}
       >
         {choices.map((c, i) => (
-          <button
+          <ButtonBase
             key={c}
             ref={(el) => {
               refs.current[i] = el;
@@ -85,7 +86,7 @@ export function ChoiceScale({
             )}
           >
             {c}
-          </button>
+          </ButtonBase>
         ))}
       </div>
       <div className="flex justify-between text-xs text-fg-muted" aria-hidden>

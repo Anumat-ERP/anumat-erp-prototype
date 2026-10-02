@@ -16,7 +16,7 @@ import {
   TabsTrigger,
   Text,
   useToast,
-} from '@repo/ui';
+} from '@app/ui';
 import { CircleCheck, EyeOff, Users } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router';

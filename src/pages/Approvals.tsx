@@ -1,4 +1,4 @@
-import { EmptyState, IndexTable, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger, Text, useToast, type DataTableColumn, type Selection } from '@repo/ui';
+import { EmptyState, IndexTable, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger, Text, useToast, type DataTableColumn, type Selection } from '@app/ui';
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router';

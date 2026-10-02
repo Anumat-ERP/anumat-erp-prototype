@@ -1,4 +1,4 @@
-import type { BadgeTone } from '@repo/ui';
+import type { BadgeTone } from '@app/ui';
 import type { DocumentStatus, Process, RequestStatus, RequestType, StepStatus } from '../data/types';
 import { intlLocale, type Locale } from '../i18n/locale';
 

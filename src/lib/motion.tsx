@@ -1,4 +1,4 @@
-import { cn } from '@repo/ui';
+import { cn } from '@app/ui';
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { flushSync } from 'react-dom';
 

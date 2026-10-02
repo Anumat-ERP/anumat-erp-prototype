@@ -1,4 +1,4 @@
-import { Card, CardHeader, PageHeader, Text } from '@repo/ui';
+import { Card, CardHeader, PageHeader, Text } from '@app/ui';
 import { BarTable, ColumnChart, Legend } from '../components/charts';
 import { AppLink } from '../components/links';
 import { useStore } from '../data/store';
