@@ -25,4 +25,12 @@ export const redesignKm: Record<string, string> = {
   "Requests over time": "សំណើតាមពេលវេលា",
   "{submitted} submitted, {approved} approved": "បានដាក់ {submitted} បានអនុម័ត {approved}",
   "{count} days": "{count} ថ្ងៃ",
+  // Account menu
+  "Approves team requests": "អនុម័តសំណើរបស់ក្រុម",
+  "Raises requests": "ដាក់សំណើ",
+  "Finance approval": "ការអនុម័តផ្នែកហិរញ្ញវត្ថុ",
+  "Final sign-off": "ការអនុម័តចុងក្រោយ",
+  "Now viewing as {name}": "ឥឡូវកំពុងមើលជា {name}",
+  "Preferences": "ចំណូលចិត្ត",
+  "Demo": "សាកល្បង",
 };

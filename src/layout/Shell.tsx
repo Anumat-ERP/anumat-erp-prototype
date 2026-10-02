@@ -1,5 +1,5 @@
 import { ActionMenu, AppShell, Avatar, IconButton, Navigation, SidebarProvider, useSidebar, useToast, cn, type NavigationSection } from '@app/ui';
-import { BarChart3, Check, ChevronsUpDown, CircleHelp, FileText, LayoutDashboard, LayoutTemplate, ListChecks, Inbox, Moon, Presentation, RotateCcw, Search, Sun, UsersRound, Workflow } from 'lucide-react';
+import { BarChart3, Bell, Check, Plus, Rows3, Send, ChevronsUpDown, CircleHelp, FileText, LayoutDashboard, LayoutTemplate, ListChecks, Inbox, Moon, Presentation, RotateCcw, Search, Sun, UsersRound, Workflow } from 'lucide-react';
 import { useEffect, useState, type ComponentPropsWithRef } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { CommandPalette } from '../components/CommandPalette';
@@ -56,6 +56,14 @@ function useDensity() {
   }, [density]);
   return [density, setDensity] as const;
 }
+
+/** What each demo persona shows in the story. */
+const DEMO_ROLES: Record<string, string> = {
+  dara: 'Approves team requests',
+  alex: 'Raises requests',
+  priya: 'Finance approval',
+  sokha: 'Final sign-off',
+};
 
 /** Page names for the breadcrumb, by top-level path. */
 const PAGE_NAMES: Array<[string, string]> = [
@@ -139,6 +147,8 @@ function ShellFrame() {
   ];
   const pageName = PAGE_NAMES.find(([href]) => at(href))?.[1];
 
+  // The four people the demo story needs (requester, manager, finance, final sign-off), plus whoever you are now.
+  const personas = state.people.length <= 5 ? state.people : state.people.filter((p) => p.id in DEMO_ROLES || p.id === me.id);
   const accountMenu = (
       <ActionMenu
         align="end"
@@ -146,27 +156,21 @@ function ShellFrame() {
         sections={[
           {
             title: tr('View the prototype as'),
-            items: state.people.map((p) => ({
+            items: personas.map((p) => ({
               content: p.name,
-              helpText: p.role,
-              icon: p.id === me.id ? <Check /> : <span aria-hidden className="size-4" />,
+              helpText: DEMO_ROLES[p.id] ? tr(DEMO_ROLES[p.id]!) : tr(p.role),
+              icon: p.id === me.id ? <Check /> : <Avatar name={p.name} size="xs" decorative />,
               onAction: () => {
                 if (p.id === me.id) return;
                 dispatch({ type: 'switchUser', personId: p.id });
-                toast({
-                  title: `Now viewing as ${p.name}`,
-                  description: p.role,
-                });
+                toast({ title: tr('Now viewing as {name}', { name: p.name }), description: tr(p.role) });
               },
             })),
           },
           {
+            title: tr('Preferences'),
             items: [
-              {
-                content: tr('Notification settings'),
-                helpText: tr('Email and Telegram, per kind of event.'),
-                onAction: () => navigate('/settings/notifications'),
-              },
+              { content: tr('Notification settings'), icon: <Bell />, onAction: () => navigate('/settings/notifications') },
               {
                 content: theme === 'dark' ? tr('Light theme') : tr('Dark theme'),
                 icon: theme === 'dark' ? <Sun /> : <Moon />,
@@ -174,29 +178,21 @@ function ShellFrame() {
               },
               {
                 content: density === 'compact' ? tr('Comfortable spacing') : tr('Compact spacing'),
-                helpText: density === 'compact' ? tr('Roomier rows and text.') : tr('Fit more on screen: tighter rows and text.'),
+                icon: <Rows3 />,
                 onAction: () => setDensity(density === 'compact' ? 'comfortable' : 'compact'),
               },
-              {
-                content: tr('Telegram preview'),
-                helpText: tr('See and act on what the bot sends you.'),
-                onAction: () => navigate('/telegram'),
-              },
-              {
-                content: tr('Create a new workspace'),
-                helpText: tr('See sign-up as a new company. Keeps the demo data.'),
-                onAction: () => navigate('/welcome'),
-              },
-              {
-                content: tr('Start demo tour'),
-                icon: <Presentation />,
-                helpText: tr('Resets the demo data and walks through a 3-minute pitch.'),
-                onAction: tour.start,
-              },
+            ],
+          },
+          {
+            title: tr('Demo'),
+            items: [
+              { content: tr('Start demo tour'), icon: <Presentation />, onAction: tour.start },
+              { content: tr('Telegram preview'), icon: <Send />, onAction: () => navigate('/telegram') },
+              { content: tr('Create a new workspace'), icon: <Plus />, onAction: () => navigate('/welcome') },
               {
                 content: tr('Reset demo data'),
                 icon: <RotateCcw />,
-                helpText: tr('Undo everything you changed in this prototype.'),
+                destructive: true,
                 onAction: () => {
                   dispatch({ type: 'reset' });
                   navigate('/home');
@@ -281,7 +277,7 @@ function ShellFrame() {
       sidebarFooter={accountMenu}
       navigation={<Navigation sections={sections} renderLink={navLink} aria-label={tr('Main navigation')} />}
     >
-      <div key={pathname} className="an-page mx-auto flex w-full max-w-[1400px] flex-col gap-6">
+      <div key={pathname} className={cn('an-page mx-auto flex w-full max-w-7xl flex-col gap-6', ['/support', '/settings/notifications'].includes(pathname) && 'max-w-4xl')}>
         <Outlet />
       </div>
       <CommandPalette open={searching} onOpenChange={setSearching} />
