@@ -1,21 +1,9 @@
-import {
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  ListSubheader,
-  Divider,
-} from '@mui/material';
 import { MoreHorizontal } from 'lucide-react';
-import {
-  cloneElement,
-  isValidElement,
-  useId,
-  useState,
-  type ReactNode,
-  type MouseEventHandler,
-} from 'react';
+import { DropdownMenu } from 'radix-ui';
+import { Fragment, type ReactNode } from 'react';
+import { cn } from '../lib/cn';
 import { Button, IconButton } from './button';
+
 export interface ActionMenuItem {
   content: string;
   icon?: ReactNode;
@@ -42,103 +30,81 @@ export interface ActionMenuProps {
   modal?: boolean;
   className?: string;
 }
+
+const itemClasses =
+  'relative flex min-h-9 cursor-default items-center gap-2.5 rounded-sm px-2 py-1.5 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted [&_svg]:size-4 [&_svg]:shrink-0';
+
+/** A list of commands behind a button (shadcn DropdownMenu). */
 export function ActionMenu({
   trigger,
   sections,
   items,
-  open: controlled,
+  open,
   onOpenChange,
-  defaultOpen = false,
+  defaultOpen,
   align = 'end',
   side = 'bottom',
+  modal,
   className,
 }: ActionMenuProps) {
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [local, setLocal] = useState(defaultOpen);
-  const id = useId();
-  const open = controlled ?? local;
-  const setOpen = (next: boolean) => {
-    if (controlled === undefined) setLocal(next);
-    onOpenChange?.(next);
-  };
-  const horizontal =
-    align === 'start' ? 'left' : align === 'center' ? 'center' : 'right';
+  const groups = sections ?? [{ items: items ?? [] }];
   return (
-    <>
-      {isValidElement<{ onClick?: MouseEventHandler<HTMLElement> }>(trigger)
-        ? cloneElement(trigger, {
-            'aria-haspopup': 'menu',
-            'aria-expanded': open,
-            'aria-controls': open ? id : undefined,
-            onClick: (e: React.MouseEvent<HTMLElement>) => {
-              trigger.props.onClick?.(e);
-              if (!e.defaultPrevented) {
-                setAnchor(e.currentTarget);
-                setOpen(!open);
-              }
-            },
-          } as Partial<typeof trigger.props>)
-        : trigger}
-      <Menu
-        id={id}
-        anchorEl={anchor}
-        open={open && Boolean(anchor)}
-        onClose={() => setOpen(false)}
-        anchorOrigin={{
-          vertical: side === 'top' ? 'top' : 'bottom',
-          horizontal,
-        }}
-        transformOrigin={{
-          vertical: side === 'top' ? 'bottom' : 'top',
-          horizontal,
-        }}
-        slotProps={{
-          paper: {
+    <DropdownMenu.Root open={open} onOpenChange={onOpenChange} defaultOpen={defaultOpen} modal={modal}>
+      <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          align={align}
+          side={side}
+          sideOffset={6}
+          collisionPadding={16}
+          className={cn(
+            'an-pop z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] max-w-[calc(100vw-2rem)] min-w-56 overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md',
             className,
-            sx: { minWidth: 220, maxWidth: 'calc(100vw - 32px)' },
-          },
-        }}
-      >
-        {(sections ?? [{ items: items ?? [] }]).flatMap((section, i) => [
-          ...(i > 0 ? [<Divider key={`divider-${i}`} />] : []),
-          ...(section.title
-            ? [
-                <ListSubheader
-                  key={`heading-${i}`}
-                  sx={{ lineHeight: '32px', bgcolor: 'transparent' }}
-                >
-                  {section.title}
-                </ListSubheader>,
-              ]
-            : []),
-          ...section.items.map((item, j) => (
-            <MenuItem
-              key={`${i}-${j}`}
-              component={item.href ? 'a' : 'li'}
-              href={item.href}
-              disabled={item.disabled}
-              onClick={() => {
-                setOpen(false);
-                item.onAction?.();
-              }}
-              sx={item.destructive ? { color: 'error.main' } : undefined}
-            >
-              {item.icon ? (
-                <ListItemIcon
-                  sx={{ color: 'inherit', '& svg': { width: 18, height: 18 } }}
-                >
-                  {item.icon}
-                </ListItemIcon>
-              ) : null}
-              <ListItemText primary={item.content} secondary={item.helpText} />
-              {item.suffix}
-            </MenuItem>
-          )),
-        ])}
-      </Menu>
-    </>
+          )}
+        >
+          {groups.map((section, i) => (
+            <Fragment key={i}>
+              {i > 0 ? <DropdownMenu.Separator className="-mx-1 my-1 h-px bg-border" /> : null}
+              <DropdownMenu.Group>
+                {section.title ? (
+                  <DropdownMenu.Label className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                    {section.title}
+                  </DropdownMenu.Label>
+                ) : null}
+                {section.items.map((item, j) => {
+                  const body = (
+                    <>
+                      {item.icon ? <span aria-hidden className="flex">{item.icon}</span> : null}
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span>{item.content}</span>
+                        {item.helpText ? (
+                          <span className="text-xs text-muted-foreground">{item.helpText}</span>
+                        ) : null}
+                      </span>
+                      {item.suffix}
+                    </>
+                  );
+                  return (
+                    <DropdownMenu.Item
+                      key={`${i}-${j}`}
+                      disabled={item.disabled}
+                      onSelect={() => item.onAction?.()}
+                      asChild={Boolean(item.href)}
+                      className={cn(itemClasses, item.destructive && 'text-critical-subtle-fg data-[highlighted]:bg-critical-subtle')}
+                    >
+                      {item.href ? <a href={item.href}>{body}</a> : body}
+                    </DropdownMenu.Item>
+                  );
+                })}
+              </DropdownMenu.Group>
+            </Fragment>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }
+
 export interface PageActionsProps {
   actions: ActionMenuItem[];
   maxVisible?: number;
@@ -146,6 +112,8 @@ export interface PageActionsProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
+
+/** A page's secondary actions: the first few as buttons, the rest in “More actions”. */
 export function PageActions({
   actions,
   maxVisible = 2,
@@ -154,7 +122,7 @@ export function PageActions({
   className,
 }: PageActionsProps) {
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className ?? ''}`}>
+    <div className={cn('flex flex-wrap items-center gap-2', className)}>
       {actions.slice(0, maxVisible).map((action) => (
         <Button
           key={action.content}
@@ -165,22 +133,12 @@ export function PageActions({
           onClick={action.onAction}
           asChild={Boolean(action.href)}
         >
-          {action.href ? (
-            <a href={action.href}>{action.content}</a>
-          ) : (
-            action.content
-          )}
+          {action.href ? <a href={action.href}>{action.content}</a> : action.content}
         </Button>
       ))}
       {actions.length > maxVisible ? (
         <ActionMenu
-          trigger={
-            <IconButton
-              icon={<MoreHorizontal />}
-              label={moreLabel}
-              size={size}
-            />
-          }
+          trigger={<IconButton icon={<MoreHorizontal />} label={moreLabel} size={size} />}
           items={actions.slice(maxVisible)}
         />
       ) : null}

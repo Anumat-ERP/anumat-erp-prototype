@@ -1,14 +1,16 @@
-import {
-  Drawer as MuiDrawer,
-  Box,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@mui/material';
 import { X } from 'lucide-react';
-import { useId, useState, type ReactNode } from 'react';
-import { IconButton } from './button';
-import { ModalFooterActions, type ModalFooterActionsProps } from './modal';
+import { Dialog } from 'radix-ui';
+import type { ReactNode } from 'react';
+import { cn } from '../lib/cn';
+import {
+  ModalFooterActions,
+  overlayClasses,
+  useOpenState,
+  useReturnFocus,
+  type ModalFooterActionsProps,
+} from './modal';
+import { useLocale } from '../../i18n/LocaleProvider';
+
 export interface DrawerProps extends ModalFooterActionsProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -22,6 +24,10 @@ export interface DrawerProps extends ModalFooterActionsProps {
   children?: ReactNode;
   className?: string;
 }
+
+const WIDTH = { sm: 'sm:w-80', md: 'sm:w-[30rem]', lg: 'sm:w-[40rem]' } as const;
+
+/** A side panel for a record or a secondary task (shadcn Sheet). Full width on phones. */
 export function Drawer({
   open: controlled,
   onOpenChange,
@@ -36,78 +42,56 @@ export function Drawer({
   className,
   ...actions
 }: DrawerProps) {
-  const [local, setLocal] = useState(defaultOpen);
-  const id = useId();
-  const open = controlled ?? local;
-  const setOpen = (next: boolean) => {
-    if (controlled === undefined) setLocal(next);
-    onOpenChange?.(next);
-  };
+  const { t: tr } = useLocale();
+  const [open, setOpen] = useOpenState(controlled, defaultOpen, onOpenChange);
+  const returnFocus = useReturnFocus(Boolean(trigger));
+  const hasFooter =
+    actions.footer || actions.primaryAction || actions.secondaryActions?.length;
   return (
-    <>
-      {trigger ? <span onClick={() => setOpen(true)}>{trigger}</span> : null}
-      <MuiDrawer
-        anchor={side}
-        open={open}
-        onClose={() => setOpen(false)}
-        slotProps={{
-          paper: {
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      {trigger ? <Dialog.Trigger asChild>{trigger}</Dialog.Trigger> : null}
+      <Dialog.Portal>
+        <Dialog.Overlay className={overlayClasses} />
+        <Dialog.Content
+          {...returnFocus}
+          {...(description ? {} : { 'aria-describedby': undefined })}
+          className={cn(
+            'an-sheet fixed inset-y-0 z-50 flex w-full max-w-full flex-col border-border bg-popover text-popover-foreground shadow-lg outline-none',
+            side === 'right' ? 'end-0 border-s' : 'start-0 border-e',
+            WIDTH[size],
             className,
-            sx: {
-              width: {
-                xs: '100%',
-                sm: size === 'sm' ? 320 : size === 'lg' ? 640 : 480,
-              },
-              maxWidth: '100vw',
-            },
-          },
-        }}
-      >
-        <Box
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={`${id}-title`}
-          aria-describedby={description ? `${id}-description` : undefined}
-          sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+          )}
+          data-side={side}
         >
-          <DialogTitle
-            component="div"
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 2,
-            }}
-          >
-            <h2
-              id={`${id}-title`}
-              className={hideTitle ? 'sr-only' : 'text-xl font-semibold'}
-            >
+          <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+            <Dialog.Title className={hideTitle ? 'sr-only' : 'text-lg leading-snug font-semibold'}>
               {title}
-            </h2>
-            <IconButton
-              icon={<X size={20} />}
-              label="Close"
-              onClick={() => setOpen(false)}
-            />
-          </DialogTitle>
-          <DialogContent sx={{ flex: 1 }}>
+            </Dialog.Title>
+            <Dialog.Close asChild>
+              <button
+                type="button"
+                aria-label={tr('Close')}
+                className="-me-1.5 inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                <X aria-hidden className="size-4" />
+              </button>
+            </Dialog.Close>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
             {description ? (
-              <p id={`${id}-description`} className="mb-4 text-fg-muted">
+              <Dialog.Description className="mb-4 text-sm text-muted-foreground">
                 {description}
-              </p>
+              </Dialog.Description>
             ) : null}
             {children}
-          </DialogContent>
-          {actions.footer ||
-          actions.primaryAction ||
-          actions.secondaryActions?.length ? (
-            <DialogActions sx={{ px: 3, pb: 3, flexWrap: 'wrap', gap: 1 }}>
+          </div>
+          {hasFooter ? (
+            <div className="flex flex-wrap justify-end gap-2 border-t border-border px-5 py-4">
               <ModalFooterActions {...actions} />
-            </DialogActions>
+            </div>
           ) : null}
-        </Box>
-      </MuiDrawer>
-    </>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

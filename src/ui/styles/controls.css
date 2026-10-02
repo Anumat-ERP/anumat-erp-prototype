@@ -61,3 +61,12 @@ html[lang='km'] .an-floating-field[data-filled] .an-floating-label { top: 0.35re
 @media (prefers-reduced-motion: reduce) {
   .an-pop[data-state='open'] { animation: none; }
 }
+@keyframes an-fade-in { from { opacity: 0; } }
+@keyframes an-sheet-right { from { transform: translateX(100%); } }
+@keyframes an-sheet-left { from { transform: translateX(-100%); } }
+.an-sheet[data-state='open'][data-side='right'] { animation: an-sheet-right var(--a-duration-slow) var(--a-ease-enter); }
+.an-sheet[data-state='open'][data-side='left'] { animation: an-sheet-left var(--a-duration-slow) var(--a-ease-enter); }
+[dir='rtl'] .an-sheet[data-state='open'][data-side='right'] { animation-name: an-sheet-left; }
+@media (prefers-reduced-motion: reduce) {
+  .an-sheet[data-state='open'], .an-overlay[data-state='open'] { animation: none; }
+}

@@ -31,11 +31,16 @@ import { Welcome } from './pages/Welcome';
 
 /** Scroll to the top and move focus to <main> when the page changes. In-page #links glide to their section. */
 function RouteFocus() {
-  const { pathname, hash, key } = useLocation();
+  const { pathname, hash, search, key } = useLocation();
   const first = useRef(true);
+  const last = useRef({ pathname, hash, search });
   useEffect(() => {
     const initial = first.current;
     first.current = false;
+    const previous = last.current;
+    last.current = { pathname, hash, search };
+    // A filter or tab that only rewrites the query string stays where it is, with focus where the person left it.
+    if (!initial && previous.pathname === pathname && previous.hash === hash && previous.search !== search) return;
     if (hash) {
       const target = () => document.getElementById(hash.slice(1));
       // Smooth only when you click a link on a page that is already showing; a fresh load jumps straight there.
@@ -55,7 +60,7 @@ function RouteFocus() {
       }
     } else window.scrollTo(0, 0);
     document.getElementById('main-content')?.focus({ preventScroll: true });
-  }, [pathname, hash, key]);
+  }, [pathname, hash, search, key]);
   return null;
 }
 

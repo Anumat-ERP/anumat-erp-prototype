@@ -1,23 +1,10 @@
-import {
-  Accordion as MuiAccordion,
-  AccordionSummary,
-  AccordionDetails,
-} from '@mui/material';
 import { ChevronDown } from 'lucide-react';
-import {
-  createContext,
-  useContext,
-  useState,
-  type ComponentPropsWithRef,
-  type ReactNode,
-} from 'react';
-const Context = createContext<{
-  values: string[];
-  toggle: (value: string) => void;
-} | null>(null);
-const ItemContext = createContext('');
+import { Accordion as AccordionPrimitive } from 'radix-ui';
+import { useState, type ComponentPropsWithRef, type ReactNode } from 'react';
+import { cn } from '../lib/cn';
+
 export interface AccordionProps
-  extends Omit<ComponentPropsWithRef<'div'>, 'defaultValue'> {
+  extends Omit<ComponentPropsWithRef<'div'>, 'defaultValue' | 'dir'> {
   type: 'single' | 'multiple';
   value?: string | string[];
   defaultValue?: string | string[];
@@ -25,13 +12,16 @@ export interface AccordionProps
   collapsible?: boolean;
   variant?: 'card' | 'flush';
 }
+
+/** Sections that expand in place (FAQ, settings groups). */
 export function Accordion({
   type,
   value,
   defaultValue,
   onValueChange,
   collapsible,
-  variant: _variant,
+  variant = 'flush',
+  className,
   children,
   ...props
 }: AccordionProps) {
@@ -39,49 +29,59 @@ export function Accordion({
     defaultValue ?? (type === 'single' ? '' : []),
   );
   const current = value ?? local;
-  const values = Array.isArray(current) ? current : current ? [current] : [];
-  const toggle = (item: string) => {
-    if (type === 'single' && values.includes(item) && !collapsible) return;
-    const next =
-      type === 'single'
-        ? values.includes(item)
-          ? ''
-          : item
-        : values.includes(item)
-        ? values.filter((v) => v !== item)
-        : [...values, item];
+  const change = (next: string | string[]) => {
     if (value === undefined) setLocal(next);
     onValueChange?.(next);
   };
-  return (
-    <Context.Provider value={{ values, toggle }}>
-      <div {...props}>{children}</div>
-    </Context.Provider>
+  const classes = cn(
+    variant === 'card' && 'rounded-xl border border-border bg-card px-5',
+    className,
+  );
+  return type === 'single' ? (
+    <AccordionPrimitive.Root
+      type="single"
+      collapsible={collapsible}
+      value={Array.isArray(current) ? current[0] ?? '' : current}
+      onValueChange={change}
+      className={classes}
+      {...props}
+    >
+      {children}
+    </AccordionPrimitive.Root>
+  ) : (
+    <AccordionPrimitive.Root
+      type="multiple"
+      value={Array.isArray(current) ? current : current ? [current] : []}
+      onValueChange={change}
+      className={classes}
+      {...props}
+    >
+      {children}
+    </AccordionPrimitive.Root>
   );
 }
+
 export function AccordionItem({
   value,
+  className,
   children,
   ...props
 }: Omit<ComponentPropsWithRef<'div'>, 'onChange'> & { value: string }) {
-  const c = useContext(Context)!;
   return (
-    <ItemContext.Provider value={value}>
-      <MuiAccordion
-        expanded={c.values.includes(value)}
-        onChange={() => c.toggle(value)}
-        disableGutters
-        elevation={0}
-        {...props}
-      >
-        {children ?? <span />}
-      </MuiAccordion>
-    </ItemContext.Provider>
+    <AccordionPrimitive.Item
+      value={value}
+      className={cn('border-b border-border last:border-b-0', className)}
+      {...props}
+    >
+      {children}
+    </AccordionPrimitive.Item>
   );
 }
+
 export function AccordionTrigger({
   headingAs: _heading,
   suffix,
+  className,
   children,
   ...props
 }: ComponentPropsWithRef<'button'> & {
@@ -89,16 +89,30 @@ export function AccordionTrigger({
   suffix?: ReactNode;
 }) {
   return (
-    <AccordionSummary
-      component="button"
-      expandIcon={<ChevronDown size={18} />}
-      {...props}
-    >
-      {children}
-      {suffix}
-    </AccordionSummary>
+    <AccordionPrimitive.Header className="flex">
+      <AccordionPrimitive.Trigger
+        className={cn(
+          'group flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-start text-md font-medium',
+          'hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+          className,
+        )}
+        {...props}
+      >
+        <span className="min-w-0 flex-1">{children}</span>
+        {suffix}
+        <ChevronDown
+          aria-hidden
+          className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform duration-(--a-duration-base) group-data-[state=open]:rotate-180"
+        />
+      </AccordionPrimitive.Trigger>
+    </AccordionPrimitive.Header>
   );
 }
-export function AccordionContent(props: ComponentPropsWithRef<'div'>) {
-  return <AccordionDetails {...props} />;
+
+export function AccordionContent({ className, children, ...props }: ComponentPropsWithRef<'div'>) {
+  return (
+    <AccordionPrimitive.Content className="overflow-hidden text-sm text-muted-foreground" {...props}>
+      <div className={cn('pb-4', className)}>{children}</div>
+    </AccordionPrimitive.Content>
+  );
 }

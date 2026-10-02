@@ -1,24 +1,27 @@
-import { Tooltip as MuiTooltip } from '@mui/material';
-import {
-  createContext,
-  useContext,
-  type ReactElement,
-  type ReactNode,
-} from 'react';
-const Delay = createContext(400);
+import { Tooltip as TooltipPrimitive } from 'radix-ui';
+import type { ReactElement, ReactNode } from 'react';
+
 export interface TooltipProviderProps {
   delayDuration?: number;
   skipDelayDuration?: number;
   children?: ReactNode;
 }
+
 export function TooltipProvider({
   delayDuration = 400,
+  skipDelayDuration = 300,
   children,
 }: TooltipProviderProps) {
-  return <Delay.Provider value={delayDuration}>{children}</Delay.Provider>;
+  return (
+    <TooltipPrimitive.Provider delayDuration={delayDuration} skipDelayDuration={skipDelayDuration}>
+      {children}
+    </TooltipPrimitive.Provider>
+  );
 }
+
 export interface TooltipProps {
   content: ReactNode;
+  /** One focusable element; the tip describes it. */
   children: ReactElement;
   side?: 'top' | 'right' | 'bottom' | 'left';
   align?: 'start' | 'center' | 'end';
@@ -27,26 +30,38 @@ export interface TooltipProps {
   onOpenChange?: (open: boolean) => void;
   delayDuration?: number;
 }
+
+/** A short hint on hover and focus. Never the only place important information lives. */
 export function Tooltip({
   content,
   children,
   side = 'top',
+  align = 'center',
   open,
+  defaultOpen,
   onOpenChange,
   delayDuration,
 }: TooltipProps) {
-  const delay = useContext(Delay);
   return (
-    <MuiTooltip
-      title={content}
-      placement={side}
-      arrow
+    <TooltipPrimitive.Root
       open={open}
-      enterDelay={delayDuration ?? delay}
-      onOpen={() => onOpenChange?.(true)}
-      onClose={() => onOpenChange?.(false)}
+      defaultOpen={defaultOpen}
+      onOpenChange={onOpenChange}
+      delayDuration={delayDuration}
     >
-      {children}
-    </MuiTooltip>
+      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Portal>
+        <TooltipPrimitive.Content
+          side={side}
+          align={align}
+          sideOffset={6}
+          collisionPadding={8}
+          className="an-pop z-50 max-w-xs rounded-md bg-foreground px-2.5 py-1.5 text-xs text-background shadow-md"
+        >
+          {content}
+          <TooltipPrimitive.Arrow className="fill-foreground" />
+        </TooltipPrimitive.Content>
+      </TooltipPrimitive.Portal>
+    </TooltipPrimitive.Root>
   );
 }

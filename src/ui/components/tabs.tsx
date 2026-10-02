@@ -1,151 +1,156 @@
-import { Tabs as MuiTabs, Tab, Box } from '@mui/material';
+import { Tabs as TabsPrimitive } from 'radix-ui';
 import {
   Children,
   createContext,
   isValidElement,
   useContext,
   useEffect,
-  useId,
   useState,
   type ComponentPropsWithRef,
   type ReactNode,
 } from 'react';
+import { cn } from '../lib/cn';
+
 const Context = createContext<{
   value: string;
-  setValue: (value: string) => void;
-  id: string;
-  manual: boolean;
   hasPanels: boolean;
   setHasPanels: (next: boolean) => void;
 } | null>(null);
+
 function useTabs() {
   const c = useContext(Context);
   if (!c) throw new Error('Tabs children require Tabs');
   return c;
 }
+
 export interface TabsProps
-  extends Omit<ComponentPropsWithRef<'div'>, 'defaultValue'> {
+  extends Omit<ComponentPropsWithRef<'div'>, 'defaultValue' | 'dir'> {
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
   activationMode?: 'automatic' | 'manual';
   orientation?: 'horizontal' | 'vertical';
 }
+
+/** Switch between views of the same thing (shadcn Tabs). Arrow keys move between tabs. */
 export function Tabs({
   value,
   defaultValue = '',
   onValueChange,
   activationMode = 'automatic',
-  orientation: _orientation,
+  orientation = 'horizontal',
   className,
   children,
   ...props
 }: TabsProps) {
   const [local, setLocal] = useState(defaultValue);
   const [hasPanels, setHasPanels] = useState(false);
-  const id = useId();
+  const current = value ?? local;
   return (
-    <Context.Provider
-      value={{
-        value: value ?? local,
-        setValue: (next) => {
+    <Context.Provider value={{ value: current, hasPanels, setHasPanels }}>
+      <TabsPrimitive.Root
+        value={current}
+        onValueChange={(next) => {
           if (value === undefined) setLocal(next);
           onValueChange?.(next);
-        },
-        id,
-        manual: activationMode === 'manual',
-        hasPanels,
-        setHasPanels,
-      }}
-    >
-      <div className={className} {...props}>
+        }}
+        activationMode={activationMode}
+        orientation={orientation}
+        className={cn('flex flex-col gap-3', className)}
+        {...props}
+      >
         {children}
-      </div>
+      </TabsPrimitive.Root>
     </Context.Provider>
   );
 }
-export interface TabsListProps
-  extends Omit<ComponentPropsWithRef<'div'>, 'onChange'> {
+
+export interface TabsListProps extends Omit<ComponentPropsWithRef<'div'>, 'onChange'> {
+  /** Stretch the tabs to fill the row. */
   fitted?: boolean;
 }
-export function TabsList({
-  fitted,
-  children,
-  className,
-  ...props
-}: TabsListProps) {
+
+export function TabsList({ fitted, children, className, ...props }: TabsListProps) {
   const c = useTabs();
   const tabs = Children.toArray(children).filter(
     isValidElement,
   ) as React.ReactElement<TabsTriggerProps>[];
   return (
-    <MuiTabs
-      value={tabs.some((t) => t.props.value === c.value) ? c.value : false}
-      onChange={(_, value: string) => c.setValue(value)}
-      variant={fitted ? 'fullWidth' : 'scrollable'}
-      scrollButtons={false}
-      allowScrollButtonsMobile
-      selectionFollowsFocus={!c.manual}
-      className={className}
-      sx={{ borderBottom: 1, borderColor: 'divider', minHeight: 44 }}
-      {...props}
-    >
-      {tabs.map((tab) => (
-        <Tab
-          key={tab.props.value}
-          value={tab.props.value}
-          id={`${c.id}-tab-${tab.props.value}`}
-          // Tabs used as a view filter render no panels; only point at a panel that is in the DOM.
-          aria-controls={c.hasPanels && tab.props.value === c.value ? `${c.id}-panel-${tab.props.value}` : undefined}
-          disabled={tab.props.disabled}
-          className={tab.props.className}
-          label={
-            <span className="inline-flex items-center gap-2">
-              {tab.props.children}
-              {tab.props.badge !== undefined ? (
+    <div className={cn('max-w-full overflow-x-auto', fitted && 'w-full')}>
+      <TabsPrimitive.List
+        className={cn(
+          'inline-flex h-9 items-center rounded-lg bg-muted p-[3px] text-muted-foreground',
+          fitted && 'grid w-full auto-cols-fr grid-flow-col',
+          className,
+        )}
+        {...props}
+      >
+        {tabs.map((tab) => {
+          const { value, badge, badgeLabel, className: tabClass, children: label, ...rest } = tab.props;
+          return (
+            <TabsPrimitive.Trigger
+              key={value}
+              value={value}
+              {...rest}
+              // Tabs used as a view filter render no panels; don't point at panels that don't exist.
+              {...(c.hasPanels ? {} : { 'aria-controls': undefined })}
+              className={cn(
+                'inline-flex h-full items-center justify-center gap-1.5 rounded-md border border-transparent px-3 text-sm font-medium whitespace-nowrap',
+                'transition-colors duration-(--a-duration-fast) ease-standard hover:text-foreground',
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                'data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs',
+                'disabled:pointer-events-none disabled:opacity-50',
+                tabClass,
+              )}
+            >
+              {label}
+              {badge !== undefined ? (
                 <span
-                  aria-label={tab.props.badgeLabel}
-                  className="rounded-full bg-surface-sunken px-1.5 text-xs tabular-nums"
+                  aria-label={badgeLabel}
+                  className="rounded-full bg-background px-1.5 text-xs tabular-nums text-foreground"
                 >
-                  {tab.props.badge}
+                  {badge}
                 </span>
               ) : null}
-            </span>
-          }
-        />
-      ))}
-    </MuiTabs>
+            </TabsPrimitive.Trigger>
+          );
+        })}
+      </TabsPrimitive.List>
+    </div>
   );
 }
+
 export interface TabsTriggerProps extends ComponentPropsWithRef<'button'> {
   value: string;
   badge?: ReactNode;
   badgeLabel?: string;
 }
+
+/** Declares a tab; TabsList renders it. */
 export function TabsTrigger(_props: TabsTriggerProps) {
   return null;
 }
+
 export function TabsContent({
   value,
   forceMount,
   children,
+  className,
   ...props
 }: ComponentPropsWithRef<'div'> & { value: string; forceMount?: boolean }) {
-  const c = useTabs();
-  const { setHasPanels } = c;
+  const { setHasPanels } = useTabs();
   useEffect(() => setHasPanels(true), [setHasPanels]);
-  if (c.value !== value && !forceMount) return null;
   return (
-    <Box
-      role="tabpanel"
-      id={`${c.id}-panel-${value}`}
-      aria-labelledby={`${c.id}-tab-${value}`}
-      hidden={c.value !== value}
-      tabIndex={0}
-      sx={{ pt: 2 }}
+    <TabsPrimitive.Content
+      value={value}
+      forceMount={forceMount || undefined}
+      className={cn(
+        'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[state=inactive]:hidden',
+        className,
+      )}
       {...props}
     >
       {children}
-    </Box>
+    </TabsPrimitive.Content>
   );
 }

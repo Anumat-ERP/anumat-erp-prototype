@@ -16,7 +16,7 @@ test('requests support search, clearing, filtering and view tabs', async ({
   page,
 }) => {
   await page.goto('/requests');
-  await expect(page.getByRole('button', { name: 'New request', exact: true })).toHaveCSS('background-color', 'rgb(40, 95, 240)');
+  await expect(page.getByRole('button', { name: 'New request', exact: true })).toHaveCSS('background-color', 'rgb(0, 61, 150)');
   await expect(
     page.getByRole('heading', { name: 'Requests', exact: true }),
   ).toBeVisible();

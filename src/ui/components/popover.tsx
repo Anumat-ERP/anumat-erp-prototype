@@ -1,30 +1,12 @@
-import { Popover as MuiPopover } from '@mui/material';
-import {
-  cloneElement,
-  createContext,
-  isValidElement,
-  useContext,
-  useId,
-  useState,
-  type ComponentPropsWithoutRef,
-  type ReactNode,
-} from 'react';
-const Context = createContext<{
-  anchor: HTMLElement | null;
-  setAnchor: (el: HTMLElement | null) => void;
-  open: boolean;
-  setOpen: (next: boolean) => void;
-  id: string;
-} | null>(null);
-function usePopover() {
-  const context = useContext(Context);
-  if (!context) throw new Error('Popover children require Popover');
-  return context;
-}
+import { Popover as PopoverPrimitive } from 'radix-ui';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import { cn } from '../lib/cn';
+
+/** A small surface anchored to its trigger (filters, quick settings). Escape returns focus to the trigger. */
 export function Popover({
   children,
-  open: controlled,
-  defaultOpen = false,
+  open,
+  defaultOpen,
   onOpenChange,
 }: {
   children?: ReactNode;
@@ -32,21 +14,13 @@ export function Popover({
   defaultOpen?: boolean;
   onOpenChange?: (next: boolean) => void;
 }) {
-  const [local, setLocal] = useState(defaultOpen);
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const id = useId();
-  const setOpen = (next: boolean) => {
-    if (controlled === undefined) setLocal(next);
-    onOpenChange?.(next);
-  };
   return (
-    <Context.Provider
-      value={{ anchor, setAnchor, open: controlled ?? local, setOpen, id }}
-    >
+    <PopoverPrimitive.Root open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange}>
       {children}
-    </Context.Provider>
+    </PopoverPrimitive.Root>
   );
 }
+
 export function PopoverTrigger({
   asChild,
   children,
@@ -54,76 +28,49 @@ export function PopoverTrigger({
   asChild?: boolean;
   children?: ReactNode;
 }) {
-  const c = usePopover();
-  const props = {
-    'aria-expanded': c.open,
-    'aria-controls': c.open ? c.id : undefined,
-    'aria-haspopup': 'dialog' as const,
-    onClick: (e: React.MouseEvent<HTMLElement>) => {
-      c.setAnchor(e.currentTarget);
-      c.setOpen(!c.open);
-    },
-  };
-  // asChild puts the popup semantics on the child control itself, not on a non-interactive wrapper.
-  if (asChild && isValidElement<{ onClick?: (e: React.MouseEvent<HTMLElement>) => void }>(children)) {
-    const own = children.props.onClick;
-    return cloneElement(children, {
-      ...props,
-      onClick: (e: React.MouseEvent<HTMLElement>) => {
-        own?.(e);
-        props.onClick(e);
-      },
-    });
-  }
   return (
-    <button type="button" {...props}>
+    <PopoverPrimitive.Trigger asChild={asChild} aria-haspopup="dialog">
       {children}
-    </button>
+    </PopoverPrimitive.Trigger>
   );
 }
+
 export interface PopoverContentProps extends ComponentPropsWithoutRef<'div'> {
   align?: 'start' | 'center' | 'end';
   side?: 'top' | 'bottom' | 'left' | 'right';
   sideOffset?: number;
   arrow?: boolean;
+  /** No padding, for lists that bring their own. */
   flush?: boolean;
 }
+
 export function PopoverContent({
   align = 'start',
   side = 'bottom',
-  sideOffset = 8,
+  sideOffset = 6,
   arrow: _arrow,
   flush,
   className,
   children,
   ...props
 }: PopoverContentProps) {
-  const c = usePopover();
-  const horizontal =
-    align === 'end' ? 'right' : align === 'center' ? 'center' : 'left';
   return (
-    <MuiPopover
-      id={c.id}
-      open={c.open && Boolean(c.anchor)}
-      anchorEl={c.anchor}
-      onClose={() => c.setOpen(false)}
-      anchorOrigin={{ vertical: side === 'top' ? 'top' : 'bottom', horizontal }}
-      transformOrigin={{
-        vertical: side === 'top' ? 'bottom' : 'top',
-        horizontal,
-      }}
-      slotProps={{
-        paper: {
-          sx: {
-            mt: side === 'top' ? -sideOffset / 8 : sideOffset / 8,
-            maxWidth: 'calc(100vw - 32px)',
-          },
-        },
-      }}
-    >
-      <div className={className} style={{ padding: flush ? 0 : 16 }} {...props}>
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Content
+        role="dialog"
+        align={align}
+        side={side}
+        sideOffset={sideOffset}
+        collisionPadding={16}
+        className={cn(
+          'an-pop z-50 max-w-[calc(100vw-2rem)] min-w-56 rounded-lg border border-border bg-popover text-popover-foreground shadow-md outline-none',
+          !flush && 'p-4',
+          className,
+        )}
+        {...props}
+      >
         {children}
-      </div>
-    </MuiPopover>
+      </PopoverPrimitive.Content>
+    </PopoverPrimitive.Portal>
   );
 }

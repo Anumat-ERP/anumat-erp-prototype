@@ -1,16 +1,11 @@
-import { Alert, AlertTitle, Snackbar } from '@mui/material';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-  type ReactNode,
-} from 'react';
-import { Button } from './button';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { Toaster, toast as sonner } from 'sonner';
+
 export type ToastTone = 'default' | 'critical' | 'success';
 export interface ToastAction {
   label: string;
   onAction: () => void;
+  /** What the action does, for people who can't see the toast in time. */
   altText: string;
 }
 export interface ToastOptions {
@@ -28,77 +23,83 @@ interface ToastContextValue {
   toast: (options: ToastOptions) => string;
   dismiss: (id?: string) => void;
 }
+
 const Context = createContext<ToastContextValue | null>(null);
+
 export function useToast() {
   const c = useContext(Context);
   if (!c) throw new Error('useToast requires ToastProvider');
   return c;
 }
+
 export interface ToastProviderProps {
   children?: ReactNode;
   duration?: number;
   label?: string;
   withToaster?: boolean;
 }
+
+/** Follow the app's data-theme so toasts match light and dark. */
+function useDocumentTheme() {
+  const read = () => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+  const [theme, setTheme] = useState<'light' | 'dark'>(read);
+  useEffect(() => {
+    const observer = new MutationObserver(() => setTheme(read()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
+  return theme;
+}
+
+/** Brief confirmations of what just happened (sonner). Announced politely; errors assertively. */
 export function ToastProvider({
   children,
   duration = 5000,
+  label = 'Notifications',
   withToaster = true,
 }: ToastProviderProps) {
+  const theme = useDocumentTheme();
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
-  const toast = useCallback((options: ToastOptions) => {
-    const id = crypto.randomUUID();
-    setToasts((current) => [...current, { ...options, id }]);
-    return id;
+  const dismiss = useCallback((id?: string) => {
+    sonner.dismiss(id);
+    setToasts((current) => (id ? current.filter((t) => t.id !== id) : []));
   }, []);
-  const dismiss = useCallback(
-    (id?: string) =>
-      setToasts((current) => (id ? current.filter((t) => t.id !== id) : [])),
-    [],
+  const toast = useCallback(
+    (options: ToastOptions) => {
+      const id = crypto.randomUUID();
+      const show =
+        options.tone === 'critical' ? sonner.error : options.tone === 'success' ? sonner.success : sonner;
+      show(options.title, {
+        id,
+        description: options.description,
+        duration: options.duration ?? duration,
+        action: options.action
+          ? { label: options.action.label, onClick: () => options.action?.onAction() }
+          : undefined,
+        onDismiss: () => setToasts((current) => current.filter((t) => t.id !== id)),
+        onAutoClose: () => setToasts((current) => current.filter((t) => t.id !== id)),
+      });
+      setToasts((current) => [...current, { ...options, id }]);
+      return id;
+    },
+    [duration],
   );
-  const current = toasts[0];
   return (
     <Context.Provider value={{ toasts, toast, dismiss }}>
       {children}
-      {withToaster && current ? (
-        <Snackbar
-          key={current.id}
-          open
-          autoHideDuration={current.duration ?? duration}
-          onClose={(_, reason) => {
-            if (reason !== 'clickaway') dismiss(current.id);
+      {withToaster ? (
+        <Toaster
+          theme={theme}
+          position="bottom-center"
+          containerAriaLabel={label}
+          toastOptions={{
+            classNames: {
+              toast: 'rounded-lg border border-border bg-popover text-popover-foreground shadow-lg font-sans',
+              description: 'text-muted-foreground',
+              actionButton: 'bg-primary text-primary-foreground',
+            },
           }}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert
-            variant="filled"
-            severity={
-              current.tone === 'critical'
-                ? 'error'
-                : current.tone === 'success'
-                ? 'success'
-                : 'info'
-            }
-            onClose={() => dismiss(current.id)}
-            action={
-              current.action ? (
-                <Button
-                  variant="tertiary"
-                  title={current.action.altText}
-                  onClick={() => {
-                    current.action?.onAction();
-                    dismiss(current.id);
-                  }}
-                >
-                  {current.action.label}
-                </Button>
-              ) : undefined
-            }
-          >
-            <AlertTitle>{current.title}</AlertTitle>
-            {current.description}
-          </Alert>
-        </Snackbar>
+        />
       ) : null}
     </Context.Provider>
   );
