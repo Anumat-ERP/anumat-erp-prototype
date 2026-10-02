@@ -1,0 +1,97 @@
+.an-pricing-main { max-width: 1200px; padding: 64px 32px 80px; gap: 64px; }
+.an-pricing-hero { max-width: 720px; margin: 0 auto; text-align: center; }
+.an-pricing-hero h1 { font-size: clamp(2rem,4vw,3.25rem); line-height: 1.15; font-weight: 500; letter-spacing: -0.04em; margin-bottom: 20px; }
+.an-pricing-hero > p { max-width: 60ch; margin: auto; font-size: 1rem; line-height: 1.8; }
+.an-pricing-plans { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; }
+.an-pricing-plans > li { min-width: 0; }
+.an-pricing-plans > li + li { border-left: 1px solid var(--border); }
+.an-pricing-plans .an-price-card { display: flex; flex-direction: column; height: 100%; padding: 32px; border: 0; border-radius: 0; box-shadow: none; }
+.an-pricing-plans .an-price-card[data-featured] { background: var(--muted); }
+.an-plan-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; min-height: 28px; }
+.an-plan-heading h2 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.02em; }
+.an-plan-heading > span { margin-left: auto; }
+.an-plan-description { min-height: 48px; margin-top: 16px; font-size: 0.875rem; line-height: 1.75; color: var(--muted-foreground); }
+.an-plan-price { margin: 28px 0 24px; min-height: 84px; }
+.an-plan-price > p { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.an-plan-price strong { font-size: 3rem; font-weight: 500; letter-spacing: -0.04em; line-height: 1.2; }
+.an-plan-price strong.an-plan-custom-price { font-size: 2.125rem; line-height: 1.7; }
+.an-plan-price span { color: var(--muted-foreground); font-size: 0.8125rem; line-height: 1.7; }
+.an-plan-price > span { display: block; margin-top: 8px; }
+.an-plan-action { margin-bottom: 28px; }
+.an-plan-action :is(a, button) { min-height: 40px; height: auto; padding-block: 10px; white-space: normal; }
+.an-plan-features { border-top: 1px solid var(--border); padding-top: 24px; }
+.an-plan-features > p { font-size: 0.875rem; font-weight: 500; margin-bottom: 16px; }
+.an-plan-features ul { display: flex; flex-direction: column; gap: 14px; }
+.an-plan-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; line-height: 1.6; }
+.an-plan-features svg { flex-shrink: 0; margin-top: 3px; color: var(--muted-foreground); }
+.an-pricing-pilot { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 28px; margin-top: -36px; border: 1px solid var(--border); border-radius: var(--radius-xl); }
+.an-pricing-pilot > div { display: flex; align-items: center; gap: 16px; }
+.an-pricing-pilot-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--muted); border-radius: var(--radius); flex-shrink: 0; }
+.an-pricing-pilot h2 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 6px; }
+.an-pricing-pilot p { font-size: 0.875rem; line-height: 1.7; color: var(--muted-foreground); }
+.an-pricing-pilot > a { flex-shrink: 0; display: inline-flex; align-items: center; gap: 10px; font-size: 0.875rem; font-weight: 500; }
+.an-pricing-section-heading h2 { font-size: clamp(1.5rem,2.8vw,2rem); font-weight: 500; line-height: 1.3; letter-spacing: -0.03em; margin-bottom: 16px; }
+.an-pricing-section-heading > p { font-size: 0.9375rem; line-height: 1.7; color: var(--muted-foreground); }
+.an-pricing-comparison { scroll-margin-top: 100px; }
+.an-pricing-comparison .an-pricing-section-heading { margin-bottom: 32px; }
+.an-pricing-table th, .an-pricing-table td { padding: 20px 24px; width: 25%; font-size: 0.875rem; line-height: 1.75; vertical-align: top; }
+.an-pricing-table thead { background: var(--muted); }
+.an-pricing-table tbody tr:hover { background: var(--muted); }
+.an-pricing-faq { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr); gap: 64px; padding-block: 48px; border-block: 1px solid var(--border); }
+.an-pricing-faq .an-pricing-section-heading > p { display: flex; flex-wrap: wrap; gap: 8px; }
+.an-pricing-faq .an-pricing-section-heading a { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; color: var(--foreground); }
+.an-pricing-contact { padding: 40px; gap: 56px; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--muted); align-items: start; scroll-margin-top: 100px; }
+.an-sales-intro { padding-block: 8px; min-width: 0; }
+.an-sales-direct { margin-top: 12px; }
+.an-sales-email { display: flex; align-items: center; gap: 14px; padding-block: 20px; border-block: 1px solid var(--border); }
+.an-sales-channel-icon { display: grid; place-items: center; width: 44px; height: 44px; background: var(--background); border: 1px solid var(--border); border-radius: var(--radius); flex-shrink: 0; }
+.an-sales-email > span:nth-child(2) { min-width: 0; flex: 1; }
+.an-sales-channel-label { display: block; font-size: 0.8125rem; color: var(--muted-foreground); margin-bottom: 4px; }
+.an-sales-email strong { font-size: 0.9375rem; font-weight: 500; overflow-wrap: anywhere; }
+.an-sales-email > svg { flex-shrink: 0; }
+.an-sales-email:hover strong { text-decoration: underline; text-underline-offset: 4px; }
+.an-sales-other { margin-top: 24px; }
+.an-sales-other ul { flex-direction: row; flex-wrap: wrap; gap: 4px 20px; margin-top: 8px; }
+.an-sales-other li a { min-height: 44px; font-size: 0.8125rem; overflow-wrap: anywhere; }
+.an-sales-direct a:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; border-radius: 4px; }
+.an-sales-other li a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.an-pricing-contact .an-sales-form-card { min-width: 0; padding: 28px; background: var(--background); box-shadow: 0 4px 16px rgb(0 0 0 / 3%); }
+.an-sales-form-heading { margin-bottom: 8px; }
+.an-sales-form-heading h3 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px; }
+.an-sales-form-heading p, .an-sales-form-note { font-size: 0.8125rem; line-height: 1.7; color: var(--muted-foreground); }
+.an-sales-form-note { text-align: center; text-wrap: pretty; }
+.an-pricing-contact .an-eyebrow { margin-bottom: 0; }
+.an-pricing-contact h2 { font-size: clamp(1.5rem,2.8vw,2rem); font-weight: 500; line-height: 1.3; }
+.an-pricing-contact > div > p { line-height: 1.8; max-width: 48ch; }
+.an-pricing-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; border-top: 1px solid var(--border); max-width: 1136px; margin: auto; padding: 32px 0; font-size: 0.8125rem; color: var(--muted-foreground); }
+.an-pricing-footer nav { display: flex; flex-wrap: wrap; gap: 24px; margin-left: auto; }
+.an-pricing-footer nav a:hover, .an-pricing-pilot a:hover { text-decoration: underline; text-underline-offset: 4px; }
+html[lang='km'] .an-plan-description { min-height: 76px; }
+html[lang='km'] .an-plan-heading { min-height: 60px; align-content: start; }
+html[lang='km'] .an-plan-price { min-height: 108px; }
+@media (max-width: 1023px) {
+  .an-pricing-plans .an-price-card { padding: 24px; }
+  .an-plan-heading > span { margin-left: 0; }
+  .an-plan-custom-price { overflow-wrap: anywhere; }
+  .an-pricing-contact { gap: 32px; }
+  .an-pricing-footer { margin-inline: 32px; }
+}
+@media (max-width: 767px) {
+  .an-pricing-main { padding: 40px 24px 48px; gap: 40px; }
+  .an-pricing-hero { text-align: left; }
+  .an-pricing-plans { grid-template-columns: 1fr; }
+  .an-pricing-plans > li + li { border-left: 0; border-top: 1px solid var(--border); }
+  .an-plan-heading { min-height: 0; }
+  .an-plan-description, html[lang='km'] .an-plan-description, html[lang='km'] .an-plan-heading { min-height: 0; }
+  .an-plan-price, html[lang='km'] .an-plan-price { min-height: 0; margin-top: 20px; }
+  .an-pricing-pilot { flex-direction: column; align-items: flex-start; padding: 24px; margin-top: -16px; }
+  .an-pricing-pilot > div { align-items: flex-start; }
+  .an-pricing-pilot > a { flex-shrink: 1; }
+  .an-pricing-faq { grid-template-columns: 1fr; gap: 24px; padding-block: 32px; }
+  .an-pricing-table th, .an-pricing-table td { padding: 16px; }
+  .an-pricing-contact { padding: 24px 16px; gap: 24px; }
+  .an-pricing-contact .an-sales-form-card { padding: 20px 16px; }
+  .an-pricing-footer { margin-inline: 24px; gap: 16px; }
+  .an-pricing-footer > span { flex-basis: 100%; }
+  .an-pricing-footer nav { margin-left: 0; }
+}

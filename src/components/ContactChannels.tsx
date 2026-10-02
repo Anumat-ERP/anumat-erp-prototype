@@ -41,12 +41,18 @@ const CHANNELS: Channel[] = [
 ];
 
 /** Support channels from src/config.ts. Unset ones say so instead of showing a made-up link. */
-export function ContactChannels({ compact = false }: { compact?: boolean }) {
+export function ContactChannels({ compact = false, labelsOnly = false }: { compact?: boolean; labelsOnly?: boolean }) {
   const { t: tr } = useLocale();
   return (
     <ul className={compact ? 'flex flex-col gap-3' : 'grid gap-3 sm:grid-cols-3'}>
       {CHANNELS.map((c) => {
         const set = isSet(c.value);
+        if (labelsOnly && set) return <li key={c.key}>
+          <a href={c.href(c.value)} target={c.key === 'email' ? undefined : '_blank'} rel="noopener noreferrer" className="inline-flex items-center gap-2">
+            <span aria-hidden className="inline-flex [&_svg]:size-4">{c.icon}</span>
+            {c.key === 'email' ? c.shown(c.value) : tr(c.label)}
+          </a>
+        </li>;
         return (
           <li key={c.key} className={compact ? 'flex items-center gap-2 text-md' : 'flex items-start gap-3 rounded-lg border border-border bg-surface p-4'}>
             <span aria-hidden className="inline-flex text-fg-muted [&_svg]:size-5">

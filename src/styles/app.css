@@ -2,8 +2,12 @@
 @import './anumat.css';
 @import './theme.css';
 @import './motion.css';
-/* Palette C last, so it is the colour source of truth over the older sheets. */
+/* Default shadcn tokens override the legacy brand palette. */
 @import '@app/ui/styles/shadcn.css';
 @import '@app/ui/styles/controls.css';
+@import './public.css';
+@import './pages.css';
+@import './pricing.css';
+@import './support.css';
 /* App sources for Tailwind to scan. */
 @source '../';

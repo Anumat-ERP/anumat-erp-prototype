@@ -1,0 +1,54 @@
+.floating-support {
+  position: fixed;
+  inset-inline-end: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 60px;
+  padding: 8px 16px 8px 8px;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #087eb7, #00669c);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 8px 28px rgb(0 102 156 / 25%), 0 2px 6px rgb(0 0 0 / 12%);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.floating-support:hover {
+  color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgb(0 102 156 / 32%), 0 3px 8px rgb(0 0 0 / 12%);
+}
+
+.floating-support:active { transform: translateY(0); }
+.floating-support:focus-visible { outline: 3px solid #0088cc; outline-offset: 4px; }
+
+.floating-support__icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 16%);
+}
+
+.floating-support__text { display: grid; gap: 2px; }
+.floating-support__label { font-size: 14px; font-weight: 650; line-height: 1.4; }
+.floating-support__channel { font-size: 11px; font-weight: 400; line-height: 1.4; color: #def3ff; }
+.floating-support__arrow { margin-inline-start: 4px; opacity: 0.8; }
+
+@media (min-width: 1024px) {
+  .floating-support {
+    inset-inline-end: max(1.5rem, env(safe-area-inset-right, 0px));
+    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-support { transition: none; }
+  .floating-support:hover { transform: none; }
+}

@@ -207,7 +207,7 @@ export function Welcome() {
                   </Text>
                   <Text tone="muted">{tr('One workspace for your whole company. You’ll be its owner.')}</Text>
                 </div>
-                <Field floating label={tr('Company name')} required error={nameError}>
+                <Field label={tr('Company name')} required error={nameError}>
                   <Input
                     autoFocus
                     value={name}
@@ -218,7 +218,7 @@ export function Welcome() {
                     placeholder={tr("Lotus Logistics")}
                   />
                 </Field>
-                <Field floating label={tr('Company size')} required>
+                <Field label={tr('Company size')} required>
                   <Select value={size} onChange={(e) => setSize(e.target.value)} options={SIZES.map((s) => ({ value: s.value, label: tr(s.label) }))} />
                 </Field>
                 <div className="flex items-center gap-3 rounded-md bg-surface-sunken p-3">
@@ -270,7 +270,7 @@ export function Welcome() {
                   {invites.length === 0 ? <li className="px-3 py-4 text-md text-fg-muted">{tr("No one yet. Add people below, or share the invite code.")}</li> : null}
                 </ul>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                  <Field floating label={tr('Add by email')} error={emailError} className="flex-1">
+                  <Field label={tr('Add by email')} error={emailError} className="flex-1">
                     <Input
                       type="email"
                       value={newEmail}
@@ -321,7 +321,7 @@ export function Welcome() {
                 <fieldset className="an-process-choices grid gap-5 sm:grid-cols-2">
                   <legend className="sr-only">{tr('Approval processes to turn on')}</legend>
                   {state.processes.map((p) => (
-                    <label htmlFor={`setup-${p.id}`} key={p.id} className={cn('an-process-choice flex cursor-pointer flex-col rounded-[20px] bg-surface p-7', processIds.includes(p.id) && 'an-process-choice-selected')}>
+                    <label htmlFor={`setup-${p.id}`} key={p.id} className={cn('an-process-choice flex cursor-pointer flex-col bg-card', processIds.includes(p.id) && 'an-process-choice-selected')}>
                       <span className="flex items-start justify-between gap-4">
                         <RequestIcon type={p.requestType} className="size-12" />
                         <Checkbox id={`setup-${p.id}`} label={tr(p.name)} labelHidden aria-describedby={`setup-${p.id}-description`}

@@ -14,6 +14,7 @@ export function PublicHeader({ setup, progress, onBack }: { setup?: string; prog
         <Link to="/" viewTransition aria-label={tr('Anumat home')} className="shrink-0"><Logo className="h-8 w-auto max-[479px]:hidden" /><LogoMark className="size-8 min-[480px]:hidden" /></Link>}
       {setup ? <span className="an-setup-header-title">{setup}</span> : <nav aria-label={tr("Main navigation")} className="an-public-nav">
         <Link to="/#product">{tr('Product')}</Link><Link to="/#how">{tr('How it works')}</Link><Link to="/pricing" viewTransition>{tr('Pricing & deployment')}</Link>
+        <Link to="/docs" viewTransition>{tr('Docs')}</Link>
       </nav>}
       <div className="ms-auto flex shrink-0 items-center gap-2 sm:gap-4">
         <Link to={setup === tr('Sign in') ? '/welcome' : '/signin'} viewTransition className="hidden text-sm font-medium text-fg-link sm:inline">{setup === tr('Sign in') ? tr('Create a workspace') : tr('Sign in')}</Link>

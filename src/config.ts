@@ -5,7 +5,7 @@
 export const CONFIG = {
   support: {
     /** Telegram username or group link. Example default; replace with your real channel. */
-    telegram: 'https://t.me/anumat',
+    telegram: 'https://t.me/anumatkh',
     /** Facebook page or Messenger link. Example default; replace with your real page. */
     facebook: 'https://facebook.com/anumat',
     /** Support email address. Example default; replace with your real inbox. */

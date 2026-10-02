@@ -3,8 +3,8 @@ import { Link } from 'react-router';
 import { LogoMark } from './Logo';
 import { useLocale } from '../i18n/LocaleProvider';
 
-/** Shared shell for login, recovery and verification. The pattern is pure geometry. */
-export function AuthLayout({ children, verification = false }: { children: ReactNode; verification?: boolean }) {
+/** Shared, focused form card for login, recovery and verification. */
+export function AuthLayout({ children }: { children: ReactNode; verification?: boolean }) {
   const { t } = useLocale();
   return <div className="an-auth">
     <main id="main-content" tabIndex={-1} className="an-auth-main">
@@ -13,8 +13,5 @@ export function AuthLayout({ children, verification = false }: { children: React
         {children}
       </div>
     </main>
-    <aside className="an-auth-pattern" data-verification={verification || undefined} aria-hidden="true">
-      {Array.from({ length: 18 }, (_, index) => <span key={index} />)}
-    </aside>
   </div>;
 }

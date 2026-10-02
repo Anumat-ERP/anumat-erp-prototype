@@ -51,7 +51,7 @@ export function CardHeader({
       {...props}
     >
       <div className="flex min-w-0 flex-col gap-1">
-        <Heading className="text-md leading-snug font-semibold text-foreground">
+        <Heading className="text-base leading-snug font-semibold text-foreground">
           {title}
         </Heading>
         {description ? (

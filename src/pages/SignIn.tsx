@@ -58,7 +58,7 @@ export function SignIn() {
     login: 'Welcome back!', verify: 'Enter the 6-digit code from your authenticator app', sso: 'Log in with SSO',
     recover: 'Forgot your password?', 'recovery-preview': 'Preview your recovery link', reset: 'Choose a new password', 'reset-done': 'You’re ready to log in',
   };
-  const emailField = <Field floating label={tr('Email address')} error={errors.email}>
+  const emailField = <Field label={tr('Email address')} error={errors.email}>
     <Input required type="email" autoComplete="username" value={email} onChange={event => { setEmail(event.target.value); setErrors(current => ({ ...current, email: undefined })); }} />
   </Field>;
   const back = <Button variant="plain" icon={<ArrowLeft size={18} />} onClick={() => go('login')}>{tr('Return to login')}</Button>;
@@ -76,7 +76,7 @@ export function SignIn() {
     {['login', 'sso', 'recover'].includes(screen) ? <form noValidate onSubmit={submit} className="an-auth-form">
       {emailField}
       {screen === 'login' ? <>
-        <Field floating label={tr('Password')} error={errors.password}>
+        <Field label={tr('Password')} error={errors.password}>
           <PasswordInput {...passwordProps} required autoComplete="current-password" value={password} onChange={event => { setPassword(event.target.value); setErrors(current => ({ ...current, password: undefined })); }} />
         </Field>
         <div className="an-auth-options">
@@ -101,8 +101,8 @@ export function SignIn() {
       <Button variant="primary" onClick={() => go('reset')}>{tr('Open demo reset link')}</Button>
     </div> : null}
     {screen === 'reset' ? <form noValidate onSubmit={submit} className="an-auth-form">
-      <Field floating label={tr('New password')} error={errors.password}><PasswordInput {...passwordProps} required autoComplete="new-password" value={password} onChange={event => { setPassword(event.target.value); setErrors({}); }} /></Field>
-      <Field floating label={tr('Confirm password')} error={errors.confirmation}><PasswordInput {...passwordProps} required autoComplete="new-password" value={confirmation} onChange={event => { setConfirmation(event.target.value); setErrors({}); }} /></Field>
+      <Field label={tr('New password')} error={errors.password}><PasswordInput {...passwordProps} required autoComplete="new-password" value={password} onChange={event => { setPassword(event.target.value); setErrors({}); }} /></Field>
+      <Field label={tr('Confirm password')} error={errors.confirmation}><PasswordInput {...passwordProps} required autoComplete="new-password" value={confirmation} onChange={event => { setConfirmation(event.target.value); setErrors({}); }} /></Field>
       <div className="an-auth-submit"><Button type="submit" variant="primary">{tr('Reset password')}</Button></div>
     </form> : null}
     {screen === 'reset-done' ? <div className="an-auth-message"><p>{tr('Reset preview complete. No password was saved; any password still works in this demo.')}</p><Button variant="primary" onClick={() => go('login')}>{tr('Log in')}</Button></div> : null}

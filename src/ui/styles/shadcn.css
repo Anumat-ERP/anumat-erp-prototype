@@ -1,4 +1,4 @@
-/* Palette C: logo navy primary, Mintlify mint accent.
+/* Default shadcn neutral theme.
  * shadcn's variable names are the source of truth; the app's existing
  * --a-color-* vocabulary is aliased to them below, so every utility class
  * already used by pages (bg-surface, text-fg-muted, …) follows the palette. */
@@ -6,90 +6,97 @@
 [data-theme='light'] {
   color-scheme: light;
   --radius: 0.625rem;
-  --background: #f8fafc;
-  --foreground: #0b1b33;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
   --card: #ffffff;
-  --card-foreground: #0b1b33;
+  --card-foreground: var(--foreground);
   --popover: #ffffff;
-  --popover-foreground: #0b1b33;
-  --primary: #003d96;
-  --primary-foreground: #ffffff;
-  --primary-hover: #00347f;
-  --primary-active: #002b69;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0b1b33;
-  --muted: #f1f5f9;
-  --muted-foreground: #526077;
-  --accent: #eef3fb;
-  --accent-foreground: #003d96;
-  --destructive: #b91c1c;
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --primary-hover: oklch(0.28 0 0);
+  --primary-active: oklch(0.145 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: var(--primary);
+  --muted: var(--secondary);
+  /* A touch darker than shadcn default (oklch 0.556) so it passes 4.5:1 on muted surfaces. */
+  --muted-foreground: oklch(0.527 0 0);
+  --accent: var(--secondary);
+  --accent-foreground: var(--primary);
+  --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #ffffff;
   --destructive-subtle: #fdecec;
   --destructive-subtle-foreground: #a31616;
   --warning-subtle: #fdf3d8;
   --warning-subtle-foreground: #86500d;
-  --border: #e2e8f0;
-  --input: #cbd5e1;
-  --ring: #003d96;
+  --border: oklch(0.922 0 0);
+  --input: var(--border);
+  --ring: oklch(0.708 0 0);
   /* Mint is for fills, icons and charts; text on light surfaces uses mint-subtle-foreground. */
   --mint: #0c8c5e;
   --mint-foreground: #ffffff;
   --mint-subtle: #d9f7eb;
   --mint-subtle-foreground: #0a6b47;
-  --chart-1: #003d96;
-  --chart-2: #0c8c5e;
-  --chart-3: #5b8def;
-  --chart-4: #18e299;
-  --chart-5: #f59e0b;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #334155;
-  --sidebar-accent: #e8eefb;
-  --sidebar-accent-foreground: #003d96;
-  --sidebar-border: #e7ebf0;
-  --shadow-card: 0 1px 2px rgb(11 27 51 / 5%);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 5%);
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
-  --background: #0a0f1a;
-  --foreground: #e8edf5;
-  --card: #0f1626;
-  --card-foreground: #e8edf5;
-  --popover: #111a2c;
-  --popover-foreground: #e8edf5;
-  --primary: #8fb4ff;
-  --primary-foreground: #0a1a3a;
-  --primary-hover: #a9c5ff;
-  --primary-active: #c2d6ff;
-  --secondary: #1a2335;
-  --secondary-foreground: #e8edf5;
-  --muted: #1a2335;
-  --muted-foreground: #a3b0c4;
-  --accent: #15264a;
-  --accent-foreground: #c2d6ff;
-  --destructive: #f87171;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: var(--card);
+  --primary-hover: oklch(0.85 0 0);
+  --primary-active: oklch(0.78 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--secondary);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: var(--secondary);
+  --accent-foreground: var(--foreground);
+  --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: #1f0a0a;
   --destructive-subtle: #3b1414;
   --destructive-subtle-foreground: #fca5a5;
   --warning-subtle: #3a2c0a;
   --warning-subtle-foreground: #fcd34d;
-  --border: #1e2738;
-  --input: #334155;
-  --ring: #8fb4ff;
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
   --mint: #18e299;
   --mint-foreground: #062b1c;
   --mint-subtle: #123528;
   --mint-subtle-foreground: #6ee7b7;
-  --chart-1: #8fb4ff;
-  --chart-2: #18e299;
-  --chart-3: #4d86ff;
-  --chart-4: #0c8c5e;
-  --chart-5: #fbbf24;
-  --sidebar: #0d1320;
-  --sidebar-foreground: #c3cdda;
-  --sidebar-accent: #15264a;
-  --sidebar-accent-foreground: #c2d6ff;
-  --sidebar-border: #1e2738;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--chart-1);
+  --sidebar-primary-foreground: var(--foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
   --shadow-card: none;
 }
 
@@ -184,5 +191,12 @@
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
   --shadow-card: var(--shadow-card);
 }

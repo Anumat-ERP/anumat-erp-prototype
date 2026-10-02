@@ -2,11 +2,13 @@ import { Fragment, useEffect, useRef, type ReactNode } from 'react';
 import { prefersReducedMotion } from './lib/motion';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router';
 import { TourPanel } from './components/DemoTour';
+import { FloatingSupport } from './components/FloatingSupport';
 import { Shell } from './layout/Shell';
 import { Approvals } from './pages/Approvals';
 import { Documents } from './pages/Documents';
 import { Home } from './pages/Home';
 import { Landing } from './pages/Landing';
+import { Docs } from './pages/Docs';
 import { SignIn } from './pages/SignIn';
 import { Insights } from './pages/Insights';
 import { MeetingDetail } from './pages/MeetingDetail';
@@ -79,6 +81,8 @@ export function App() {
         <Route index element={<Landing />} />
         <Route path="signin" element={<SignIn />} />
         <Route path="pricing" element={<Pricing />} />
+        <Route path="docs" element={<Docs />} />
+        <Route path="docs/:topic" element={<Docs />} />
         <Route path="welcome" element={<Welcome />} />
         <Route element={<Shell />}>
           <Route path="home" element={<Home />} />
@@ -108,6 +112,7 @@ export function App() {
         </Route>
       </Routes>
       <TourPanel />
+      <FloatingSupport />
     </>
   );
 }

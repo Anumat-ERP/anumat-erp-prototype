@@ -1,0 +1,53 @@
+/* Consistent form and page proportions, using the shared shadcn tokens. */
+:root {
+  --a-text-sm: 0.875rem;
+  --an-radius-field: var(--radius-md);
+  --an-radius-panel: var(--radius-xl);
+}
+.an-page-title { font-size: 1.5rem; line-height: 1.3; overflow-wrap: anywhere; }
+.an-page-header { padding-bottom: 8px; }
+.an-page-header p { line-height: 1.65; max-width: 72ch; }
+.an-auth { display: flex; background: var(--background); }
+.an-auth-main { width: 100%; padding: 48px 24px; }
+.an-auth-content { width: min(100%, 420px); padding: 32px; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--card); box-shadow: var(--shadow-card); }
+.an-auth-brand { width: 44px; height: 44px; margin-bottom: 24px; background: none; border-radius: var(--radius); }
+.an-auth-heading { margin-bottom: 28px; }
+.an-auth-heading h1 { font-size: 1.5rem; font-weight: 600; }
+.an-auth-heading p { font-size: 0.875rem; line-height: 1.7; margin-top: 12px; }
+.an-auth-form { gap: 20px; }
+.an-auth-options { gap: 12px; margin: 0; font-size: 0.875rem; }
+.an-auth-submit { margin-top: 4px; }
+.an-auth-submit > button, .an-auth-message > button { width: 100%; min-height: 0; height: 36px; padding-inline: 16px; font-size: 0.875rem; }
+.an-auth-alternative { gap: 16px; }
+.an-auth-divider { width: 100%; margin-top: 24px; gap: 16px; font-size: 0.75rem; font-weight: 400; }
+.an-auth-divider::before, .an-auth-divider::after { width: auto; flex: 1; background: var(--border); }
+.an-auth-back { margin-top: 24px; }
+.an-auth-note { margin-top: 24px; font-size: 0.8125rem; line-height: 1.7; }
+.an-auth-message { gap: 24px; }
+.an-code-input input { height: 48px; font-size: 1.125rem; }
+.an-setup-main { max-width: 1024px; padding: 48px 32px; gap: 64px; }
+.an-setup-copy > ol { margin-bottom: 32px; }
+.an-setup-title { font-size: clamp(1.5rem,2.5vw,2rem); line-height: 1.3; }
+.an-setup-form, .an-step-panel { gap: 24px; }
+.an-setup-form > div:first-child > p { font-size: 0.875rem; }
+.an-process-choice { min-height: 180px; border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 24px; transition: border-color 150ms, background 150ms; }
+.an-process-choice-selected { border-color: var(--primary); background: var(--accent); }
+.an-process-choice:focus-within { outline: 2px solid var(--ring); outline-offset: 2px; }
+.an-process-choice > span:nth-child(2) { margin-top: 20px; font-size: 1rem; }
+.an-setup-main-wide { max-width: 896px; }
+.an-setup-main-wide .an-setup-form > div:first-child { text-align: left; }
+.an-price-card { min-height: 0; }
+.an-pricing-main #contact-sales { scroll-margin-top: 96px; }
+.an-document-viewer { max-width: 960px; }
+.an-document-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 12px 0 16px; }
+.an-document-canvas { max-height: 58dvh; overflow: auto; padding: 16px; background: var(--muted); border: 1px solid var(--border); border-radius: var(--radius); outline-color: var(--ring); }
+.an-document-canvas img { display: block; height: auto; max-width: none; margin: auto; box-shadow: var(--shadow-card); }
+@media (max-width: 767px) {
+  .an-auth-main { padding: 32px 16px; }
+  .an-auth-content { padding: 24px; }
+  .an-auth-options { flex-wrap: wrap; }
+  .an-code-input { gap: 6px; }
+  .an-code-input input { height: 44px; }
+  .an-setup-main { padding: 32px 24px; }
+  .an-setup-copy > ol { gap: 12px 20px; }
+}

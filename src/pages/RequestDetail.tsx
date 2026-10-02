@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ApprovalTimeline } from '../components/ApprovalTimeline';
 import { DecisionModal, type Decision } from '../components/DecisionModal';
+import { DocumentViewer } from '../components/DocumentViewer';
 import { headerLink } from '../components/links';
 import { MobileActionBar } from '../components/MobileActionBar';
 import { Person } from '../components/Person';
 import { StatusBadge } from '../components/StatusBadge';
 import { Time } from '../components/Time';
 import { stepForm, useStore } from '../data/store';
-import type { FormValues } from '../data/types';
+import type { Attachment, FormValues } from '../data/types';
 import { useLocale } from '../i18n/LocaleProvider';
 import { formatBytesShort, formatDate, formatDateTime, formatMoney, formatRelative, typeName } from '../lib/format';
 import { formatAnswer, questionsOf, visibleFields } from '../lib/forms';
@@ -25,6 +26,7 @@ export function RequestDetail() {
   const [decision, setDecision] = useState<Decision | null>(null);
   const [comment, setComment] = useState('');
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
+  const [viewingDocument, setViewingDocument] = useState<Attachment | null>(null);
 
   const r = state.requests.find((x) => x.id === id);
   const canDecideNow = Boolean(r && r.status === 'pending' && r.steps.find((st) => st.status === 'current')?.approverId === me.id);
@@ -268,10 +270,11 @@ export function RequestDetail() {
                 {r.attachments.map((a) => (
                   <li key={a.name} className="flex items-center gap-3 rounded-md border border-border px-3 py-2">
                     <Paperclip aria-hidden className="size-4 text-fg-subtle" />
-                    <span className="min-w-0 flex-1 truncate font-medium">{tr(a.name)}</span>
+                    <button type="button" className="min-w-0 flex-1 truncate rounded-sm text-start font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring" onClick={() => setViewingDocument(a)} title={a.name}>{tr(a.name)}</button>
                     <Text as="span" variant="bodySm" tone="muted" numeric>
                       {formatBytesShort(a.size)}
                     </Text>
+                    <Button size="sm" onClick={() => setViewingDocument(a)} aria-label={tr('View {name}', { name: tr(a.name) })}>{tr('View')}</Button>
                   </li>
                 ))}
               </ul>
@@ -389,6 +392,7 @@ export function RequestDetail() {
         onConfirm={decide}
         fields={mine ? stepForm(state, r) : []}
       />
+      {viewingDocument ? <DocumentViewer key={`${r.id}-${viewingDocument.name}`} attachment={viewingDocument} requestId={r.id} onClose={() => setViewingDocument(null)} /> : null}
       <Modal
         open={confirmWithdraw}
         onOpenChange={setConfirmWithdraw}

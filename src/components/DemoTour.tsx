@@ -20,16 +20,23 @@ export const TOUR: Step[] = [
   {
     title: 'Sign up',
     as: 'dara',
-    to: '/',
+    to: '/welcome?demo=1',
     say: 'Dara runs operations at a logistics company where approvals live in email. She sets up Anumat for the whole company in under a minute.',
-    doThis: 'Click Start free. The company name is filled in: Continue, glance at the team and their roles, Continue, Create workspace.',
+    doThis: 'Confirm Lotus Logistics, click Continue, review the team roles, click Continue, keep Purchase request enabled, then click Create workspace.',
   },
   {
     title: 'The problem',
     as: 'dara',
     to: '/home',
     say: 'Before Anumat, requests lived in email, chat and spreadsheets. Now everything waiting on Dara is in one place.',
-    doThis: 'Point at “Needs your decision” and the workspace name in the sidebar.',
+    doThis: 'Review Waiting on you, Recent activity, and the workspace name in the sidebar.',
+  },
+  {
+    title: 'Change the rules',
+    as: 'dara',
+    to: '/processes/proc-purchase',
+    say: 'Review the purchase approval rules before submitting: Dara reviews first, Finance reviews from $1,000, and final approval starts at $10,000.',
+    doThis: 'Use Try it with 500, then 7500, to compare the approval route. Keep the rules unchanged for the next steps.',
   },
   {
     title: 'Ask',
@@ -42,8 +49,8 @@ export const TOUR: Step[] = [
     title: 'Approve',
     as: 'dara',
     to: '/approvals',
-    say: 'Dara sees it at the top of her queue with everything she needs: amount, reason, files, the route.',
-    doThis: 'Open “Laptops for 3 new analysts” and Approve.',
+    say: 'Dara reviews the submitted laptop request, including the amount, reason, files, and approval route.',
+    doThis: 'Find Laptops for 3 new analysts, open it, click Approve, then confirm the decision in the dialog.',
   },
   {
     title: 'Approve from Telegram',
@@ -51,13 +58,6 @@ export const TOUR: Step[] = [
     to: '/telegram',
     say: 'It’s over $1,000, so Finance reviews next. Priya gets it on Telegram, where she already is. Finance must say which budget it comes from, so she taps the budget line and it’s approved. Nobody chased anyone.',
     doThis: 'Tap “Approve · Q4 equipment” on the laptops message.',
-  },
-  {
-    title: 'Change the rules',
-    as: 'dara',
-    to: '/processes/proc-purchase',
-    say: 'Operations owns the process, not IT. Change who approves and when, without code.',
-    doThis: 'Raise the Finance threshold and use “Try it”.',
   },
   {
     title: 'Track',
@@ -92,7 +92,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const [step, setStep] = useState<number | null>(() => {
     try {
       const saved = sessionStorage.getItem(KEY);
-      return saved === null ? null : Number(saved);
+      const index = saved === null ? NaN : Number(saved);
+      return Number.isInteger(index) && index >= 0 && index < TOUR.length ? index : null;
     } catch {
       return null;
     }
@@ -210,18 +211,25 @@ export function TourPanel() {
           <IconButton size="sm" icon={<X />} label={tr("End demo tour")} onClick={end} />
         </div>
       </div>
-      {showScript ? (
-        <>
-          <p className="border-s-2 border-primary ps-3 text-md text-fg">“{tr(s.say)}”</p>
-          <Text variant="bodySm" tone="muted">
-            <span className="font-semibold text-fg">{tr("Do:")}</span>
-            {tr(s.doThis)}
-          </Text>
-        </>
-      ) : null}
-      <ol className="flex gap-1" aria-hidden>
+      {showScript ? <p className="border-s-2 border-primary ps-3 text-md text-fg">“{tr(s.say)}”</p> : null}
+      <Text variant="bodySm" tone="muted">
+        <span className="font-semibold text-fg">{tr('Do:')}{' '}</span>
+        {tr(s.doThis)}
+      </Text>
+      <ol className="flex gap-1" aria-label={tr('Demo tour')}>
         {TOUR.map((t, i) => (
-          <li key={t.title} className={i <= step ? 'h-1 flex-1 rounded-full bg-primary' : 'h-1 flex-1 rounded-full bg-border'} />
+          <li key={t.title} className="min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={() => go(i)}
+              aria-label={`${i + 1}. ${tr(t.title)}`}
+              aria-current={i === step ? 'step' : undefined}
+              title={`${i + 1}. ${tr(t.title)}`}
+              className="flex h-6 w-full items-center rounded focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <span className={i <= step ? 'h-1 w-full rounded-full bg-primary' : 'h-1 w-full rounded-full bg-border'} />
+            </button>
+          </li>
         ))}
       </ol>
       <div className="flex items-center justify-between gap-2">

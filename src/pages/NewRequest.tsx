@@ -26,6 +26,7 @@ import { useLocale } from '../i18n/LocaleProvider';
 import { isBuiltInType, typeName } from '../lib/format';
 import { cleanValues, validateForm } from '../lib/forms';
 import { DEPARTMENTS } from '../lib/org';
+import { saveAttachmentFile } from '../lib/attachment-files';
 
 const PREFIX: Record<string, string> = {
   purchase: 'PR',
@@ -97,6 +98,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
   const [description, setDescription] = useState(initial?.description ?? '');
   const [attachments, setAttachments] = useState<Attachment[]>(initial?.attachments ?? []);
   const [fileError, setFileError] = useState<string>();
+  const [uploadingFiles, setUploadingFiles] = useState(false);
   // Drop answers the current form can't show (a renamed choice, a removed field), so nothing looks picked that isn't.
   const [answers, setAnswers] = useState<FormValues>(() =>
     cleanValues(state.processes.find((p) => p.requestType === (initial?.type ?? type))?.fields ?? [], initial?.fields ?? {}),
@@ -141,6 +143,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
 
   const save = (submit: boolean) => (event?: FormEvent) => {
     event?.preventDefault();
+    if (uploadingFiles) return;
     const e = submit ? validate() : title.trim() ? {} : { title: tr('A draft needs at least a title.') };
     setErrors(e);
     if (Object.keys(e).length) {
@@ -296,10 +299,18 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
                 maxSize={20_000_000}
                 hint={tr('Quotes, receipts or contracts. PDF, images or spreadsheets, up to 20 MB each.')}
                 error={fileError}
+                disabled={uploadingFiles}
                 size="sm"
-                onDrop={(accepted, rejected) => {
-                  setAttachments((list) => [...list, ...accepted.map((f) => ({ name: f.name, size: f.size }))]);
+                onDrop={async (accepted, rejected) => {
                   setFileError(rejected[0]?.message);
+                  if (!accepted.length) return;
+                  setUploadingFiles(true);
+                  try {
+                    const results = await Promise.allSettled(accepted.map(async file => ({ name: file.name, size: file.size, fileId: await saveAttachmentFile(file) })));
+                    const saved = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : []);
+                    setAttachments(list => [...list.filter(item => !saved.some(file => file.name === item.name)), ...saved]);
+                    if (results.some(result => result.status === 'rejected')) setFileError(tr('Some files could not be saved. Please add them again.'));
+                  } finally { setUploadingFiles(false); }
                 }}
               />
               {attachments.length ? (
@@ -314,17 +325,17 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
               ) : null}
               <Text variant="caption" tone="muted">
                 {' '}
-                {tr('In this prototype only the file name and size are kept.')}{' '}
+                {tr(uploadingFiles ? 'Saving attachments…' : 'Files are saved in this browser only and can be viewed from the request.')}{' '}
               </Text>
             </div>
             <div className="flex flex-wrap justify-end gap-2">
               {existing?.status !== 'changes' ? (
-                <Button type="button" onClick={save(false)}>
+                <Button type="button" disabled={uploadingFiles} onClick={save(false)}>
                   {' '}
                   {tr('Save draft')}{' '}
                 </Button>
               ) : null}
-              <Button type="submit" variant="primary">
+              <Button type="submit" variant="primary" disabled={uploadingFiles}>
                 {existing?.status === 'changes' ? tr('Resubmit') : tr('Submit for approval')}
               </Button>
             </div>
