@@ -61,15 +61,19 @@ export function Requests() {
       sortable: true,
       sortValue: (r) => r.title,
       cell: (r) => (
-        <span className="flex min-w-0 items-center gap-3">
-          <RequestIcon type={r.type} className="size-8" />
-          <span className="flex min-w-0 flex-col">
-            <Link to={`/requests/${r.id}`} className="truncate font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring">
+        // On phones the title wraps and the status sits under it, since the other columns are hidden.
+        <span className="flex min-w-0 items-center gap-3 whitespace-normal md:whitespace-nowrap">
+          <RequestIcon type={r.type} className="size-8 shrink-0" />
+          <span className="flex min-w-0 flex-col items-start">
+            <Link to={`/requests/${r.id}`} className="font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring md:truncate">
               {tr(r.title)}
             </Link>
             <Text as="span" variant="caption" tone="muted">
               {r.id} · {tr(typeName(r.type, state.processes))}
             </Text>
+            <span className="mt-1 md:hidden">
+              <StatusBadge status={r.status} size="sm" />
+            </span>
           </span>
         </span>
       ),
@@ -77,11 +81,13 @@ export function Requests() {
     {
       id: 'requester',
       header: tr('Requested by'),
+      hideBelow: 'md',
       cell: (r) => <Person id={r.requesterId} size="xs" />,
     },
     {
       id: 'amount',
       header: tr('Amount'),
+      hideBelow: 'md',
       align: 'end',
       numeric: true,
       sortable: true,
@@ -91,6 +97,7 @@ export function Requests() {
     {
       id: 'status',
       header: tr('Status'),
+      hideBelow: 'md',
       sortable: true,
       sortValue: (r) => r.status,
       cell: (r) => <StatusBadge status={r.status} size="sm" />,
@@ -98,6 +105,7 @@ export function Requests() {
     {
       id: 'updated',
       header: tr("Updated"),
+      hideBelow: 'md',
       sortable: true,
       sortValue: (r) => r.updatedAt,
       cell: (r) => (

@@ -57,6 +57,7 @@ export function Button({
       <MuiButton
         component={Slot}
         element={children}
+        nativeButton={children.type === 'button'}
         variant={variants[variant]}
         color={variant === 'critical' ? 'error' : 'primary'}
         size={sizes[size]}

@@ -152,7 +152,7 @@ export function PageHeader({
     <div className={cn('an-page-header flex flex-col gap-2', className)} {...props}>
       {breadcrumbs ? <div className="min-w-0">{breadcrumbs}</div> : null}
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-        <div className="flex min-w-0 grow basis-64 items-start gap-2">
+        <div className="flex min-w-0 grow basis-[min(100%,28rem)] items-start gap-2">
           {back ? <div className="-ms-2 shrink-0">{back}</div> : null}
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <div className="flex min-h-control-md min-w-0 items-center gap-2">

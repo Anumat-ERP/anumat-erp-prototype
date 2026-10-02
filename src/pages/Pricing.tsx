@@ -121,7 +121,7 @@ export function Pricing() {
                   </Text>
                   <Text tone="muted">{tr(tagline)}</Text>
                 </div>
-                <Text variant="subtitle">{tr(price)}</Text>
+                <Text as="p" variant="subtitle">{tr(price)}</Text>
                 <ul className="flex flex-col gap-2">
                   {points.map((p) => (
                     <li key={p} className="flex gap-2 text-md">
@@ -145,7 +145,7 @@ export function Pricing() {
           ))}
         </ul>
 
-        <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+        <div tabIndex={0} role="region" aria-label={tr("How the deployment options compare")} className="overflow-x-auto rounded-lg border border-border bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
           <table className="w-full min-w-[40rem] border-collapse text-md">
             <caption className="sr-only">{tr("How the deployment options compare")}</caption>
             <thead>

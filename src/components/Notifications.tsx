@@ -25,19 +25,19 @@ export function Notifications() {
         if (!next && unread) dispatch({ type: 'markSeen' });
       }}
     >
-      <PopoverTrigger asChild>
-        <span className="relative inline-flex">
+      <span className="relative inline-flex">
+        <PopoverTrigger asChild>
           <IconButton icon={<Bell />} label={unread ? tr("Notifications, {value0} unread", { value0: unread }) : tr('Notifications')} />
-          {unread ? (
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-primary-fg tabular-nums"
-            >
-              {unread}
-            </span>
-          ) : null}
-        </span>
-      </PopoverTrigger>
+        </PopoverTrigger>
+        {unread ? (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-primary-fg tabular-nums"
+          >
+            {unread}
+          </span>
+        ) : null}
+      </span>
       <PopoverContent align="end" flush className="w-96">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <Text as="h2" variant="label">

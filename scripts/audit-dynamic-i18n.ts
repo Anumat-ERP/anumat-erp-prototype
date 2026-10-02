@@ -1,7 +1,6 @@
 import ts from 'typescript';
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-const files=execFileSync('rg',['--files','src/pages','src/components','src/layout','-g','*.tsx'],{encoding:'utf8'}).trim().split('\n');
+import { readdirSync, readFileSync } from 'node:fs';
+const files=['src/pages','src/components','src/layout'].flatMap((d)=>readdirSync(d,{recursive:true,encoding:'utf8'}).filter((f)=>f.endsWith('.tsx')).map((f)=>`${d}/${f.replaceAll('\\','/')}`));
 const allowed=new Set(['title','subtitle','heading','description','label','placeholder','caption','aria-label','helperText','queryPlaceholder','queryLabel','emptyLabel','content','legend','header','primaryAction','secondaryActions','action','filters','appliedFilters']);
 for(const file of files){
  const source=ts.createSourceFile(file,readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);

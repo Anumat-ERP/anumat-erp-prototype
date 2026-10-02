@@ -4,6 +4,7 @@ import {
   createContext,
   isValidElement,
   useContext,
+  useEffect,
   useId,
   useState,
   type ComponentPropsWithRef,
@@ -14,6 +15,8 @@ const Context = createContext<{
   setValue: (value: string) => void;
   id: string;
   manual: boolean;
+  hasPanels: boolean;
+  setHasPanels: (next: boolean) => void;
 } | null>(null);
 function useTabs() {
   const c = useContext(Context);
@@ -39,6 +42,7 @@ export function Tabs({
   ...props
 }: TabsProps) {
   const [local, setLocal] = useState(defaultValue);
+  const [hasPanels, setHasPanels] = useState(false);
   const id = useId();
   return (
     <Context.Provider
@@ -50,6 +54,8 @@ export function Tabs({
         },
         id,
         manual: activationMode === 'manual',
+        hasPanels,
+        setHasPanels,
       }}
     >
       <div className={className} {...props}>
@@ -89,7 +95,8 @@ export function TabsList({
           key={tab.props.value}
           value={tab.props.value}
           id={`${c.id}-tab-${tab.props.value}`}
-          aria-controls={`${c.id}-panel-${tab.props.value}`}
+          // Tabs used as a view filter render no panels; only point at a panel that is in the DOM.
+          aria-controls={c.hasPanels && tab.props.value === c.value ? `${c.id}-panel-${tab.props.value}` : undefined}
           disabled={tab.props.disabled}
           className={tab.props.className}
           label={
@@ -125,6 +132,8 @@ export function TabsContent({
   ...props
 }: ComponentPropsWithRef<'div'> & { value: string; forceMount?: boolean }) {
   const c = useTabs();
+  const { setHasPanels } = c;
+  useEffect(() => setHasPanels(true), [setHasPanels]);
   if (c.value !== value && !forceMount) return null;
   return (
     <Box

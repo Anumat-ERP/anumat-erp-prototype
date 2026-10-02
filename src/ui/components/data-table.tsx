@@ -57,6 +57,8 @@ export interface DataTableColumn<T> {
   cell?: (row: T, index: number) => ReactNode;
   /** Value to sort by, when the rendered cell isn't it (e.g. format currency, sort by amount). */
   sortValue?: (row: T) => SortValue;
+  /** Hide this column below a breakpoint, so the essential columns fit a phone without sideways scrolling. */
+  hideBelow?: 'sm' | 'md';
 }
 
 export interface DataTableProps<T>
@@ -290,12 +292,16 @@ export function DataTable<T>({
       : undefined;
   const headSticky = stickyHeader ? 'sticky top-0 z-2' : undefined;
 
+  const hideClass = (c: DataTableColumn<T>) =>
+    c.hideBelow === 'md' ? 'max-md:hidden' : c.hideBelow === 'sm' ? 'max-sm:hidden' : undefined;
+
   const cellClass = (c: DataTableColumn<T>) =>
     cn(
       cellPad,
       'border-b border-border-subtle align-middle whitespace-nowrap',
       alignOf(c) === 'end' ? 'text-end' : 'text-start',
       c.numeric && 'tabular-nums',
+      hideClass(c),
     );
 
   const totalsRow = totals ? (
@@ -453,6 +459,7 @@ export function DataTable<T>({
                       end ? 'text-end' : 'text-start',
                       headSticky,
                       stickyFirst(index, 'head'),
+                      hideClass(c),
                     )}
                   >
                     {c.sortable ? (
@@ -460,7 +467,7 @@ export function DataTable<T>({
                         type="button"
                         onClick={() => handleSort(c.id)}
                         className={cn(
-                          '-mx-1 inline-flex items-center gap-1 rounded-sm px-1 align-middle font-medium hover:text-fg',
+                          '-mx-1 inline-flex min-h-6 items-center gap-1 rounded-sm px-1 align-middle font-medium hover:text-fg',
                           'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring',
                           end && 'flex-row-reverse',
                           sorted && 'text-fg',

@@ -1,9 +1,9 @@
 import ts from 'typescript';
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { km } from '../src/i18n/messages';
 
-const files = execFileSync('rg', ['--files', 'src', '-g', '*.tsx'], { encoding: 'utf8' }).trim().split('\n');
+// List files with Node itself so the audit runs without ripgrep installed.
+const files = readdirSync('src', { recursive: true, encoding: 'utf8' }).filter((f) => f.endsWith('.tsx')).map((f) => `src/${f.replaceAll('\\', '/')}`);
 const uiProps = new Set(['title', 'subtitle', 'heading', 'description', 'label', 'placeholder', 'caption', 'aria-label', 'helperText', 'queryPlaceholder', 'queryLabel', 'emptyLabel', 'content', 'legend', 'header', 'singular', 'plural']);
 // Brand names, CSS classes and semantic HTML tags are intentionally not translated.
 const literalsToKeep = new Set(['Lotus Logistics', 'text-2xl font-semibold tracking-tight', 'text-xl font-semibold', 'text-lg font-semibold', 'text-md font-medium', 'h2', 'h3', 'h4']);

@@ -1,6 +1,8 @@
 import { Popover as MuiPopover } from '@mui/material';
 import {
+  cloneElement,
   createContext,
+  isValidElement,
   useContext,
   useId,
   useState,
@@ -62,11 +64,18 @@ export function PopoverTrigger({
       c.setOpen(!c.open);
     },
   };
-  return asChild ? (
-    <span {...props} className="inline-flex">
-      {children}
-    </span>
-  ) : (
+  // asChild puts the popup semantics on the child control itself, not on a non-interactive wrapper.
+  if (asChild && isValidElement<{ onClick?: (e: React.MouseEvent<HTMLElement>) => void }>(children)) {
+    const own = children.props.onClick;
+    return cloneElement(children, {
+      ...props,
+      onClick: (e: React.MouseEvent<HTMLElement>) => {
+        own?.(e);
+        props.onClick(e);
+      },
+    });
+  }
+  return (
     <button type="button" {...props}>
       {children}
     </button>
