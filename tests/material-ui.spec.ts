@@ -16,7 +16,7 @@ test('requests support search, clearing, filtering and view tabs', async ({
   page,
 }) => {
   await page.goto('/requests');
-  await expect(page.getByRole('button', { name: 'New request', exact: true })).toHaveCSS('background-color', 'rgb(0, 61, 150)');
+  await expect(page.getByRole('button', { name: 'New request', exact: true })).toHaveClass(/bg-primary/);
   await expect(
     page.getByRole('heading', { name: 'Requests', exact: true }),
   ).toBeVisible();
@@ -121,29 +121,16 @@ test('preset marketplace installs an independent paused process', async ({
   page,
 }) => {
   await page.goto('/processes');
-  await page
-    .getByRole('tab', { name: 'Preset marketplace', exact: true })
-    .click();
-  await expect(
-    page.getByRole('heading', { name: 'Start with an approval preset' }),
-  ).toBeVisible();
-  await page
-    .getByRole('textbox', { name: 'Search presets' })
-    .fill('Business travel');
+  await page.getByRole('tab', { name: 'Templates', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Start from a template' })).toBeVisible();
+  await page.getByRole('searchbox', { name: 'Search templates' }).fill('Business travel');
   await page.getByRole('button', { name: /^Business travel/ }).click();
-  await page
-    .getByRole('button', { name: 'Use this preset', exact: true })
-    .click();
-  await expect(page.getByText(/Choose an approver\./)).toHaveCount(2);
-  for (const select of await page
-    .getByRole('combobox', { name: /^(1|2)\./ })
-    .all()) {
-    await select.click();
-    await page.getByRole('option').filter({ hasNotText: 'Choose an approver…' }).first().click();
-  }
-  await page
-    .getByRole('button', { name: 'Use this preset', exact: true })
-    .click();
+  const sheet = page.getByRole('dialog', { name: 'Business travel' });
+  // Approvers are suggested, and each can be changed.
+  await sheet.getByRole('combobox', { name: /^2\./ }).click();
+  await page.getByRole('option', { name: /Sokha Chan/ }).click();
+  await expect(sheet.getByRole('combobox', { name: /^2\./ })).toContainText('Sokha Chan');
+  await sheet.getByRole('button', { name: 'Use template', exact: true }).click();
   await expect(page).toHaveURL(/\/processes\/(?!\?)[^/]+/);
   await expect(page.getByRole('textbox', { name: 'Request type name', exact: true }).first()).toHaveValue(
     'Business travel',

@@ -154,7 +154,7 @@ export function Insights() {
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
         <Card className="flex flex-col gap-4">
-          <CardHeader title={tr('Time to decision by process')} description={tr("Average over the last 30 days, against the target set in Process Builder.")} />
+          <CardHeader title={tr('Time to decision by process')} description={tr("Average over the last 30 days, against the target set in Approval processes.")} />
           <Legend
             items={[
               { label: tr('Average time'), color: 'var(--an-chart-1)' },

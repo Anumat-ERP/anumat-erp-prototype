@@ -79,7 +79,7 @@ export function People() {
             description={
               <>
                 {' '}
-                {tr('Approving isn’t a role: it comes from the steps in')} <AppLink to="/processes">{tr('Process Builder')}</AppLink>{tr(", so it follows your org chart.")}</>
+                {tr('Approving isn’t a role: it comes from the steps in')} <AppLink to="/processes">{tr('Approval processes')}</AppLink>{tr(", so it follows your org chart.")}</>
             }
           />
         </div>

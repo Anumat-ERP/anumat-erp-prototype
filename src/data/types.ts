@@ -37,6 +37,8 @@ export interface ApprovalStep {
 export interface Attachment {
   name: string;
   size: number;
+  /** Reference to file bytes saved locally in IndexedDB. Legacy/demo files omit it. */
+  fileId?: string;
 }
 
 export interface Activity {
@@ -242,6 +244,8 @@ export interface Process {
   steps: ProcessStep[];
   avgHours: number;
   runs30d: number;
+  /** The marketplace template this process was created from, if any. */
+  presetId?: string;
 }
 
 export interface Organization {

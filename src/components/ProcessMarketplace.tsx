@@ -1,263 +1,237 @@
-import { Button, Field, Input, Select, Text, useToast } from '@app/ui';
-import { Search, Workflow } from 'lucide-react';
-import { useState } from 'react';
+import { Badge, Banner, Drawer, EmptyState, Field, Input, Select, Text, cn, useToast } from '@app/ui';
+import { Check, ChevronRight, Laptop, Megaphone, Scale, Search, Truck, UsersRound, Wallet, type LucideIcon } from 'lucide-react';
+import { Fragment, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { instantiatePreset, processPresets } from '../data/processPresets';
+import { PRESET_CATEGORIES, instantiatePreset, isPresetInstalled, processPresets, suggestApprover, type PresetCategory, type ProcessPreset } from '../data/processPresets';
 import { canBuildProcesses, uid, useStore } from '../data/store';
 import { useLocale } from '../i18n/LocaleProvider';
 import { formatMoney } from '../lib/format';
 
+const CATEGORY: Record<PresetCategory, { icon: LucideIcon; tile: string }> = {
+  Finance: { icon: Wallet, tile: 'bg-mint-subtle text-mint-subtle-foreground' },
+  People: { icon: UsersRound, tile: 'bg-warning-subtle text-warning-subtle-fg' },
+  Operations: { icon: Truck, tile: 'bg-muted text-foreground' },
+  IT: { icon: Laptop, tile: 'bg-muted text-foreground' },
+  Legal: { icon: Scale, tile: 'bg-muted text-foreground' },
+  Marketing: { icon: Megaphone, tile: 'bg-muted text-foreground' },
+};
+
+const shortMoney = (n: number) => formatMoney(n).replace('.00', '');
+
+/** "Every request" or "Over $10,000": when a template step runs. */
+function stepCondition(step: ProcessPreset['steps'][number], tr: (s: string, v?: Record<string, string | number>) => string) {
+  return step.minAmount === undefined ? tr('Every request') : tr('Over {amount}', { amount: shortMoney(step.minAmount) });
+}
+
+/**
+ * Ready-made approval processes. Browse by category, open one to see its
+ * route with approvers already suggested, and add it as a paused process.
+ */
 export function ProcessMarketplace() {
   const { t: tr } = useLocale();
   const { state, dispatch } = useStore();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('All categories');
-  const [selected, setSelected] = useState<string>();
+  const [category, setCategory] = useState<PresetCategory | 'All'>('All');
+  const [open, setOpen] = useState<ProcessPreset>();
   const [approvers, setApprovers] = useState<string[]>([]);
-  const [error, setError] = useState(false);
   const builder = canBuildProcesses(state);
-  const results = processPresets.filter(
-    (p) =>
-      (category === 'All categories' || category === p.category) &&
-      `${p.name} ${tr(p.name)} ${p.description} ${tr(p.description)} ${
-        p.category
-      } ${tr(p.category)}`
-        .toLowerCase()
-        .includes(query.trim().toLowerCase()),
-  );
-  const preset = processPresets.find((p) => p.id === selected);
+
+  const matchesQuery = (p: ProcessPreset) =>
+    `${p.name} ${tr(p.name)} ${p.description} ${tr(p.description)} ${p.category} ${tr(p.category)}`
+      .toLowerCase()
+      .includes(query.trim().toLowerCase());
+  const searched = processPresets.filter(matchesQuery);
+  const results = searched.filter((p) => category === 'All' || p.category === category);
+
+  const show = (preset: ProcessPreset) => {
+    setOpen(preset);
+    setApprovers(preset.steps.map((step) => suggestApprover(step, state.people, state.meId)));
+  };
   const add = () => {
-    if (!preset || !builder) return;
-    if (
-      preset.steps.some(
-        (_, i) => !state.people.some((p) => p.id === approvers[i]),
-      )
-    ) {
-      setError(true);
-      return;
-    }
-    const process = instantiatePreset(
-      preset,
-      approvers,
-      state.processes,
-      () => uid('preset'),
-      tr,
-    );
+    if (!open || !builder) return;
+    const process = instantiatePreset(open, approvers, state.processes, () => uid('preset'), tr);
     dispatch({ type: 'createProcess', process });
-    toast({
-      title: tr('Preset added'),
-      description: tr('Your process is paused. Review it before enabling it.'),
-    });
+    toast({ title: tr('{name} added', { name: tr(open.name) }), description: tr('It’s paused. Check the route, then turn it on.') });
+    setOpen(undefined);
     navigate(`/processes/${process.id}`);
   };
+  const existing = open ? state.processes.find((p) => p.presetId === open.id || p.requestType === open.id) : undefined;
+
   return (
-    <section
-      aria-label={tr('Preset marketplace')}
-      className="flex flex-col gap-6"
-    >
-      <div>
-        <Text as="h2" variant="heading">
-          {tr('Start with an approval preset')}
-        </Text>
-        <Text tone="muted">
-          {tr(
-            'Choose a starter preset, assign approvers, then adapt it to your company.',
-          )}
+    <section aria-labelledby="templates-title" className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <h2 id="templates-title" className="text-lg font-semibold">{tr('Start from a template')}</h2>
+        <Text tone="muted" className="text-sm">
+          {tr('Ready-made approval routes for common requests. Approvers are suggested from your team; change anything after adding.')}
         </Text>
       </div>
-      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_14rem]">
-        <Field label={tr('Search presets')}>
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={tr('Search by name or purpose…')}
-          />
+
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <Field label={tr('Search templates')} labelHidden className="md:w-72">
+          <Input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={tr('Search templates…')} />
         </Field>
-        <Field label={tr('Category')}>
-          <Select
-            aria-label={tr('Category')}
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            {['All categories', 'Finance', 'People', 'Operations', 'Legal'].map(
-              (value) => (
-                <option key={value} value={value}>
-                  {tr(value)}
-                </option>
-              ),
-            )}
-          </Select>
-        </Field>
-      </div>
-      <Text variant="bodySm" tone="muted" role="status">
-        {tr('{count} presets found', { count: results.length })}
-      </Text>
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="overflow-hidden rounded-lg border border-border bg-surface">
-          {results.length ? (
-            <ul className="divide-y divide-border">
-              {results.map((p) => (
-                <li key={p.id}>
-                  <button
-                    type="button"
-                    aria-pressed={selected === p.id}
-                    onClick={() => {
-                      setSelected(p.id);
-                      setApprovers(p.steps.map(() => ''));
-                      setError(false);
-                    }}
-                    className={`flex w-full gap-3 p-4 text-start hover:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring ${
-                      selected === p.id ? 'bg-surface-selected' : ''
-                    }`}
-                  >
-                    <Workflow
-                      aria-hidden
-                      className="mt-1 size-5 shrink-0 text-fg-link"
-                    />
-                    <span className="flex min-w-0 flex-col gap-1">
-                      <span className="font-semibold text-fg">
-                        {tr(p.name)}
-                      </span>
-                      <span className="text-sm text-fg-muted">
-                        {tr(p.description)}
-                      </span>
-                      <span className="text-sm text-fg-subtle">
-                        {tr(p.category)} ·{' '}
-                        {tr('{count} approval steps', {
-                          count: p.steps.length,
-                        })}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="flex flex-col items-start gap-3 p-6">
-              <Search aria-hidden className="size-5 text-fg-muted" />
-              <Text>{tr('No presets match your search.')}</Text>
-              <Button
-                onClick={() => {
-                  setQuery('');
-                  setCategory('All categories');
-                }}
+        <div role="group" aria-label={tr('Categories')} className="flex flex-wrap gap-1.5">
+          {(['All', ...PRESET_CATEGORIES] as const).map((c) => {
+            const count = c === 'All' ? searched.length : searched.filter((p) => p.category === c).length;
+            const active = category === c;
+            return (
+              <button
+                key={c}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setCategory(c)}
+                className={cn(
+                  'inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                  active ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-muted',
+                )}
               >
-                {tr('Clear filters')}
-              </Button>
-            </div>
-          )}
-        </div>
-        <div
-          className="rounded-lg border border-border bg-surface p-5"
-          aria-label={tr('Preset preview')}
-        >
-          {preset ? (
-            <div className="flex flex-col gap-5">
-              <div>
-                <Text as="h3" variant="heading">
-                  {tr(preset.name)}
-                </Text>
-                <Text tone="muted">{tr(preset.description)}</Text>
-              </div>
-              <div>
-                <Text as="h4" variant="subtitle">
-                  {tr('Request form')}
-                </Text>
-                <Text variant="bodySm" tone="muted">
-                  {tr(
-                    'Title, department, description and attachments are included.',
-                  )}
-                  {preset.hasAmount
-                    ? ` ${tr('Includes an amount in USD.')}`
-                    : ''}
-                </Text>
-                <ul className="mt-2 list-disc ps-5 text-sm text-fg">
-                  {preset.fields.map((field) => (
-                    <li key={field.label}>
-                      {tr(field.label)} · {tr('Required')}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Text as="h4" variant="subtitle">
-                  {tr('Approval steps')}
-                </Text>
-                <Text variant="bodySm" tone="muted">
-                  {tr(
-                    'Starter rules are examples. Review amounts and deadlines for your company.',
-                  )}
-                </Text>
-                {preset.steps.map((step, i) => (
-                  <Field
-                    key={`${preset.id}-${i}`}
-                    label={`${i + 1}. ${tr(step.name)}`}
-                    required
-                    helpText={`${tr('Target: {hours} hours', {
-                      hours: step.slaHours,
-                    })} · ${
-                      step.minAmount === undefined
-                        ? tr('Every request')
-                        : tr('Amounts over {amount}', {
-                            amount: formatMoney(step.minAmount),
-                          })
-                    }`}
-                    error={
-                      error && !approvers[i]
-                        ? tr('Choose an approver.')
-                        : undefined
-                    }
-                  >
-                    <Select
-                      aria-label={`${i + 1}. ${tr(step.name)}`}
-                      aria-required="true"
-                      aria-invalid={error && !approvers[i] ? true : undefined}
-                      value={approvers[i] ?? ''}
-                      disabled={!builder}
-                      onChange={(e) =>
-                        setApprovers((values) =>
-                          values.map((value, index) =>
-                            index === i ? e.target.value : value,
-                          ),
-                        )
-                      }
-                      placeholder={tr('Choose an approver…')}
-                    >
-                      {state.people.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {`${p.name} · ${tr(p.role)}`}
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
-                ))}
-              </div>
-              <Text variant="bodySm" tone="muted">
-                {builder
-                  ? tr(
-                      'Added as a paused process. Your existing processes stay unchanged.',
-                    )
-                  : tr('Ask an admin for permission to create processes.')}
-              </Text>
-              <Button variant="primary" disabled={!builder} onClick={add}>
-                {tr('Use this preset')}
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2 py-8">
-              <Workflow aria-hidden className="size-7 text-fg-link" />
-              <Text as="h3" variant="subtitle">
-                {tr('Select a preset to preview')}
-              </Text>
-              <Text tone="muted">
-                {tr('See its form fields and approval rules before adding it.')}
-              </Text>
-            </div>
-          )}
+                {tr(c)}
+                <span className={cn('tabular-nums text-xs', active ? 'opacity-80' : 'text-muted-foreground')}>{count}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      <p role="status" className="sr-only">{tr('{count} templates', { count: results.length })}</p>
+
+      {results.length ? (
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {results.map((p) => {
+            const { icon: Icon, tile } = CATEGORY[p.category];
+            const installed = isPresetInstalled(p, state.processes);
+            return (
+              <li key={p.id} className="min-w-0">
+                <button
+                  type="button"
+                  onClick={() => show(p)}
+                  className="group flex h-full w-full flex-col gap-3 rounded-xl border border-border bg-card p-4 text-start shadow-card transition-colors hover:border-input hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                >
+                  <span className="flex w-full items-start gap-3">
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="font-semibold text-foreground">{tr(p.name)}</span>
+                      <span className="line-clamp-2 text-sm text-muted-foreground">{tr(p.description)}</span>
+                    </span>
+                    <span aria-hidden className={cn('flex size-9 shrink-0 items-center justify-center rounded-lg [&_svg]:size-4', tile)}>
+                      <Icon />
+                    </span>
+                  </span>
+                  <span className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                    {p.steps.map((s, i) => (
+                      <Fragment key={i}>
+                        {i > 0 ? <ChevronRight aria-hidden className="size-3" /> : null}
+                        <span className="rounded-md bg-muted px-1.5 py-0.5 text-foreground">
+                          {tr(s.name)}
+                          {s.minAmount !== undefined ? <span className="text-muted-foreground"> · {tr('over {amount}', { amount: shortMoney(s.minAmount) })}</span> : null}
+                        </span>
+                      </Fragment>
+                    ))}
+                  </span>
+                  <span className="mt-auto flex items-center justify-between gap-2 pt-1 text-xs text-muted-foreground">
+                    <span>{tr(p.category)} · {tr(p.fields.length === 1 ? '{count} form question' : '{count} form questions', { count: p.fields.length })}</span>
+                    {installed ? (
+                      <Badge size="sm" tone="success">
+                        <Check aria-hidden className="size-3" />
+                        {tr('Added')}
+                      </Badge>
+                    ) : (
+                      <span className="font-medium text-foreground group-hover:underline">{tr('Preview')}</span>
+                    )}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <EmptyState
+          size="card"
+          headingAs="h3"
+          heading={tr('No templates match')}
+          image={<Search aria-hidden className="size-6 text-muted-foreground" />}
+          action={
+            <button
+              type="button"
+              onClick={() => (setQuery(''), setCategory('All'))}
+              className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              {tr('Clear search and filters')}
+            </button>
+          }
+        >
+          {tr('Try another word, or start a process from scratch with New process.')}
+        </EmptyState>
+      )}
+
+      <Drawer
+        open={Boolean(open)}
+        onOpenChange={(next) => (next ? undefined : setOpen(undefined))}
+        title={open ? tr(open.name) : ''}
+        description={open ? tr(open.description) : undefined}
+        size="md"
+        primaryAction={{ content: tr('Use template'), onAction: add, disabled: !builder }}
+        footer={
+          <Text variant="caption" tone="muted" className="me-auto max-w-56">
+            {builder ? tr('Added paused, so nothing changes until you turn it on.') : tr('Ask an admin for permission to create processes.')}
+          </Text>
+        }
+      >
+        {open ? (
+          <div className="flex flex-col gap-6">
+            {existing ? (
+              <Banner
+                tone="info"
+                title={tr('You already have this process')}
+                action={{ label: tr('Open {name}', { name: tr(existing.name) }), onAction: () => (setOpen(undefined), navigate(`/processes/${existing.id}`)) }}
+              >
+                {tr('Adding it again creates a separate copy.')}
+              </Banner>
+            ) : null}
+            <section aria-labelledby="template-route" className="flex flex-col gap-3">
+              <h3 id="template-route" className="text-sm font-semibold">{tr('Route')}</h3>
+              <ol aria-label={tr('Route')} className="flex flex-col">
+                {open.steps.map((step, i) => (
+                  <li key={i} className="relative flex gap-3 pb-5 last:pb-0">
+                    {i < open.steps.length - 1 ? <span aria-hidden className="absolute start-3.5 top-8 bottom-1 w-px bg-border" /> : null}
+                    <span aria-hidden className="relative flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                      {i + 1}
+                    </span>
+                    <div className="flex min-w-0 flex-1 flex-col gap-2">
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                        <span className="font-medium">{tr(step.name)}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {stepCondition(step, tr)} · {tr('reply within {hours} h', { hours: step.slaHours })}
+                        </span>
+                      </div>
+                      <Select
+                        aria-label={`${i + 1}. ${tr(step.name)}: ${tr('approver')}`}
+                        value={approvers[i] ?? ''}
+                        disabled={!builder}
+                        onChange={(e) => setApprovers((values) => values.map((v, j) => (j === i ? e.target.value : v)))}
+                        options={state.people.map((p) => ({ value: p.id, label: `${p.name} · ${tr(p.role)}` }))}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+            <section aria-labelledby="template-form" className="flex flex-col gap-2 border-t border-border pt-5">
+              <h3 id="template-form" className="text-sm font-semibold">{tr('Request form')}</h3>
+              <Text variant="bodySm" tone="muted">
+                {tr('Title, description and attachments are always included.')}
+                {open.hasAmount ? ` ${tr('Includes an amount in USD.')}` : ''}
+              </Text>
+              <ul className="flex flex-wrap gap-1.5">
+                {open.fields.map((f) => (
+                  <li key={f.label} className="rounded-md border border-border px-2 py-1 text-sm">{tr(f.label)}</li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        ) : null}
+      </Drawer>
     </section>
   );
 }

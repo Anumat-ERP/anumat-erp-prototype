@@ -131,7 +131,7 @@ export function ProcessEditor() {
       <PageHeader
         title={tr(draft.name)}
         subtitle={tr("Runs when {value0}.", { value0: tr(draft.trigger).toLowerCase() })}
-        backAction={{ content: tr('Process Builder'), href: '/processes' }}
+        backAction={{ content: tr('Approval processes'), href: '/processes' }}
         renderLink={headerLink}
         primaryAction={{
           content: tr('Save process'),
@@ -149,6 +149,19 @@ export function ProcessEditor() {
             : undefined
         }
       />
+      {!draft.active ? (
+        <Banner
+          tone="warning"
+          title={tr('This process is paused')}
+          action={builder ? { label: tr('Turn on'), onAction: () => setDraft({ ...draft, active: true }) } : undefined}
+        >
+          {tr('People can’t raise this request until it’s on. Check the steps, turn it on, then save.')}
+        </Banner>
+      ) : !original.active ? (
+        <Banner tone="info" title={tr('Turned on. Save to apply')}>
+          {tr('People can raise this request once you save.')}
+        </Banner>
+      ) : null}
       {showProblems && problems.length ? (
         <Banner tone="critical" title={tr("Fix {value0} to save", { value0: problems.length === 1 ? 'this' : 'these' })}>
           <ul className="list-disc ps-5">
@@ -357,6 +370,10 @@ export function ProcessEditor() {
           </div>
 
           <div className="flex min-w-0 flex-col gap-6">
+            <Card className="flex flex-col gap-3">
+              <CardHeader title={tr('Status')} description={draft.active ? tr('On: people can raise this request.') : tr('Paused: hidden from New request.')} />
+              <Switch label={tr('Active')} checked={draft.active} onCheckedChange={(active) => setDraft({ ...draft, active })} />
+            </Card>
             {!isBuiltInType(draft.requestType) ? (
               <Card className="flex flex-col gap-4">
                 <CardHeader title={tr('Request type')} description={tr("A request type you created. People pick it on the New request form.")} />

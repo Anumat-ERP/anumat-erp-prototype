@@ -69,10 +69,10 @@ export function Banner({
         {children ? <div className="text-foreground/90">{children}</div> : null}
         {actions.length ? (
           <div className="mt-1.5 flex flex-wrap gap-3">
-            {actions.map((a) => (
+            {actions.map((a, i) => (
               <Button
                 key={a.label}
-                variant="plain"
+                variant={i === 0 ? 'secondary' : 'plain'}
                 size="sm"
                 onClick={a.onAction}
                 asChild={Boolean(a.href)}

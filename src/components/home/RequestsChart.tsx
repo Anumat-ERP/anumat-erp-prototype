@@ -45,7 +45,7 @@ export function RequestsChart() {
         </div>
         <div className="px-2 pt-4 pb-2 sm:px-4" aria-hidden>
           <ChartContainer config={config} className="h-56">
-            <BarChart data={data} margin={{ left: 0, right: 8, top: 4, bottom: 0 }} barGap={2}>
+            <BarChart data={data} margin={{ left: 0, right: 8, top: 4, bottom: 0 }} barGap={2} accessibilityLayer={false}>
               <CartesianGrid vertical={false} strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"

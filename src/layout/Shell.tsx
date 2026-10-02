@@ -93,7 +93,7 @@ export function Shell() {
 function ShellFrame() {
   const { t: tr } = useLocale();
   const { state, me, dispatch } = useStore();
-  const { pathname, hash } = useLocation();
+  const { pathname, hash, search } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [theme, setTheme] = useTheme();
@@ -117,7 +117,7 @@ function ShellFrame() {
   const waiting = waitingOnMe(state).length;
   const at = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
-  const templates = pathname === '/processes' && hash === '#templates';
+  const templates = pathname === '/processes' && (hash === '#templates' || new URLSearchParams(search).get('tab') === 'marketplace');
   const sections: NavigationSection[] = [
     {
       title: tr('Workspace'),
@@ -140,7 +140,7 @@ function ShellFrame() {
       title: tr('Administration'),
       items: [
         { label: tr('Approval processes'), href: '/processes', icon: <Workflow />, selected: at('/processes') && !templates },
-        { label: tr('Templates'), href: '/processes#templates', icon: <LayoutTemplate />, selected: templates },
+        { label: tr('Templates'), href: '/processes?tab=marketplace', icon: <LayoutTemplate />, selected: templates },
         { label: tr('People & roles'), href: '/settings/people', icon: <UsersRound />, selected: at('/settings/people') },
       ],
     },
