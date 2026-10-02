@@ -1,0 +1,34 @@
+/* Typography, after Mintlify: a calm serif for the few "hero" values (page
+ * titles, headline numbers), medium-weight Inter for everything else.
+ * The serif only carries Latin; Khmer falls through to the Khmer stack. */
+@import '@fontsource-variable/newsreader/opsz.css';
+
+:root {
+  --a-font-display: 'Newsreader Variable', var(--an-font-khmer, 'Kantumruy Pro'), Georgia, serif;
+  /* Headings and labels sit at medium weight; bold is kept for rare emphasis. */
+  --a-font-weight-semibold: 500;
+}
+
+@theme inline {
+  --font-display: var(--a-font-display);
+  /* shadcn's default size name, used by some components. */
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+}
+
+/* A headline value: "4", "1.1 days", "$4,650". The unit beside it stays small, in Inter. */
+.an-figure {
+  font-family: var(--a-font-display);
+  font-weight: 400;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.an-figure-unit {
+  font-family: var(--a-font-sans);
+  font-size: var(--a-text-sm);
+  letter-spacing: 0;
+  color: var(--muted-foreground);
+}
+
+html[lang='km'] .an-figure { letter-spacing: 0; }

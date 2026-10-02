@@ -18,6 +18,7 @@ export * from './components/action-menu';
 export * from './components/app-shell';
 export * from './components/sidebar';
 export * from './components/chart';
+export * from './components/figure';
 export * from './components/navigation';
 export * from './components/text';
 export * from './components/card';

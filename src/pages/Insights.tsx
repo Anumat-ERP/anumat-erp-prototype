@@ -1,4 +1,4 @@
-import { Card, CardHeader, PageHeader, Text } from '@app/ui';
+import { Card, CardHeader, FigureValue, PageHeader, Text } from '@app/ui';
 import { BarTable, ColumnChart, Legend } from '../components/charts';
 import { AppLink } from '../components/links';
 import { useStore } from '../data/store';
@@ -36,14 +36,14 @@ function formatHours(h: number, tr: Translate) {
 }
 
 function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
+  // "21 h" becomes a big 21 and a small h; "$4,650" and "73%" stay whole.
+  const [, figure = value, unit] = /^(\S+)\s+(.+)$/.exec(value) ?? [];
   return (
     <Card className="flex flex-col gap-1">
       <Text as="span" variant="bodySm" tone="muted">
         {label}
       </Text>
-      <Text as="span" variant="display" numeric>
-        {value}
-      </Text>
+      <FigureValue value={figure} unit={unit} className="mt-1" />
       <Text as="span" variant="caption" tone="subtle">
         {hint}
       </Text>

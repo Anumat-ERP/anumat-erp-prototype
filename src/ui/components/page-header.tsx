@@ -157,7 +157,7 @@ export function PageHeader({
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <div className="flex min-h-control-md min-w-0 items-center gap-2">
               <h1
-                className="an-page-title min-w-0 text-2xl font-semibold tracking-tight text-fg"
+                className="an-page-title min-w-0 text-fg"
                 title={typeof title === 'string' ? title : undefined}
               >
                 {title}

@@ -1,4 +1,4 @@
-import { Card, ProgressBar } from '@app/ui';
+import { Card, FigureValue, ProgressBar } from '@app/ui';
 import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router';
 import { AppLink } from '../links';
@@ -24,12 +24,7 @@ export function DecisionTimeCard() {
     <Card flush className="flex flex-col">
       <section aria-labelledby="decision-time" className="flex flex-col gap-3 px-5 py-4 sm:px-6">
         <h2 id="decision-time" className="text-sm font-medium text-muted-foreground">{tr('Average decision time')}</h2>
-        <p className="flex items-baseline gap-1.5">
-          <span className="text-3xl font-semibold tracking-tight tabular-nums">
-            {average === null ? '—' : average.toFixed(1)}
-          </span>
-          {average === null ? null : <span className="text-sm text-muted-foreground">{tr('days')}</span>}
-        </p>
+        <FigureValue value={average === null ? '—' : average.toFixed(1)} unit={average === null ? undefined : tr('days')} />
         <ProgressBar
           label={tr('Against the {count}-day goal', { count: GOAL_DAYS })}
           labelHidden

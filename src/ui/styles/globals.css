@@ -9,6 +9,7 @@
 
 @import './tokens.generated.css';
 @import './theme.generated.css';
+@import './typography.css';
 @import './motion.css';
 
 /* Scan component sources for class names when consumed from an app. */

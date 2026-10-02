@@ -1,4 +1,4 @@
-import { cn } from '@app/ui';
+import { FigureValue, cn } from '@app/ui';
 import { ChevronRight, CircleCheckBig, FilePen, Hammer, Inbox, type LucideIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import { Link } from 'react-router';
@@ -63,7 +63,7 @@ export function FlowStrip({ counts }: { counts: Record<Step['key'], number> }) {
                   </span>
                 </span>
                 <span className="flex flex-col gap-0.5">
-                  <span className="text-3xl leading-none font-semibold tracking-tight tabular-nums">{counts[step.key]}</span>
+                  <FigureValue value={counts[step.key]} />
                   <span className="text-sm text-muted-foreground">{tr(step.caption)}</span>
                 </span>
               </Link>
