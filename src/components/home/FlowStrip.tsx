@@ -45,7 +45,7 @@ export function FlowStrip({ counts }: { counts: Record<Step['key'], number> }) {
                 to={step.href}
                 aria-label={`${tr(step.label)}: ${counts[step.key]} ${tr(step.caption).toLowerCase()}`}
                 className={cn(
-                  'group flex h-full min-w-0 flex-col gap-3 rounded-xl border bg-card p-4 shadow-card transition-colors duration-(--a-duration-fast)',
+                  'group flex h-full min-w-0 flex-col gap-3 rounded-lg border bg-card p-4 transition-colors duration-(--a-duration-fast)',
                   'hover:border-input focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
                   urgent ? 'border-primary ring-1 ring-primary' : 'border-border',
                 )}

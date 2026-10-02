@@ -59,6 +59,14 @@ export function ProcessMarketplace() {
   };
   const existing = open ? state.processes.find((p) => p.presetId === open.id || p.requestType === open.id) : undefined;
 
+  if (processPresets.length === 0) {
+    return <EmptyState
+      size="card"
+      heading={tr('No templates available')}
+      action={<button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => navigate('/processes')}>{tr('Your processes')}</button>}
+    >{tr('Create an approval process from scratch to start accepting requests.')}</EmptyState>;
+  }
+
   return (
     <section aria-labelledby="templates-title" className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">

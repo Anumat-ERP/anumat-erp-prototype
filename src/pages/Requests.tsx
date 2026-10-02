@@ -193,14 +193,13 @@ export function Requests() {
             <EmptyState
               size="card"
               heading={tr('Create your first request')}
-              action={
-                <Button variant="primary" onClick={() => navigate('/requests/new')}>
-                  {' '}
-                  {tr('New request')}{' '}
-                </Button>
-              }
+              action={state.processes.length === 0
+                ? <Button onClick={() => navigate('/processes')}>{tr('Approval processes')}</Button>
+                : undefined}
             >
-              {tr("Purchases, leave, expenses and contracts all start here.")}</EmptyState>
+              {state.processes.length === 0
+                ? tr('Create an approval process before submitting your first request.')
+                : tr("Purchases, leave, expenses and contracts all start here.")}</EmptyState>
           )
         }
       />

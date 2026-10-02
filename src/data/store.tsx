@@ -7,6 +7,34 @@ import type { Access, Activity, Channel, FormField, FormValues, Lead, Notificati
 // Its own key: this site shares the anumat-erp.github.io origin with the main prototype.
 const STORAGE_KEY = 'anumat-hackathon-v1';
 
+// Remove the shipped request/approval examples from workspaces saved by older versions.
+// New work created by a person has generated IDs and remains untouched.
+const STARTER_REQUEST_IDS = new Set([
+  'PR-1042', 'LV-2031', 'EX-3317', 'PR-1044', 'CT-0412', 'PR-1036',
+  'PR-1039', 'EX-3309', 'EX-3320', 'LV-2027', 'CT-0409', 'PR-1045',
+  'PR-0007', 'CT-0003',
+]);
+const STARTER_PROCESS_IDS = new Set(['proc-purchase', 'proc-expense', 'proc-leave', 'proc-contract']);
+const starterRequestLink = (href?: string) =>
+  Boolean(href?.startsWith('/requests/') && STARTER_REQUEST_IDS.has(href.slice('/requests/'.length)));
+
+function withoutStarterWorkflow(state: DataState): DataState {
+  return {
+    ...state,
+    requests: state.requests.filter((request) => !STARTER_REQUEST_IDS.has(request.id)),
+    processes: state.processes.filter((process) => !STARTER_PROCESS_IDS.has(process.id)),
+    tasks: state.tasks.filter((task) => !starterRequestLink(task.source?.href)),
+    documents: state.documents.filter((document) => !starterRequestLink(document.linkedTo?.href)),
+    meetings: state.meetings.map((meeting) => ({
+      ...meeting,
+      requestIds: meeting.requestIds.filter((id) => !STARTER_REQUEST_IDS.has(id)),
+      decisions: meeting.decisions.map((decision) => STARTER_REQUEST_IDS.has(decision.requestId ?? '')
+        ? { ...decision, requestId: undefined }
+        : decision),
+    })),
+  };
+}
+
 type Action =
   | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string; answers?: FormValues }
   | { type: 'comment'; requestId: string; text: string }
@@ -307,7 +335,7 @@ type WorkspaceAction =
 
 export type StoreAction = Action | WorkspaceAction;
 
-const initialRoot = (): Root => ({ active: 'lotus', spaces: { lotus: seed, mekong: mekongSeed } });
+const initialRoot = (): Root => ({ active: 'lotus', spaces: { lotus: withoutStarterWorkflow(seed), mekong: withoutStarterWorkflow(mekongSeed) } });
 
 function rootReducer(root: Root, action: StoreAction): Root {
   switch (action.type) {
@@ -317,7 +345,7 @@ function rootReducer(root: Root, action: StoreAction): Root {
       // A new company starts from the demo data, renamed and set up as chosen.
       const id = uid('ws');
       const me = root.spaces[root.active]?.meId ?? 'dara';
-      const base: DataState = { ...seed, meId: me, people: seed.people.map((p) => (p.id === me ? { ...p, access: 'owner' as const } : p.access === 'owner' ? { ...p, access: 'admin' as const } : p)) };
+      const base: DataState = withoutStarterWorkflow({ ...seed, meId: me, people: seed.people.map((p) => (p.id === me ? { ...p, access: 'owner' as const } : p.access === 'owner' ? { ...p, access: 'admin' as const } : p)) });
       const space = reducer(base, { type: 'setupOrg', name: action.name, size: action.size, activeProcessIds: action.activeProcessIds, access: action.access });
       return { active: id, spaces: { ...root.spaces, [id]: space } };
     }
@@ -336,7 +364,12 @@ function load(): Root {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const saved = JSON.parse(raw) as Root;
-      if (saved.spaces?.[saved.active]) return saved;
+      if (saved.spaces?.[saved.active]) {
+        return {
+          ...saved,
+          spaces: Object.fromEntries(Object.entries(saved.spaces).map(([id, space]) => [id, withoutStarterWorkflow(space)])),
+        };
+      }
     }
   } catch {
     // Storage blocked or corrupt: start from the demo data.

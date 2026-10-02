@@ -92,6 +92,13 @@ export function Processes() {
           {!builder ? (
             <Text tone="muted">{tr("You can view processes. Admins, and people they allow under People & roles, can create and change them.")}</Text>
           ) : null}
+          {state.processes.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border bg-card p-8 text-center">
+              <h2 className="font-semibold">{tr('No approval processes yet')}</h2>
+              <Text tone="muted" className="mt-2">{tr('Create a process to define who reviews new requests.')}</Text>
+              {builder ? <Button className="mt-4" onClick={create}>{tr('New process')}</Button> : null}
+            </div>
+          ) : null}
           <ul className="grid gap-4 md:grid-cols-2">
             {state.processes.map((p) => (
               <li key={p.id} className="min-w-0">
@@ -159,7 +166,7 @@ export function Processes() {
                 </article>
               </li>
             ))}
-            {builder ? (
+            {builder && state.processes.length > 0 ? (
               <li className="min-w-0">
                 <Link
                   to="/processes?tab=marketplace"

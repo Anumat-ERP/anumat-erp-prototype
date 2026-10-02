@@ -6,6 +6,7 @@ import { FloatingSupport } from './components/FloatingSupport';
 import { Shell } from './layout/Shell';
 import { Approvals } from './pages/Approvals';
 import { Documents } from './pages/Documents';
+import { Discover } from './pages/Discover';
 import { Home } from './pages/Home';
 import { Landing } from './pages/Landing';
 import { Docs } from './pages/Docs';
@@ -85,6 +86,7 @@ export function App() {
         <Route path="docs/:topic" element={<Docs />} />
         <Route path="welcome" element={<Welcome />} />
         <Route element={<Shell />}>
+          <Route path="discover" element={<Discover />} />
           <Route path="home" element={<Home />} />
           <Route path="requests" element={<Requests />} />
           <Route path="requests/new" element={<NewRequest />} />

@@ -1,0 +1,247 @@
+/* Anumat's Vendure-inspired admin skin. Product names and workflows stay Anumat's. */
+@import '@fontsource-variable/public-sans';
+
+html.an-workspace-theme,
+html.an-workspace-theme[data-theme='light'] {
+  --a-font-sans: 'Inter Variable', Inter, var(--an-font-khmer), system-ui, sans-serif;
+  --an-font-display: 'Public Sans Variable', 'Public Sans', var(--an-font-khmer), system-ui, sans-serif;
+  --a-font-display: var(--an-font-display);
+  --a-font-weight-semibold: 600;
+  --a-radius-sm: .125rem;
+  --a-radius-md: .25rem;
+  --a-radius-lg: .375rem;
+  --a-radius-xl: .5rem;
+  --radius: .25rem;
+  --background: #f2f6f8;
+  --foreground: oklch(.13 .007 231);
+  --card: #fff;
+  --card-foreground: var(--foreground);
+  --popover: #fff;
+  --popover-foreground: var(--foreground);
+  --primary: #16c1fe;
+  --primary-foreground: #08212b;
+  --primary-hover: #3bceff;
+  --primary-active: #00a8e8;
+  --secondary: oklch(.93 .004 231);
+  --secondary-foreground: var(--primary);
+  --muted: oklch(.945 .004 231);
+  --muted-foreground: oklch(.45 .005 231);
+  --accent: oklch(.935 .004 231);
+  --accent-foreground: var(--primary);
+  --border: oklch(.86 .004 231);
+  --input: var(--border);
+  --ring: #087ba7;
+  --sidebar: var(--background);
+  --sidebar-foreground: oklch(.3 .007 231);
+  --sidebar-accent: #d5f4ff;
+  --sidebar-accent-foreground: #08212b;
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --chart-1: oklch(.56 .12 250);
+  --chart-2: oklch(.64 .12 145);
+  --chart-3: oklch(.51 .13 320);
+  --chart-4: oklch(.66 .12 85);
+  --chart-5: oklch(.58 .13 25);
+  --mint: oklch(.48 .15 145);
+  --mint-subtle: oklch(.93 .04 145);
+  --mint-subtle-foreground: oklch(.27 .08 145);
+  --destructive: oklch(.48 .18 25);
+  --destructive-subtle: oklch(.93 .05 25);
+  --destructive-subtle-foreground: oklch(.27 .09 25);
+  --warning-subtle: oklch(.93 .05 85);
+  --warning-subtle-foreground: oklch(.28 .06 85);
+  --shadow-card: none;
+  --a-color-bg: var(--background);
+  --a-color-fg: var(--foreground);
+  --a-color-surface: var(--card);
+  --a-color-surface-muted: var(--muted);
+  --a-color-surface-sunken: var(--muted);
+  --a-color-surface-hover: var(--muted);
+  --a-color-surface-active: var(--accent);
+  --a-color-surface-selected: var(--accent);
+  --a-color-border: var(--border);
+  --a-color-border-subtle: var(--border);
+  --a-color-border-strong: var(--input);
+  --a-color-border-input: var(--input);
+  --a-color-ring: var(--ring);
+  --a-color-fg-muted: var(--muted-foreground);
+  --a-color-fg-subtle: var(--muted-foreground);
+  --a-color-fg-link: #006a8d;
+  --a-color-primary: var(--primary);
+  --a-color-primary-hover: var(--primary-hover);
+  --a-color-primary-active: var(--primary-active);
+  --a-color-primary-fg: var(--primary-foreground);
+  --a-color-primary-subtle: var(--accent);
+  --a-color-primary-subtle-fg: var(--accent-foreground);
+  --a-color-primary-border: var(--border);
+  --an-paper: var(--background);
+  --an-ink: var(--foreground);
+  --an-chart-1: var(--chart-1);
+  --an-chart-2: var(--chart-2);
+}
+
+html.an-workspace-theme[data-theme='dark'] {
+  --background: oklch(.13 .007 231);
+  --foreground: oklch(.92 .004 231);
+  --card: oklch(.18 .007 231);
+  --card-foreground: var(--foreground);
+  --popover: oklch(.2 .007 231);
+  --popover-foreground: var(--foreground);
+  --primary: #16c1fe;
+  --primary-foreground: #08212b;
+  --primary-hover: #3bceff;
+  --primary-active: #00a8e8;
+  --secondary: oklch(.22 .007 231);
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(.2 .007 231);
+  --muted-foreground: oklch(.65 .005 231);
+  --accent: oklch(.25 .007 231);
+  --accent-foreground: var(--foreground);
+  --border: oklch(.32 .007 231);
+  --input: var(--border);
+  --ring: #5bd3ff;
+  --sidebar: var(--background);
+  --sidebar-foreground: oklch(.85 .004 231);
+  --sidebar-accent: #173644;
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --mint: oklch(.64 .12 145);
+  --mint-subtle: oklch(.25 .04 145);
+  --mint-subtle-foreground: oklch(.78 .11 145);
+  --destructive: oklch(.55 .2 25);
+  --destructive-subtle: oklch(.25 .05 25);
+  --destructive-subtle-foreground: oklch(.78 .12 25);
+  --warning-subtle: oklch(.25 .05 85);
+  --warning-subtle-foreground: oklch(.78 .12 85);
+  --shadow-card: none;
+  --a-color-bg: var(--background);
+  --a-color-fg: var(--foreground);
+  --a-color-surface: var(--card);
+  --a-color-surface-muted: var(--muted);
+  --a-color-surface-sunken: var(--muted);
+  --a-color-surface-hover: var(--muted);
+  --a-color-surface-active: var(--accent);
+  --a-color-surface-selected: var(--accent);
+  --a-color-border: var(--border);
+  --a-color-border-subtle: var(--border);
+  --a-color-border-strong: var(--input);
+  --a-color-border-input: var(--input);
+  --a-color-ring: var(--ring);
+  --a-color-fg-muted: var(--muted-foreground);
+  --a-color-fg-subtle: var(--muted-foreground);
+  --a-color-fg-link: #76dfff;
+  --a-color-primary: var(--primary);
+  --a-color-primary-hover: var(--primary-hover);
+  --a-color-primary-active: var(--primary-active);
+  --a-color-primary-fg: var(--primary-foreground);
+  --a-color-primary-subtle: var(--accent);
+  --a-color-primary-subtle-fg: var(--accent-foreground);
+  --a-color-primary-border: var(--border);
+  --an-paper: var(--background);
+  --an-ink: var(--foreground);
+  --an-chart-1: var(--chart-1);
+  --an-chart-2: var(--chart-2);
+}
+
+.an-shell .an-sidebar { width: 16rem; }
+.an-shell .an-sidebar[data-collapsed] { width: 3.75rem; }
+.an-shell .an-sidebar-header { padding: .75rem .5rem .5rem; }
+.an-shell .an-sidebar-nav { padding: .5rem; }
+.an-shell .an-sidebar-footer { padding: .5rem; }
+.an-shell .an-utilities { height: 4rem; background: var(--background); backdrop-filter: none; }
+.an-shell .an-main { padding-block: 1.5rem; }
+.an-shell .an-page { gap: 1.5rem; max-width: 88rem; }
+.an-shell .an-page-title { font: 600 1.5rem/1.2 var(--an-font-display); letter-spacing: -.025em; }
+.an-shell .an-navigation { gap: .75rem; }
+.an-shell .an-navigation > div > div:first-child { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.an-shell .an-navigation a { min-height: 2.25rem; }
+.an-shell .an-navigation [aria-current='page'] { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+.an-shell .an-navigation [aria-current='page'] svg { color: currentColor; }
+.an-shell .an-brand { display: none; }
+.an-workspace-theme .floating-support { display: none; }
+.an-shell .an-card, .an-shell section.rounded-xl { border-radius: .5rem; box-shadow: none; }
+.an-shell [data-slot='data-table'] { border-radius: .25rem; box-shadow: none; }
+.an-shell [data-slot='data-table'] thead tr { background: var(--card); }
+.an-shell [data-slot='data-table'] tbody tr { height: 4rem; }
+.an-shell [data-slot='filters'] { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.an-shell [data-slot='filters'] > div:first-child { display: contents; }
+.an-shell [data-slot='filters'] > div:first-child > div:first-child { flex: 0 1 16rem; }
+.an-shell [data-slot='filters'] > div:nth-child(2) { margin-top: 0; }
+.an-shell .an-figure { font-family: var(--an-font-display); font-weight: 600; }
+.an-shell :is(input, textarea, select, button) { border-radius: .375rem; }
+.an-shell :is(input, textarea, select, button):focus-visible { outline-color: var(--ring); }
+@media (max-width: 47.99rem) {
+  .an-shell .an-main { padding: 1rem; }
+  .an-shell .an-page-title { font-size: 1.5rem; }
+  .an-sheet .an-navigation a { min-height: 2.75rem; }
+  .an-shell [data-slot='filters'] > div:first-child { display: flex; width: 100%; }
+  .an-shell [data-slot='filters'] > div:first-child > div:first-child { flex: 1 1 auto; }
+}
+
+/* The live Vendure demo places authentication in a compact centered card. */
+.an-auth {
+  display: block;
+  min-height: 100dvh;
+  background: #f5f9fb;
+  --a-color-bg: #f5f9fb;
+  --a-color-surface: #fff;
+  --a-color-fg: #08212b;
+  --a-color-fg-muted: #485d67;
+  --a-color-fg-link: #006a8d;
+  --a-color-border: #cbd6dc;
+  --a-color-border-input: #c5d0d6;
+  --a-color-ring: #087ba7;
+  --a-color-primary: #16c1fe;
+  --a-color-primary-hover: #3bceff;
+  --a-color-primary-active: #00a8e8;
+  --a-color-primary-fg: #08212b;
+  --primary: #16c1fe;
+  --primary-foreground: #08212b;
+  --primary-hover: #3bceff;
+  --primary-active: #00a8e8;
+  --ring: #087ba7;
+  --border: #cbd6dc;
+  --input: #c5d0d6;
+  --card: #fff;
+  --foreground: #08212b;
+  --muted-foreground: #485d67;
+}
+.an-auth-main { min-height: 100dvh; padding: 2rem 1rem; }
+.an-auth-content { width: min(100%, 450px); padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.an-auth-brand { display: flex; width: auto; height: auto; margin: 0 auto 1.5rem; border-radius: 0; background: none; }
+.an-auth-brand svg { height: 2.25rem; }
+.an-auth-card { width: 100%; padding: 3rem 1.5rem 1.5rem; border: 1px solid #d8e0e4; border-radius: .25rem; background: #fff; }
+.an-auth-heading { margin-bottom: 1.5rem; }
+.an-auth-heading h1 { font-family: 'Public Sans Variable', 'Public Sans', var(--an-font-khmer), system-ui, sans-serif; font-size: 1.5rem; line-height: 1.25; font-weight: 700; }
+.an-auth-heading p { margin-top: .5rem; font-size: .875rem; line-height: 1.5; }
+.an-auth-form { gap: 1rem; }
+.an-auth .an-floating-field :is(input, button),
+.an-auth .an-form-field input,
+.an-auth .an-input input { height: 2.25rem; font-size: .875rem; border-radius: .25rem; }
+.an-auth .an-code-input input { height: 3.5rem; }
+.an-auth-options { margin-top: 0; }
+.an-auth-submit { margin-top: 0; }
+.an-auth-submit > button { width: 100%; min-height: 2.25rem; border-radius: .25rem; font-size: .875rem; }
+.an-auth-alternative { gap: .5rem; }
+.an-auth-divider { margin-top: 1.25rem; }
+.an-auth-back { margin-top: 1.5rem; }
+.an-auth-note { margin-top: 1.5rem; font-size: .75rem; line-height: 1.5; }
+@media (max-width: 47.99rem) {
+  .an-auth-card { padding: 2rem 1.25rem 1.25rem; }
+}
+[data-theme='dark'] .an-auth {
+  background: #101a20;
+  --a-color-bg: #101a20;
+  --a-color-surface: #19262e;
+  --a-color-fg: #eef8fc;
+  --a-color-fg-muted: #a8bbc4;
+  --a-color-border: #42545e;
+  --a-color-border-input: #536670;
+  --card: #19262e;
+  --foreground: #eef8fc;
+  --border: #42545e;
+  --input: #536670;
+  --muted-foreground: #a8bbc4;
+}
+[data-theme='dark'] .an-auth-card { background: #19262e; border-color: #42545e; }

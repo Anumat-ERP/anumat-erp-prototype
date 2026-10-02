@@ -1,12 +1,11 @@
 import { ActionMenu, AppShell, Avatar, IconButton, Navigation, SidebarProvider, useSidebar, useToast, cn, type NavigationSection } from '@app/ui';
-import { BarChart3, Bell, Check, Plus, Rows3, Send, ChevronsUpDown, CircleHelp, FileText, LayoutDashboard, LayoutTemplate, ListChecks, Inbox, Moon, Presentation, RotateCcw, Search, Sun, UsersRound, Workflow } from 'lucide-react';
+import { BarChart3, Bell, Check, Plus, Rows3, Send, ChevronsUpDown, CircleHelp, Compass, FileText, LayoutDashboard, LayoutTemplate, ListChecks, Inbox, Moon, Presentation, RotateCcw, Search, Sun, UsersRound, Workflow } from 'lucide-react';
 import { useEffect, useState, type ComponentPropsWithRef } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { CommandPalette } from '../components/CommandPalette';
 import { useTour } from '../components/DemoTour';
 import { FeedbackDialog } from '../components/Feedback';
 import { navLink } from '../components/links';
-import { Logo, LogoMark } from '../components/Logo';
 import { Notifications } from '../components/Notifications';
 import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
 import { useStore, waitingOnMe } from '../data/store';
@@ -67,6 +66,7 @@ const DEMO_ROLES: Record<string, string> = {
 
 /** Page names for the breadcrumb, by top-level path. */
 const PAGE_NAMES: Array<[string, string]> = [
+  ['/discover', 'Explore modules'],
   ['/home', 'Dashboard'],
   ['/requests', 'Requests'],
   ['/approvals', 'Approvals'],
@@ -91,6 +91,10 @@ export function Shell() {
 }
 
 function ShellFrame() {
+  useEffect(() => {
+    document.documentElement.classList.add('an-workspace-theme');
+    return () => document.documentElement.classList.remove('an-workspace-theme');
+  }, []);
   const { t: tr } = useLocale();
   const { state, me, dispatch } = useStore();
   const { pathname, hash, search } = useLocation();
@@ -122,6 +126,7 @@ function ShellFrame() {
     {
       title: tr('Workspace'),
       items: [
+        { label: tr('Explore modules'), href: '/discover', icon: <Compass />, selected: at('/discover') },
         { label: tr('Dashboard'), href: '/home', icon: <LayoutDashboard />, selected: at('/home') },
         { label: tr('Requests'), href: '/requests', icon: <FileText />, selected: at('/requests') },
         {
@@ -291,14 +296,7 @@ function ShellFrame() {
 function SidebarBrand({ homeLabel }: { homeLabel: string }) {
   const { collapsed } = useSidebar();
   return (
-    <div className={cn('flex flex-col gap-3', collapsed && 'items-center')}>
-      <Link
-        to="/home"
-        aria-label={homeLabel}
-        className={cn('an-brand inline-flex h-9 items-center rounded-md focus-visible:outline-2 focus-visible:outline-ring', !collapsed && 'px-1')}
-      >
-        {collapsed ? <LogoMark className="size-8" /> : <Logo className="h-7 w-auto text-foreground" />}
-      </Link>
+    <div className={cn('flex flex-col', collapsed && 'items-center')} aria-label={homeLabel}>
       <WorkspaceSwitcher />
     </div>
   );

@@ -1,149 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-test('Khmer translates seeded workflow content and form choices', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('anumat-locale', 'km'));
-  await page.goto('/home');
-  await expect(page.getByText('កុំព្យូទ័រយួរដៃសម្រាប់សមាជិកថ្មី', { exact: true }).first()).toBeVisible();
-  await page.goto('/processes/proc-purchase');
-  await expect(page.getByRole('heading', { name: 'ការអនុម័តការទិញ' })).toBeVisible();
-  await expect(page.getByRole('combobox', { name: /ប្រភេទចម្លើយ/ }).first()).toBeVisible();
-  await expect(page.getByText('ជម្រើសច្រើន', { exact: true }).first()).toBeVisible();
-  await page.goto('/tasks');
-  await expect(page.getByText('កំណត់តំបន់ឃ្លាំងសម្រាប់សាកល្បងរាប់ស្តុក', { exact: true }).first()).toBeVisible();
-});
-
-test('requests support search, clearing, filtering and view tabs', async ({
-  page,
-}) => {
-  await page.goto('/requests');
-  await expect(page.getByRole('button', { name: 'New request', exact: true })).toHaveClass(/bg-primary/);
-  await expect(
-    page.getByRole('heading', { name: 'Requests', exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole('searchbox', { name: 'Search requests' })
-    .fill('Laptops');
-  await expect(page.locator('tbody tr')).toHaveCount(1);
-  await page.getByRole('button', { name: 'Clear', exact: true }).click();
-  await expect(page.locator('tbody tr')).toHaveCount(12);
-  await page
-    .getByRole('group', { name: 'Filters', exact: true })
-    .getByRole('button', { name: 'Status', exact: true })
-    .click();
-  await page.getByRole('checkbox', { name: 'Approved', exact: true }).click();
-  await expect(
-    page.getByRole('checkbox', { name: 'Approved', exact: true }),
-  ).toBeChecked();
-  await page.keyboard.press('Escape');
-  await expect(page.locator('tbody tr')).toHaveCount(4);
-  await page.getByRole('button', { name: 'Clear all', exact: true }).click();
-  await page
-    .getByRole('tab', { name: 'Submitted by you', exact: true })
-    .click();
-  await expect(page.locator('tbody tr')).toHaveCount(2);
-});
-
-test('new request submission keeps values and demo persistence', async ({
-  page,
-}) => {
-  await page.goto('/requests/new?demo=laptops');
-  await page
-    .getByRole('textbox', { name: 'Title', exact: false })
-    .fill('Material UI request smoke test');
-  await page
-    .getByRole('button', { name: 'Submit for approval', exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/requests\/PR-\d+/);
-  await expect(
-    page.getByRole('heading', {
-      name: 'Material UI request smoke test',
-      exact: true,
-    }),
-  ).toBeVisible();
-  await page.reload();
-  await expect(
-    page.getByRole('heading', {
-      name: 'Material UI request smoke test',
-      exact: true,
-    }),
-  ).toBeVisible();
-  await expect(
-    page.getByText('Quote_Supplier_A.pdf', { exact: true }),
-  ).toBeVisible();
-});
-
-test('approval dialog validates required comments, then persists the decision', async ({
-  page,
-}) => {
-  await page.goto('/requests/LV-2031');
-  await page
-    .getByRole('button', { name: 'Request changes', exact: true })
-    .click();
-  const dialog = page.getByRole('dialog', { name: 'Request changes' });
-  await expect(dialog).toBeVisible();
-  await dialog.getByRole('button', { name: 'Send back', exact: true }).click();
-  await expect(
-    dialog.getByText(/Say what needs to change, so the requester can fix it\./),
-  ).toBeVisible();
-  await dialog
-    .getByRole('textbox', { name: 'What needs to change?', exact: false })
-    .fill('Please confirm the leave dates.');
-  await dialog.getByRole('button', { name: 'Send back', exact: true }).click();
-  await expect(dialog).not.toBeVisible();
-  await expect(
-    page.getByText('Changes requested', { exact: true }).first(),
-  ).toBeVisible();
-  await page.reload();
-  await expect(
-    page.getByText('Please confirm the leave dates.', { exact: false }).first(),
-  ).toBeVisible();
-});
-
-test('bulk approval selects the visible rows and updates the queue', async ({
-  page,
-}, testInfo) => {
-  test.skip(
-    testInfo.project.name === 'mobile',
-    'Mobile uses individual request cards.',
-  );
-  await page.goto('/approvals');
-  await page
-    .getByRole('checkbox', { name: 'Select all 4 requests on this page' })
-    .check();
-  await expect(page.getByText('4 selected', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Approve', exact: true }).click();
-  await expect(
-    page.getByRole('heading', { name: 'All caught up', exact: true }),
-  ).toBeVisible();
-});
-
-test('preset marketplace installs an independent paused process', async ({
-  page,
-}) => {
-  await page.goto('/processes');
-  await page.getByRole('tab', { name: 'Templates', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Start from a template' })).toBeVisible();
-  await page.getByRole('searchbox', { name: 'Search templates' }).fill('Business travel');
-  await page.getByRole('button', { name: /^Business travel/ }).click();
-  const sheet = page.getByRole('dialog', { name: 'Business travel' });
-  // Approvers are suggested, and each can be changed.
-  await sheet.getByRole('combobox', { name: /^2\./ }).click();
-  await page.getByRole('option', { name: /Sokha Chan/ }).click();
-  await expect(sheet.getByRole('combobox', { name: /^2\./ })).toContainText('Sokha Chan');
-  await sheet.getByRole('button', { name: 'Use template', exact: true }).click();
-  await expect(page).toHaveURL(/\/processes\/(?!\?)[^/]+/);
-  await expect(page.getByRole('textbox', { name: 'Request type name', exact: true }).first()).toHaveValue(
-    'Business travel',
-  );
-  const paused = await page.evaluate(() => {
-    const root = JSON.parse(localStorage.getItem('anumat-hackathon-v1')!);
-    return root.spaces[root.active].processes.find(
-      (p: { name: string }) => p.name === 'Business travel',
-    )?.active;
-  });
-  expect(paused).toBe(false);
-});
-
 test('account menu works by keyboard and restores trigger focus', async ({
   page,
 }) => {
@@ -225,7 +81,7 @@ test('all prototype routes render without runtime errors', async ({ page }) => {
     '/requests',
     '/approvals',
     '/processes',
-    '/processes/proc-purchase',
+    '/processes?tab=marketplace',
     '/settings/people',
     '/settings/notifications',
     '/insights',
@@ -243,20 +99,6 @@ test('all prototype routes render without runtime errors', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('dashboard request links keep the personal scope and status on reload', async ({ page }) => {
-  await page.goto('/home');
-  const personal = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Your requests', exact: true }) });
-  await personal.getByRole('link', { name: 'View all', exact: true }).click();
-  await expect(page.getByRole('tab', { name: 'Submitted by you', exact: true })).toHaveAttribute('aria-selected', 'true');
-  await expect(page.locator('tbody tr')).toHaveCount(2);
-  await page.reload();
-  await expect(page.locator('tbody tr')).toHaveCount(2);
-  await page.goto('/home');
-  await personal.getByRole('link', { name: /^To do/ }).click();
-  await expect(page.locator('tbody tr')).toHaveCount(1);
-  await expect(page.locator('tbody')).toContainText('Warehouse barcode scanners');
-});
-
 test('page actions and workspace utilities remain separately clickable', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === 'mobile', 'Mobile utilities use a separate header.');
   for (const width of [1440, 1100, 900]) {
@@ -271,26 +113,24 @@ test('page actions and workspace utilities remain separately clickable', async (
   }
 });
 
-test('workspace setup validates the company and processes before creating a workspace', async ({ page }) => {
+test('workspace setup creates a workspace without starter processes', async ({ page }) => {
   await page.goto('/welcome');
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.getByText(/Enter your company’s name. You can change it later\./)).toBeVisible();
   await page.getByRole('textbox', { name: 'Company name', exact: false }).fill('Quay Operations');
-  await page.getByRole('combobox', { name: 'Company size', exact: false }).click();
-  await page.getByRole('option', { name: /1–49/ }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Invite your team', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Choose how things get approved', exact: true })).toBeVisible();
-  for (const checkbox of await page.getByRole('checkbox').all()) await checkbox.uncheck();
+  await expect(page.getByText(/No approval processes yet/)).toBeVisible();
   await page.getByRole('button', { name: 'Create workspace', exact: true }).click();
-  await expect(page.getByText('Turn on at least one process, so requests have somewhere to go.', { exact: true })).toBeVisible();
-  await page.getByRole('checkbox').first().check();
-  await page.getByRole('button', { name: 'Create workspace', exact: true }).click();
-  await expect(page).toHaveURL(/\/home$/);
+  await expect(page).toHaveURL(/\/discover$/);
   await page.reload();
-  if (page.viewportSize()!.width < 768) await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Workspace: Quay Operations. Switch workspace', exact: true })).toBeVisible();
+  const saved = await page.evaluate(() => {
+    const root = JSON.parse(localStorage.getItem('anumat-hackathon-v1')!);
+    return root.spaces[root.active];
+  });
+  expect(saved.org.name).toBe('Quay Operations');
+  expect(saved.processes).toHaveLength(0);
+  expect(saved.requests).toHaveLength(0);
 });
 
 test('login validates fields, reveals password, verifies code and remembers only email', async ({ page }) => {
@@ -309,8 +149,8 @@ test('login validates fields, reveals password, verifies code and remembers only
   await expect(page.getByRole('alert')).toContainText('Wrong verification code');
   await page.getByRole('textbox', { name: 'Digit 1 of 6' }).fill('123456');
   await page.getByRole('button', { name: 'Verify code', exact: true }).click();
-  await expect(page).toHaveURL(/\/home$/);
-  await expect(page.getByRole('heading', { name: /Alex/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/discover$/);
+  await expect(page.getByRole('heading', { name: 'What would you like to work on?' })).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem('anumat-demo-email'))).toBe('alex@example.com');
   expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain('demo-password');
   await page.goto('/signin');
@@ -353,5 +193,6 @@ test('SSO demo supports code paste, replacement and keyboard correction', async 
   await expect(page.getByRole('textbox', { name: 'Digit 5 of 6' })).toBeFocused();
   await page.getByRole('textbox', { name: 'Digit 5 of 6' }).fill('56');
   await page.getByRole('button', { name: 'Verify code' }).click();
-  await expect(page.getByRole('heading', { name: /Sokha/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/discover$/);
+  await expect(page.getByRole('button', { name: /^Account: Sokha/ })).toBeVisible();
 });

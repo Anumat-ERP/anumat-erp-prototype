@@ -1,4 +1,5 @@
 import { ArrowUpRight, Send } from 'lucide-react';
+import { useLocation } from 'react-router';
 import { CONFIG } from '../config';
 import { useLocale } from '../i18n/LocaleProvider';
 import { useTour } from './DemoTour';
@@ -6,8 +7,9 @@ import { useTour } from './DemoTour';
 export function FloatingSupport() {
   const { t } = useLocale();
   const { step } = useTour();
+  const { pathname } = useLocation();
 
-  if (step !== null) return null;
+  if (step !== null || pathname === '/signin') return null;
 
   return (
     <a

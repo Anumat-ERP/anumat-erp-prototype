@@ -9,5 +9,6 @@
 @import './pages.css';
 @import './pricing.css';
 @import './support.css';
+@import './vendure-dashboard.css';
 /* App sources for Tailwind to scan. */
 @source '../';

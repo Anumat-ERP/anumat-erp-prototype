@@ -7,6 +7,8 @@ import { useTour } from '../components/DemoTour';
 import { Logo } from '../components/Logo';
 import { PublicHeader } from '../components/PublicHeader';
 import { useLocale } from '../i18n/LocaleProvider';
+import { useStore } from '../data/store';
+import { workspaceEntryPath } from '../lib/moduleEntry';
 import { useReveal } from '../lib/motion';
 import workspaceArt from '../assets/illustrations/workspace-folder.webp';
 import dashboardPreview from '../assets/illustrations/dashboard-preview.webp';
@@ -35,6 +37,8 @@ const FAQ = [
 ];
 
 export function Landing() {
+  const { activeWorkspace } = useStore();
+  const entryPath = workspaceEntryPath(activeWorkspace);
   const { t: tr } = useLocale();
   const navigate = useNavigate();
   const tour = useTour();
@@ -80,7 +84,7 @@ export function Landing() {
 
           <h2 id="how-title">{tr('Good decisions start with a clear process.')}</h2>
           <ol className="an-flow-list">{FLOW.map((step, i) => <li key={step.title}><span aria-hidden>{i + 1}</span><div><h3>{tr(step.title)}</h3><p>{tr(step.text)}</p></div></li>)}</ol>
-          <Button variant="primary" trailingIcon={<ArrowRight />} onClick={() => navigate('/home')}>{tr('Open the prototype')}</Button>
+          <Button variant="primary" trailingIcon={<ArrowRight />} onClick={() => navigate(entryPath)}>{tr('Open the prototype')}</Button>
         </div>
       </section>
       <section data-reveal id="product" className="an-public-section" aria-labelledby="product-title">
@@ -105,7 +109,7 @@ export function Landing() {
         <div className="an-footer-brand">
           <a href="#top" className="an-footer-logo"><Logo className="h-8 w-auto" /></a>
           <p>{tr('Decision & operations ERP for modern teams. Ask, approve, move forward.')}</p>
-          <Link to="/home" className="an-footer-demo">{tr('Explore the prototype')}<ArrowRight aria-hidden className="size-4" /></Link>
+          <Link to={entryPath} className="an-footer-demo">{tr('Explore the prototype')}<ArrowRight aria-hidden className="size-4" /></Link>
         </div>
         <nav aria-label={tr('Product')} className="an-footer-col">
           <h2>{tr('Product')}</h2>

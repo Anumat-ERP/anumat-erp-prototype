@@ -10,10 +10,11 @@ const GUIDES = [
     { id: 'workflow', title: 'How it works', text: 'Raise a request with the details and supporting files. Your approval process routes it to the right people. Reviewers make a decision with a reason on record, and your team follows up with tasks and deadlines.' },
     { id: 'prototype', title: 'Explore the prototype', text: 'Submit requests, review approvals, build approval processes and switch between demo people. Changes are saved in your browser. Reset the demo from the account menu whenever you want.' },
   ] },
-  { slug: 'quickstart', title: 'Quickstart', icon: ArrowRight, summary: 'Try your first request with a ready-to-use demo workspace.', sections: [
-    { id: 'workspace', title: '1. Open the workspace', text: 'Open the prototype to explore the demo company, or choose Create a workspace to walk through setup. The demo includes people, requests and starter approval processes.' },
-    { id: 'request', title: '2. Raise a request', text: 'Open Requests and choose New request. Pick a request type, add a title and the required details, and submit it for approval.' },
-    { id: 'decision', title: '3. Follow the decision', text: 'Open the request to see its approval steps and history. Switch to a demo approver from the account menu, then open Approvals to review the request.' },
+  { slug: 'quickstart', title: 'Quickstart', icon: ArrowRight, summary: 'Create an approval process, then try your first request.', sections: [
+    { id: 'workspace', title: '1. Open the workspace', text: 'Open the prototype to explore the demo company, or choose Create a workspace to walk through setup. Requests and approval processes start empty.' },
+    { id: 'process', title: '2. Create a process', text: 'Open Approval processes, choose New process, assign the reviewers, and save it as active.' },
+    { id: 'request', title: '3. Raise a request', text: 'Open Requests and choose New request. Pick the active request type, add a title and the required details, and submit it for approval.' },
+    { id: 'decision', title: '4. Follow the decision', text: 'Open the request to see its approval steps and history. Switch to its approver from the account menu, then open Approvals to review the request.' },
   ] },
   { slug: 'requests', title: 'Requests', icon: FileText, summary: 'Give approvers the context they need to make a decision.', sections: [
     { id: 'create', title: 'Create a request', text: 'Purchases, leave, expenses and contracts each have a request type. Choose New request, fill in the details required by the form and add supporting files when needed.' },

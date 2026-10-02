@@ -16,7 +16,7 @@ import {
   useToast,
 } from '@app/ui';
 import { useState, type FormEvent } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { ApprovalTimeline } from '../components/ApprovalTimeline';
 import { FormRenderer } from '../components/forms/FormRenderer';
 import { headerLink } from '../components/links';
@@ -43,10 +43,9 @@ const toDateInput = (iso?: string) => (iso ? iso.slice(0, 10) : '');
 export function NewRequest() {
   const { t: tr } = useLocale();
   const { id } = useParams();
-  const [params] = useSearchParams();
   const { state, me } = useStore();
   const navigate = useNavigate();
-  if (!id) return <RequestForm key={params.get('demo') ?? 'new'} />;
+  if (!id) return <RequestForm key="new" />;
   const existing = state.requests.find((r) => r.id === id);
   const editable = existing && existing.requesterId === me.id && (existing.status === 'draft' || existing.status === 'changes');
   if (!existing || !editable) {
@@ -63,28 +62,10 @@ export function NewRequest() {
   return <RequestForm key={existing.id} existing={existing} />;
 }
 
-const DEMO: Record<string, Partial<Request>> = {
-  laptops: {
-    type: 'purchase',
-    title: 'Laptops for 3 new analysts',
-    amount: 7500,
-    fields: { 'new-supplier': 'No' },
-    department: 'Operations',
-    description: 'Three laptops for the analysts starting next month. Two quotes attached; we recommend the cheaper one with the 3-year warranty.',
-    attachments: [
-      { name: 'Quote_Supplier_A.pdf', size: 312_000 },
-      { name: 'Quote_Supplier_B.pdf', size: 298_000 },
-    ],
-  },
-};
-
 function RequestForm({ existing: saved }: { existing?: Request }) {
   const { t: tr } = useLocale();
-  const [params] = useSearchParams();
-  const demo = DEMO[params.get('demo') ?? ''];
   const existing = saved;
-  // Starting values: the request being edited, or a demo prefill (?demo=laptops).
-  const initial: Partial<Request> | undefined = saved ?? demo;
+  const initial: Partial<Request> | undefined = saved;
   const { state, me, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -211,6 +192,16 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
     });
     navigate(`/requests/${id}`);
   };
+
+  if (!existing && allowed.length === 0) {
+    return <>
+      <PageHeader title={tr('New request')} backAction={{ content: tr('Requests'), href: '/requests' }} renderLink={headerLink} />
+      <EmptyState
+        heading={tr('No request types yet')}
+        action={<Button onClick={() => navigate('/processes')}>{tr('Approval processes')}</Button>}
+      >{tr('An admin needs to create and enable an approval process before anyone can submit a request.')}</EmptyState>
+    </>;
+  }
 
   return (
     <>

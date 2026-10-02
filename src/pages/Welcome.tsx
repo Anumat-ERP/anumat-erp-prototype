@@ -106,10 +106,6 @@ export function Welcome() {
       setStep(2);
       return;
     }
-    if (processIds.length === 0) {
-      setProcessError(tr('Turn on at least one process, so requests have somewhere to go.'));
-      return;
-    }
     const access = Object.fromEntries(
       invites.flatMap((i) => {
         const p = state.people.find((x) => x.name === i.name);
@@ -138,7 +134,7 @@ export function Welcome() {
       title: `Welcome to ${name.trim()}`,
       description: `${invites.length} teammates invited · ${processIds.length} approval processes on.`,
     });
-    navigate('/home');
+    navigate('/discover');
   };
 
   const addInvite = () => {
@@ -315,7 +311,9 @@ export function Welcome() {
                     {' '}
                     {tr('Choose how things get approved')}{' '}
                   </Text>
-                  <Text tone="muted">{tr("Starter processes with sensible rules. Change any of them later in Process Builder.")}</Text>
+                  <Text tone="muted">{state.processes.length
+                    ? tr("Choose the processes to enable. You can change them later in Process Builder.")
+                    : tr("No approval processes yet. Create this workspace, then add a process before submitting requests.")}</Text>
                 </div>
                 {processError ? <Banner tone="critical">{processError}</Banner> : null}
                 <fieldset className="an-process-choices grid gap-5 sm:grid-cols-2">

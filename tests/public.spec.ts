@@ -20,7 +20,7 @@ test('docs search and navigation lead to working guides and section anchors', as
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Approval processes');
   await expect(navigation.getByRole('link', { name: 'Approval processes', exact: true })).toHaveAttribute('aria-current', 'page');
   await page.goto('/docs/quickstart#request');
-  await expect(page.getByRole('heading', { name: '2. Raise a request' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '3. Raise a request' })).toBeVisible();
   await page.getByRole('searchbox', { name: 'Search documentation' }).fill('unknown-guide');
   await expect(page.getByRole('status')).toHaveText('No results found');
   await page.goto('/docs/missing');

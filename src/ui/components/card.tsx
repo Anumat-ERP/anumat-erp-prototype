@@ -19,7 +19,7 @@ export function Card({
   return (
     <Component
       className={cn(
-        'min-w-0 rounded-xl border border-border text-card-foreground shadow-card',
+        'an-card min-w-0 rounded-lg border border-border text-card-foreground',
         tone === 'muted' ? 'bg-muted' : 'bg-card',
         !flush && 'p-5 sm:p-6',
         className,

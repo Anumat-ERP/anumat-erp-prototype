@@ -9,7 +9,7 @@ for (const locale of ['en', 'km']) {
         localStorage.setItem('anumat-locale', locale);
         localStorage.setItem('anumat-theme', theme);
       }, { locale, theme });
-      for (const route of ['/signin', '/welcome', '/pricing', '/requests', '/requests/new', '/approvals', '/processes', '/processes/proc-purchase', '/settings/people', '/settings/notifications', '/insights', '/tasks', '/meetings', '/documents', '/surveys', '/support']) {
+      for (const route of ['/signin', '/welcome', '/pricing', '/requests', '/requests/new', '/approvals', '/processes', '/processes?tab=marketplace', '/settings/people', '/settings/notifications', '/insights', '/tasks', '/meetings', '/documents', '/surveys', '/support']) {
         await page.goto(route);
         await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
         await page.evaluate(() => document.fonts.ready);

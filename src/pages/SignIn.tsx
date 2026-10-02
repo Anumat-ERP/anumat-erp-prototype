@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router';
 import { AuthLayout } from '../components/AuthLayout';
 import { useStore } from '../data/store';
 import { useLocale } from '../i18n/LocaleProvider';
+import { workspaceEntryPath } from '../lib/moduleEntry';
 
 type Screen = 'login' | 'verify' | 'sso' | 'recover' | 'recovery-preview' | 'reset' | 'reset-done';
 const REMEMBERED_EMAIL = 'anumat-demo-email';
@@ -13,7 +14,7 @@ const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.tr
 /** Interactive auth demonstration. Passwords and codes are never stored or sent. */
 export function SignIn() {
   const { t: tr } = useLocale();
-  const { state, dispatch } = useStore();
+  const { state, activeWorkspace, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [screen, setScreen] = useState<Screen>('login');
@@ -35,7 +36,7 @@ export function SignIn() {
     else localStorage.removeItem(REMEMBERED_EMAIL);
     const who = match ?? state.people.find(p => p.id === state.meId);
     toast({ title: `Signed in to ${state.org.name}`, description: who ? `As ${who.name}` : undefined });
-    navigate('/home');
+    navigate(workspaceEntryPath(activeWorkspace));
   };
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -58,8 +59,8 @@ export function SignIn() {
     login: 'Welcome back!', verify: 'Enter the 6-digit code from your authenticator app', sso: 'Log in with SSO',
     recover: 'Forgot your password?', 'recovery-preview': 'Preview your recovery link', reset: 'Choose a new password', 'reset-done': 'You’re ready to log in',
   };
-  const emailField = <Field label={tr('Email address')} error={errors.email}>
-    <Input required type="email" autoComplete="username" value={email} onChange={event => { setEmail(event.target.value); setErrors(current => ({ ...current, email: undefined })); }} />
+  const emailField = <Field label={tr('Email address')} labelHidden error={errors.email}>
+    <Input required type="email" placeholder={tr('Email address')} autoComplete="username" value={email} onChange={event => { setEmail(event.target.value); setErrors(current => ({ ...current, email: undefined })); }} />
   </Field>;
   const back = <Button variant="plain" icon={<ArrowLeft size={18} />} onClick={() => go('login')}>{tr('Return to login')}</Button>;
   const passwordProps = { showLabel: tr('Show password'), hideLabel: tr('Hide password') };
@@ -76,8 +77,8 @@ export function SignIn() {
     {['login', 'sso', 'recover'].includes(screen) ? <form noValidate onSubmit={submit} className="an-auth-form">
       {emailField}
       {screen === 'login' ? <>
-        <Field label={tr('Password')} error={errors.password}>
-          <PasswordInput {...passwordProps} required autoComplete="current-password" value={password} onChange={event => { setPassword(event.target.value); setErrors(current => ({ ...current, password: undefined })); }} />
+        <Field label={tr('Password')} labelHidden error={errors.password}>
+          <PasswordInput {...passwordProps} required placeholder={tr('Password')} autoComplete="current-password" value={password} onChange={event => { setPassword(event.target.value); setErrors(current => ({ ...current, password: undefined })); }} />
         </Field>
         <div className="an-auth-options">
           <Checkbox label={tr('Remember me')} checked={remember} onCheckedChange={next => setRemember(next === true)} helpText={undefined} />

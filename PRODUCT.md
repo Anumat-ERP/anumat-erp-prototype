@@ -6,9 +6,11 @@ expense and contract requests carry their context, attachments, approval route,
 status and activity history. Operations, finance and people teams are the audiences
 named in the existing product copy.
 
-The prototype runs entirely in the browser. Its demo workspaces, people and request
-history come from `src/data/seed.ts` and `src/data/seedMekong.ts`; changes persist in
-local storage. Sign-in, invitations, notifications and sales submission demonstrate
+The prototype runs entirely in the browser. Its demo workspaces and people come from
+`src/data/seed.ts` and `src/data/seedMekong.ts`; requests, approval processes, and
+templates start empty. Older browser storage is cleaned of shipped workflow examples
+while user-created records remain. Changes persist in local storage. Sign-in,
+invitations, notifications and sales submission demonstrate
 flows. They do not authenticate an account, send messages or provision a server.
 The account menu switches demo people and resets demo data. Login and SSO lead
 to a six-digit verification demo using code `123456`. Recovery opens a local reset
@@ -16,6 +18,9 @@ preview; it sends no email and saves no password. Remember me saves only the
 email address on this device.
 
 Public routes include the landing page, sign-in, workspace setup and pricing.
+The first entry to each workspace opens a module catalog for Requests & Approvals,
+Tasks, Meetings, and upcoming Resources. Returning entries open the dashboard;
+the sidebar keeps the catalog available at any time.
 Workspace setup captures the company name and size, teammate access and active
 approval processes. The sidebar focuses on Home, Requests, Approvals and their
 administration. Historical task, meeting, document and survey routes remain

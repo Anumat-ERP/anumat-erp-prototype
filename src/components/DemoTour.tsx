@@ -15,56 +15,35 @@ interface Step {
   doThis: string;
 }
 
-/** The 3-minute pitch: sign up, then one request from ask to decision to action to insight. */
+/** A short walkthrough of the now-empty workflow workspace. */
 export const TOUR: Step[] = [
   {
     title: 'Sign up',
     as: 'dara',
     to: '/welcome?demo=1',
     say: 'Dara runs operations at a logistics company where approvals live in email. She sets up Anumat for the whole company in under a minute.',
-    doThis: 'Confirm Lotus Logistics, click Continue, review the team roles, click Continue, keep Purchase request enabled, then click Create workspace.',
+    doThis: 'Name the workspace, review the team roles, then create it without starter approval processes.',
   },
   {
     title: 'The problem',
     as: 'dara',
     to: '/home',
-    say: 'Before Anumat, requests lived in email, chat and spreadsheets. Now everything waiting on Dara is in one place.',
-    doThis: 'Review Waiting on you, Recent activity, and the workspace name in the sidebar.',
+    say: 'The workspace starts with no requests or approvals. The team can define its own process before work begins.',
+    doThis: 'Review the empty approval summary and open Approval processes.',
   },
   {
-    title: 'Change the rules',
+    title: 'Create the rules',
     as: 'dara',
-    to: '/processes/proc-purchase',
-    say: 'Review the purchase approval rules before submitting: Dara reviews first, Finance reviews from $1,000, and final approval starts at $10,000.',
-    doThis: 'Use Try it with 500, then 7500, to compare the approval route. Keep the rules unchanged for the next steps.',
+    to: '/processes',
+    say: 'A workspace owner creates a process to decide who reviews each kind of request.',
+    doThis: 'Choose New process, name the request type, set approvers, and save it.',
   },
   {
     title: 'Ask',
-    as: 'alex',
-    to: '/requests/new?demo=laptops',
-    say: 'Alex needs laptops for three new analysts. One form, and Anumat already shows who will approve it.',
-    doThis: 'Change the amount to 500, then back to 7500: watch the route change. Then Submit for approval.',
-  },
-  {
-    title: 'Approve',
     as: 'dara',
-    to: '/approvals',
-    say: 'Dara reviews the submitted laptop request, including the amount, reason, files, and approval route.',
-    doThis: 'Find Laptops for 3 new analysts, open it, click Approve, then confirm the decision in the dialog.',
-  },
-  {
-    title: 'Approve from Telegram',
-    as: 'priya',
-    to: '/telegram',
-    say: 'It’s over $1,000, so Finance reviews next. Priya gets it on Telegram, where she already is. Finance must say which budget it comes from, so she taps the budget line and it’s approved. Nobody chased anyone.',
-    doThis: 'Tap “Approve · Q4 equipment” on the laptops message.',
-  },
-  {
-    title: 'Track',
-    as: 'sokha',
-    to: '/insights',
-    say: 'Leadership sees how fast decisions happen and where they get stuck. Ask, approve, move forward.',
-    doThis: 'Hover “Where requests are waiting”.',
+    to: '/requests/new',
+    say: 'Once a process is active, anyone allowed by its rules can submit a request and follow the decision.',
+    doThis: 'If you created a process, choose its request type and submit a request. Otherwise, return to Approval processes.',
   },
 ];
 

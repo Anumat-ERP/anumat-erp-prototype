@@ -4,7 +4,7 @@ test('home shows the flow strip with live counts', async ({ page }) => {
   await page.goto('/home');
   const flow = page.getByRole('list', { name: 'Ask, approve, execute, track' });
   await expect(flow.getByRole('listitem')).toHaveCount(4);
-  await expect(flow.getByRole('link', { name: /Approve.*4/ })).toHaveAttribute('href', '/approvals');
+  await expect(flow.getByRole('link', { name: /Approve.*0/ })).toHaveAttribute('href', '/approvals');
   await expect(page.getByRole('heading', { name: 'Waiting on you' })).toBeVisible();
   await expect(page.getByRole('figure', { name: /Requests over time/ })).toBeVisible();
 });
