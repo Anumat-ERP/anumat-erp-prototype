@@ -1,4 +1,4 @@
-import { CircularProgress } from '@mui/material';
+import { Spinner } from './spinner';
 import { useEffect, useRef, useState, type ComponentPropsWithRef } from 'react';
 import { Input } from './input';
 export interface SearchFieldProps
@@ -85,7 +85,7 @@ export function SearchField({
         }}
         onChange={(e) => emit(e.target.value)}
         onClear={onClear}
-        suffix={loading ? <CircularProgress size={16} /> : undefined}
+        suffix={loading ? <Spinner size="sm" label={null} /> : undefined}
       />
     </div>
   );

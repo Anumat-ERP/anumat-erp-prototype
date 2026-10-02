@@ -78,7 +78,6 @@ export function ProcessMarketplace() {
         </Field>
         <Field label={tr('Category')}>
           <Select
-            className="h-10 w-full rounded-md border border-border-input bg-surface px-3 text-fg focus-visible:outline-2 focus-visible:outline-ring"
             aria-label={tr('Category')}
             value={category}
             onChange={(e) => setCategory(e.target.value)}

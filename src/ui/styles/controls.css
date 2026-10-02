@@ -1,0 +1,63 @@
+/* Field details that utilities can't express on their own. */
+
+/* Floating label: rests inside the box, rises when focused or filled. */
+.an-floating-field { position: relative; }
+.an-floating-label {
+  position: absolute;
+  inset-inline-start: 1rem;
+  top: 50%;
+  max-width: calc(100% - 3rem);
+  overflow: hidden;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  font-size: var(--a-text-md);
+  line-height: 1.4;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  transition: top var(--a-duration-fast) var(--a-ease-standard), font-size var(--a-duration-fast) var(--a-ease-standard), transform var(--a-duration-fast) var(--a-ease-standard);
+}
+.an-floating-field:focus-within .an-floating-label,
+.an-floating-field[data-filled] .an-floating-label {
+  top: 0.55rem;
+  transform: none;
+  font-size: var(--a-text-xs);
+}
+.an-floating-field:focus-within .an-floating-label { color: var(--primary); }
+.an-floating-field:has([aria-invalid='true']) .an-floating-label { color: var(--destructive-subtle-foreground); }
+.an-floating-field :is(input, button)[aria-invalid='true'] { background-color: var(--destructive-subtle); }
+html[lang='km'] .an-floating-field:focus-within .an-floating-label,
+html[lang='km'] .an-floating-field[data-filled] .an-floating-label { top: 0.35rem; }
+
+/* Larger fields on the sign-in screens. */
+.an-auth .an-floating-field :is(input, button) { height: 4.25rem; font-size: var(--a-text-lg); }
+@media (max-width: 47.99rem) {
+  .an-auth .an-floating-field :is(input, button) { height: 4rem; font-size: var(--a-text-md); }
+}
+
+/* Six-digit verification code. */
+.an-code-field { margin: 0; padding: 0; border: 0; min-width: 0; }
+.an-code-input { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.625rem; }
+.an-code-input input {
+  height: 4.25rem;
+  padding: 0;
+  text-align: center;
+  font-size: var(--a-text-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.an-code-input input[aria-invalid='true'] { background-color: var(--destructive-subtle); }
+@media (max-width: 47.99rem) {
+  .an-code-input { gap: 0.5rem; }
+  .an-code-input input { height: 3.625rem; }
+}
+
+/* Overlay entrance: one short fade and lift, skipped for reduced motion. */
+@keyframes an-pop-in {
+  from { opacity: 0; transform: translateY(-2px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.an-pop[data-state='open'] { animation: an-pop-in var(--a-duration-fast) var(--a-ease-enter); }
+@media (prefers-reduced-motion: reduce) {
+  .an-pop[data-state='open'] { animation: none; }
+}

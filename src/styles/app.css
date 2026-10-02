@@ -4,5 +4,6 @@
 @import './motion.css';
 /* Palette C last, so it is the colour source of truth over the older sheets. */
 @import '@app/ui/styles/shadcn.css';
+@import '@app/ui/styles/controls.css';
 /* App sources for Tailwind to scan. */
 @source '../';
