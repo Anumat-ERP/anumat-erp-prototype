@@ -1,0 +1,188 @@
+/* Palette C: logo navy primary, Mintlify mint accent.
+ * shadcn's variable names are the source of truth; the app's existing
+ * --a-color-* vocabulary is aliased to them below, so every utility class
+ * already used by pages (bg-surface, text-fg-muted, …) follows the palette. */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --radius: 0.625rem;
+  --background: #f8fafc;
+  --foreground: #0b1b33;
+  --card: #ffffff;
+  --card-foreground: #0b1b33;
+  --popover: #ffffff;
+  --popover-foreground: #0b1b33;
+  --primary: #003d96;
+  --primary-foreground: #ffffff;
+  --primary-hover: #00347f;
+  --primary-active: #002b69;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0b1b33;
+  --muted: #f1f5f9;
+  --muted-foreground: #526077;
+  --accent: #eef3fb;
+  --accent-foreground: #003d96;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+  --destructive-subtle: #fdecec;
+  --destructive-subtle-foreground: #a31616;
+  --warning-subtle: #fdf3d8;
+  --warning-subtle-foreground: #86500d;
+  --border: #e2e8f0;
+  --input: #cbd5e1;
+  --ring: #003d96;
+  /* Mint is for fills, icons and charts; text on light surfaces uses mint-subtle-foreground. */
+  --mint: #0c8c5e;
+  --mint-foreground: #ffffff;
+  --mint-subtle: #d9f7eb;
+  --mint-subtle-foreground: #0a6b47;
+  --chart-1: #003d96;
+  --chart-2: #0c8c5e;
+  --chart-3: #5b8def;
+  --chart-4: #18e299;
+  --chart-5: #f59e0b;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #334155;
+  --sidebar-accent: #e8eefb;
+  --sidebar-accent-foreground: #003d96;
+  --sidebar-border: #e7ebf0;
+  --shadow-card: 0 1px 2px rgb(11 27 51 / 5%);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --background: #0a0f1a;
+  --foreground: #e8edf5;
+  --card: #0f1626;
+  --card-foreground: #e8edf5;
+  --popover: #111a2c;
+  --popover-foreground: #e8edf5;
+  --primary: #8fb4ff;
+  --primary-foreground: #0a1a3a;
+  --primary-hover: #a9c5ff;
+  --primary-active: #c2d6ff;
+  --secondary: #1a2335;
+  --secondary-foreground: #e8edf5;
+  --muted: #1a2335;
+  --muted-foreground: #a3b0c4;
+  --accent: #15264a;
+  --accent-foreground: #c2d6ff;
+  --destructive: #f87171;
+  --destructive-foreground: #1f0a0a;
+  --destructive-subtle: #3b1414;
+  --destructive-subtle-foreground: #fca5a5;
+  --warning-subtle: #3a2c0a;
+  --warning-subtle-foreground: #fcd34d;
+  --border: #1e2738;
+  --input: #334155;
+  --ring: #8fb4ff;
+  --mint: #18e299;
+  --mint-foreground: #062b1c;
+  --mint-subtle: #123528;
+  --mint-subtle-foreground: #6ee7b7;
+  --chart-1: #8fb4ff;
+  --chart-2: #18e299;
+  --chart-3: #4d86ff;
+  --chart-4: #0c8c5e;
+  --chart-5: #fbbf24;
+  --sidebar: #0d1320;
+  --sidebar-foreground: #c3cdda;
+  --sidebar-accent: #15264a;
+  --sidebar-accent-foreground: #c2d6ff;
+  --sidebar-border: #1e2738;
+  --shadow-card: none;
+}
+
+/* The app's existing vocabulary now points at the shadcn tokens. Declared on
+ * every theme selector so the aliases resolve against the active palette. */
+:root,
+[data-theme='light'],
+[data-theme='dark'] {
+  --a-color-bg: var(--background);
+  --a-color-fg: var(--foreground);
+  --a-color-surface: var(--card);
+  --a-color-surface-muted: var(--muted);
+  --a-color-surface-sunken: var(--muted);
+  --a-color-surface-hover: var(--muted);
+  --a-color-surface-active: var(--accent);
+  --a-color-surface-selected: var(--accent);
+  --a-color-surface-inverse: var(--foreground);
+  --a-color-skeleton: var(--border);
+  --a-color-border: var(--border);
+  --a-color-border-subtle: var(--border);
+  --a-color-border-strong: var(--input);
+  --a-color-border-input: var(--input);
+  --a-color-ring: var(--ring);
+  --a-color-fg-muted: var(--muted-foreground);
+  --a-color-fg-subtle: var(--muted-foreground);
+  --a-color-fg-inverse: var(--background);
+  --a-color-fg-link: var(--primary);
+  --a-color-primary: var(--primary);
+  --a-color-primary-hover: var(--primary-hover);
+  --a-color-primary-active: var(--primary-active);
+  --a-color-primary-fg: var(--primary-foreground);
+  --a-color-primary-subtle: var(--accent);
+  --a-color-primary-subtle-fg: var(--accent-foreground);
+  --a-color-primary-border: var(--ring);
+  --a-color-success: var(--mint);
+  --a-color-success-fg: var(--mint-foreground);
+  --a-color-success-subtle: var(--mint-subtle);
+  --a-color-success-subtle-fg: var(--mint-subtle-foreground);
+  --a-color-success-border: var(--mint);
+  --a-color-critical: var(--destructive);
+  --a-color-critical-hover: var(--destructive);
+  --a-color-critical-fg: var(--destructive-foreground);
+  --a-color-critical-subtle: var(--destructive-subtle);
+  --a-color-critical-subtle-fg: var(--destructive-subtle-foreground);
+  --a-color-critical-border: var(--destructive);
+  --a-color-warning-subtle: var(--warning-subtle);
+  --a-color-warning-subtle-fg: var(--warning-subtle-foreground);
+  --a-color-info-subtle: var(--accent);
+  --a-color-info-subtle-fg: var(--accent-foreground);
+  --an-chart-1: var(--chart-1);
+  --an-chart-2: var(--chart-2);
+  --an-chart-3: var(--chart-3);
+  --an-chart-4: var(--chart-4);
+  --an-chart-5: var(--chart-5);
+  --an-paper: var(--background);
+  --an-ink: var(--foreground);
+  --an-color-error: var(--destructive);
+  --an-color-success: var(--mint-subtle-foreground);
+  --an-color-error-surface: var(--destructive-subtle);
+  /* One family: Inter for Latin, the Khmer stack for Khmer. */
+  --an-font-display: var(--a-font-sans);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--input);
+  --color-mint: var(--mint);
+  --color-mint-foreground: var(--mint-foreground);
+  --color-mint-subtle: var(--mint-subtle);
+  --color-mint-subtle-foreground: var(--mint-subtle-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --shadow-card: var(--shadow-card);
+}

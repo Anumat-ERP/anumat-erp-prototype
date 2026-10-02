@@ -23,15 +23,10 @@
     <link rel="icon" href="%BASE_URL%favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
     <script>
-      // Apply the saved or system theme before first paint.
+      // Apply the saved theme before first paint; light unless the person chose dark.
       try {
         var t = localStorage.getItem("anumat-theme");
-        if (t !== "light" && t !== "dark")
-          t = document.documentElement.dataset.theme;
-        if (t !== "light" && t !== "dark")
-          t = matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light";
+        if (t !== "light" && t !== "dark") t = "light";
         document.documentElement.dataset.theme = t;
       } catch (e) {
         document.documentElement.dataset.theme = "light";
