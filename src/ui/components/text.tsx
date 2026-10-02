@@ -1,4 +1,3 @@
-import { Typography } from '@mui/material';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react';
 import { cn } from '../lib/cn';
@@ -96,9 +95,7 @@ export function Text({
 }: TextProps) {
   const Component = as ?? DEFAULT_ELEMENT[variant];
   return (
-    <Typography
-      component={Component}
-      variant="inherit"
+    <Component
       className={cn(
         textVariants({ variant, tone, weight, align, truncate, numeric }),
         visuallyHidden && 'sr-only',

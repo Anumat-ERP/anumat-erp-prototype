@@ -1,31 +1,34 @@
-import { Card as MuiCard, Typography } from '@mui/material';
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react';
+import { cn } from '../lib/cn';
+
 export interface CardProps extends ComponentPropsWithoutRef<'section'> {
   as?: ElementType;
+  /** No padding: the header and rows bring their own (tables, lists). */
   flush?: boolean;
   tone?: 'default' | 'muted';
 }
+
+/** A grouped surface. Bordered, quiet, no floating shadow. */
 export function Card({
-  as = 'section',
+  as: Component = 'section',
   flush,
   tone = 'default',
+  className,
   ...props
 }: CardProps) {
   return (
-    <MuiCard
-      component={as}
-      variant="outlined"
-      sx={{
-        p: flush ? 0 : { xs: 2.5, sm: 3.5 },
-        bgcolor:
-          tone === 'muted'
-            ? 'var(--a-color-surface-muted)'
-            : 'background.paper',
-      }}
+    <Component
+      className={cn(
+        'min-w-0 rounded-xl border border-border text-card-foreground shadow-card',
+        tone === 'muted' ? 'bg-muted' : 'bg-card',
+        !flush && 'p-5 sm:p-6',
+        className,
+      )}
       {...props}
     />
   );
 }
+
 export interface CardHeaderProps
   extends Omit<ComponentPropsWithoutRef<'div'>, 'title'> {
   title: ReactNode;
@@ -33,9 +36,10 @@ export interface CardHeaderProps
   description?: ReactNode;
   actions?: ReactNode;
 }
+
 export function CardHeader({
   title,
-  headingAs = 'h2',
+  headingAs: Heading = 'h2',
   description,
   actions,
   className,
@@ -43,15 +47,15 @@ export function CardHeader({
 }: CardHeaderProps) {
   return (
     <div
-      className={`flex items-start justify-between gap-4 ${className ?? ''}`}
+      className={cn('flex items-start justify-between gap-4', className)}
       {...props}
     >
-      <div className="min-w-0">
-        <Typography component={headingAs} variant="h6">
+      <div className="flex min-w-0 flex-col gap-1">
+        <Heading className="text-md leading-snug font-semibold text-foreground">
           {title}
-        </Typography>
+        </Heading>
         {description ? (
-          <Typography color="text.secondary">{description}</Typography>
+          <p className="text-sm text-muted-foreground">{description}</p>
         ) : null}
       </div>
       {actions ? (

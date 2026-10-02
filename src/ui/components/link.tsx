@@ -1,49 +1,51 @@
-import { Link as MuiLink } from '@mui/material';
+import { Slot } from 'radix-ui';
 import { isValidElement, type ComponentPropsWithRef } from 'react';
-import { Slot } from './slot';
+import { cn } from '../lib/cn';
+
 export interface LinkProps extends ComponentPropsWithRef<'a'> {
   tone?: 'default' | 'muted' | 'critical';
   underline?: 'always' | 'hover';
+  /** Opens in a new tab and says so to screen readers. */
   external?: boolean;
   externalLabel?: string;
+  /** Style the child element (e.g. a router link) as a link. */
   asChild?: boolean;
 }
+
 export function Link({
   tone = 'default',
   underline = 'always',
   external,
   externalLabel = '(opens in a new tab)',
   asChild,
+  className,
   children,
   ...props
 }: LinkProps) {
+  const classes = cn(
+    'rounded-sm font-medium underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+    underline === 'always' ? 'underline' : 'no-underline hover:underline',
+    tone === 'critical'
+      ? 'text-critical-subtle-fg'
+      : tone === 'muted'
+      ? 'text-muted-foreground hover:text-foreground'
+      : 'text-primary',
+    className,
+  );
   const externalProps = external
     ? { target: '_blank', rel: 'noopener noreferrer' }
     : {};
-  const color =
-    tone === 'critical'
-      ? 'error.main'
-      : tone === 'muted'
-      ? 'text.secondary'
-      : 'primary';
-  if (asChild && isValidElement<{ children?: React.ReactNode }>(children)) {
+  if (asChild && isValidElement(children)) {
     return (
-      <MuiLink
-        component={Slot}
-        element={children}
-        color={color}
-        underline={underline}
-        {...externalProps}
-        {...props}
-      >
-        {children.props.children}
-      </MuiLink>
+      <Slot.Root className={classes} {...externalProps} {...props}>
+        {children}
+      </Slot.Root>
     );
   }
   return (
-    <MuiLink color={color} underline={underline} {...externalProps} {...props}>
+    <a className={classes} {...externalProps} {...props}>
       {children}
       {external ? <span className="sr-only"> {externalLabel}</span> : null}
-    </MuiLink>
+    </a>
   );
 }
