@@ -1,0 +1,202 @@
+/* Default shadcn neutral theme.
+ * shadcn's variable names are the source of truth; the app's existing
+ * --a-color-* vocabulary is aliased to them below, so every utility class
+ * already used by pages (bg-surface, text-fg-muted, …) follows the palette. */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: #ffffff;
+  --card-foreground: var(--foreground);
+  --popover: #ffffff;
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --primary-hover: oklch(0.28 0 0);
+  --primary-active: oklch(0.145 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: var(--primary);
+  --muted: var(--secondary);
+  /* A touch darker than shadcn default (oklch 0.556) so it passes 4.5:1 on muted surfaces. */
+  --muted-foreground: oklch(0.527 0 0);
+  --accent: var(--secondary);
+  --accent-foreground: var(--primary);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: #ffffff;
+  --destructive-subtle: #fdecec;
+  --destructive-subtle-foreground: #a31616;
+  --warning-subtle: #fdf3d8;
+  --warning-subtle-foreground: #86500d;
+  --border: oklch(0.922 0 0);
+  --input: var(--border);
+  --ring: oklch(0.708 0 0);
+  /* Mint is for fills, icons and charts; text on light surfaces uses mint-subtle-foreground. */
+  --mint: #0c8c5e;
+  --mint-foreground: #ffffff;
+  --mint-subtle: #d9f7eb;
+  --mint-subtle-foreground: #0a6b47;
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 5%);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: var(--card);
+  --primary-hover: oklch(0.85 0 0);
+  --primary-active: oklch(0.78 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--secondary);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: var(--secondary);
+  --accent-foreground: var(--foreground);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: #1f0a0a;
+  --destructive-subtle: #3b1414;
+  --destructive-subtle-foreground: #fca5a5;
+  --warning-subtle: #3a2c0a;
+  --warning-subtle-foreground: #fcd34d;
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --mint: #18e299;
+  --mint-foreground: #062b1c;
+  --mint-subtle: #123528;
+  --mint-subtle-foreground: #6ee7b7;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--chart-1);
+  --sidebar-primary-foreground: var(--foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --shadow-card: none;
+}
+
+/* The app's existing vocabulary now points at the shadcn tokens. Declared on
+ * every theme selector so the aliases resolve against the active palette. */
+:root,
+[data-theme='light'],
+[data-theme='dark'] {
+  --a-color-bg: var(--background);
+  --a-color-fg: var(--foreground);
+  --a-color-surface: var(--card);
+  --a-color-surface-muted: var(--muted);
+  --a-color-surface-sunken: var(--muted);
+  --a-color-surface-hover: var(--muted);
+  --a-color-surface-active: var(--accent);
+  --a-color-surface-selected: var(--accent);
+  --a-color-surface-inverse: var(--foreground);
+  --a-color-skeleton: var(--border);
+  --a-color-border: var(--border);
+  --a-color-border-subtle: var(--border);
+  --a-color-border-strong: var(--input);
+  --a-color-border-input: var(--input);
+  --a-color-ring: var(--ring);
+  --a-color-fg-muted: var(--muted-foreground);
+  --a-color-fg-subtle: var(--muted-foreground);
+  --a-color-fg-inverse: var(--background);
+  --a-color-fg-link: var(--primary);
+  --a-color-primary: var(--primary);
+  --a-color-primary-hover: var(--primary-hover);
+  --a-color-primary-active: var(--primary-active);
+  --a-color-primary-fg: var(--primary-foreground);
+  --a-color-primary-subtle: var(--accent);
+  --a-color-primary-subtle-fg: var(--accent-foreground);
+  --a-color-primary-border: var(--ring);
+  --a-color-success: var(--mint);
+  --a-color-success-fg: var(--mint-foreground);
+  --a-color-success-subtle: var(--mint-subtle);
+  --a-color-success-subtle-fg: var(--mint-subtle-foreground);
+  --a-color-success-border: var(--mint);
+  --a-color-critical: var(--destructive);
+  --a-color-critical-hover: var(--destructive);
+  --a-color-critical-fg: var(--destructive-foreground);
+  --a-color-critical-subtle: var(--destructive-subtle);
+  --a-color-critical-subtle-fg: var(--destructive-subtle-foreground);
+  --a-color-critical-border: var(--destructive);
+  --a-color-warning-subtle: var(--warning-subtle);
+  --a-color-warning-subtle-fg: var(--warning-subtle-foreground);
+  --a-color-info-subtle: var(--accent);
+  --a-color-info-subtle-fg: var(--accent-foreground);
+  --an-chart-1: var(--chart-1);
+  --an-chart-2: var(--chart-2);
+  --an-chart-3: var(--chart-3);
+  --an-chart-4: var(--chart-4);
+  --an-chart-5: var(--chart-5);
+  --an-paper: var(--background);
+  --an-ink: var(--foreground);
+  --an-color-error: var(--destructive);
+  --an-color-success: var(--mint-subtle-foreground);
+  --an-color-error-surface: var(--destructive-subtle);
+  /* One family: Inter for Latin, the Khmer stack for Khmer. */
+  --an-font-display: var(--a-font-sans);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--input);
+  --color-mint: var(--mint);
+  --color-mint-foreground: var(--mint-foreground);
+  --color-mint-subtle: var(--mint-subtle);
+  --color-mint-subtle-foreground: var(--mint-subtle-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --shadow-card: var(--shadow-card);
+}

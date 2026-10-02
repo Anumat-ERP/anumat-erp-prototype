@@ -1,0 +1,996 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-02T00:20:26.150912+00:00",
+  "title": "Design System: Anumat ERP",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Cobalt action blue",
+        "tonalRamp": [
+          "#011337",
+          "#011f52",
+          "#012b6d",
+          "#003d96",
+          "#1459c4",
+          "#629af7",
+          "#c4dbfe",
+          "#f1f6fe"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Cool gray canvas",
+        "tonalRamp": [
+          "oklch(15% 0.0057 264.53)",
+          "oklch(26% 0.0057 264.53)",
+          "oklch(38% 0.0057 264.53)",
+          "oklch(49% 0.0057 264.53)",
+          "oklch(61% 0.0057 264.53)",
+          "oklch(72% 0.0057 264.53)",
+          "oklch(84% 0.0057 264.53)",
+          "oklch(95% 0.0057 264.53)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "supporting-gold": {
+        "role": "secondary",
+        "displayName": "Supporting gold",
+        "tonalRamp": [
+          "oklch(15% 0.1041 74.06)",
+          "oklch(26% 0.1041 74.06)",
+          "oklch(38% 0.1041 74.06)",
+          "oklch(49% 0.1041 74.06)",
+          "oklch(61% 0.1041 74.06)",
+          "oklch(72% 0.1041 74.06)",
+          "oklch(84% 0.1041 74.06)",
+          "oklch(95% 0.1041 74.06)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Primary hover",
+        "tonalRamp": [
+          "oklch(15% 0.2086 264.00)",
+          "oklch(26% 0.2086 264.00)",
+          "oklch(38% 0.2086 264.00)",
+          "oklch(49% 0.2086 264.00)",
+          "oklch(61% 0.2086 264.00)",
+          "oklch(72% 0.2086 264.00)",
+          "oklch(84% 0.2086 264.00)",
+          "oklch(95% 0.2086 264.00)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "primary-active": {
+        "role": "primary",
+        "displayName": "Primary active",
+        "tonalRamp": [
+          "oklch(15% 0.1878 264.04)",
+          "oklch(26% 0.1878 264.04)",
+          "oklch(38% 0.1878 264.04)",
+          "oklch(49% 0.1878 264.04)",
+          "oklch(61% 0.1878 264.04)",
+          "oklch(72% 0.1878 264.04)",
+          "oklch(84% 0.1878 264.04)",
+          "oklch(95% 0.1878 264.04)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "primary-soft": {
+        "role": "primary",
+        "displayName": "Primary soft",
+        "tonalRamp": [
+          "oklch(15% 0.0159 253.90)",
+          "oklch(26% 0.0159 253.90)",
+          "oklch(38% 0.0159 253.90)",
+          "oklch(49% 0.0159 253.90)",
+          "oklch(61% 0.0159 253.90)",
+          "oklch(72% 0.0159 253.90)",
+          "oklch(84% 0.0159 253.90)",
+          "oklch(95% 0.0159 253.90)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "primary-border": {
+        "role": "primary",
+        "displayName": "Primary border",
+        "tonalRamp": [
+          "oklch(15% 0.0666 259.14)",
+          "oklch(26% 0.0666 259.14)",
+          "oklch(38% 0.0666 259.14)",
+          "oklch(49% 0.0666 259.14)",
+          "oklch(61% 0.0666 259.14)",
+          "oklch(72% 0.0666 259.14)",
+          "oklch(84% 0.0666 259.14)",
+          "oklch(95% 0.0666 259.14)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0000 89.88)",
+          "oklch(26% 0.0000 89.88)",
+          "oklch(38% 0.0000 89.88)",
+          "oklch(49% 0.0000 89.88)",
+          "oklch(61% 0.0000 89.88)",
+          "oklch(72% 0.0000 89.88)",
+          "oklch(84% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "surface-muted": {
+        "role": "neutral",
+        "displayName": "Surface muted",
+        "tonalRamp": [
+          "oklch(15% 0.0034 247.86)",
+          "oklch(26% 0.0034 247.86)",
+          "oklch(38% 0.0034 247.86)",
+          "oklch(49% 0.0034 247.86)",
+          "oklch(61% 0.0034 247.86)",
+          "oklch(72% 0.0034 247.86)",
+          "oklch(84% 0.0034 247.86)",
+          "oklch(95% 0.0034 247.86)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "surface-sunken": {
+        "role": "neutral",
+        "displayName": "Surface sunken",
+        "tonalRamp": [
+          "oklch(15% 0.0080 253.85)",
+          "oklch(26% 0.0080 253.85)",
+          "oklch(38% 0.0080 253.85)",
+          "oklch(49% 0.0080 253.85)",
+          "oklch(61% 0.0080 253.85)",
+          "oklch(72% 0.0080 253.85)",
+          "oklch(84% 0.0080 253.85)",
+          "oklch(95% 0.0080 253.85)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "surface-hover": {
+        "role": "neutral",
+        "displayName": "Surface hover",
+        "tonalRamp": [
+          "oklch(15% 0.0046 258.32)",
+          "oklch(26% 0.0046 258.32)",
+          "oklch(38% 0.0046 258.32)",
+          "oklch(49% 0.0046 258.32)",
+          "oklch(61% 0.0046 258.32)",
+          "oklch(72% 0.0046 258.32)",
+          "oklch(84% 0.0046 258.32)",
+          "oklch(95% 0.0046 258.32)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "surface-active": {
+        "role": "neutral",
+        "displayName": "Surface active",
+        "tonalRamp": [
+          "oklch(15% 0.0109 256.70)",
+          "oklch(26% 0.0109 256.70)",
+          "oklch(38% 0.0109 256.70)",
+          "oklch(49% 0.0109 256.70)",
+          "oklch(61% 0.0109 256.70)",
+          "oklch(72% 0.0109 256.70)",
+          "oklch(84% 0.0109 256.70)",
+          "oklch(95% 0.0109 256.70)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0150 256.80)",
+          "oklch(26% 0.0150 256.80)",
+          "oklch(38% 0.0150 256.80)",
+          "oklch(49% 0.0150 256.80)",
+          "oklch(61% 0.0150 256.80)",
+          "oklch(72% 0.0150 256.80)",
+          "oklch(84% 0.0150 256.80)",
+          "oklch(95% 0.0150 256.80)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Text muted",
+        "tonalRamp": [
+          "oklch(15% 0.0230 257.51)",
+          "oklch(26% 0.0230 257.51)",
+          "oklch(38% 0.0230 257.51)",
+          "oklch(49% 0.0230 257.51)",
+          "oklch(61% 0.0230 257.51)",
+          "oklch(72% 0.0230 257.51)",
+          "oklch(84% 0.0230 257.51)",
+          "oklch(95% 0.0230 257.51)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "text-subtle": {
+        "role": "neutral",
+        "displayName": "Text subtle",
+        "tonalRamp": [
+          "oklch(15% 0.0227 257.50)",
+          "oklch(26% 0.0227 257.50)",
+          "oklch(38% 0.0227 257.50)",
+          "oklch(49% 0.0227 257.50)",
+          "oklch(61% 0.0227 257.50)",
+          "oklch(72% 0.0227 257.50)",
+          "oklch(84% 0.0227 257.50)",
+          "oklch(95% 0.0227 257.50)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "tonalRamp": [
+          "oklch(15% 0.0075 260.73)",
+          "oklch(26% 0.0075 260.73)",
+          "oklch(38% 0.0075 260.73)",
+          "oklch(49% 0.0075 260.73)",
+          "oklch(61% 0.0075 260.73)",
+          "oklch(72% 0.0075 260.73)",
+          "oklch(84% 0.0075 260.73)",
+          "oklch(95% 0.0075 260.73)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "border-subtle": {
+        "role": "neutral",
+        "displayName": "Border subtle",
+        "tonalRamp": [
+          "oklch(15% 0.0063 255.48)",
+          "oklch(26% 0.0063 255.48)",
+          "oklch(38% 0.0063 255.48)",
+          "oklch(49% 0.0063 255.48)",
+          "oklch(61% 0.0063 255.48)",
+          "oklch(72% 0.0063 255.48)",
+          "oklch(84% 0.0063 255.48)",
+          "oklch(95% 0.0063 255.48)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Border strong",
+        "tonalRamp": [
+          "oklch(15% 0.0160 257.21)",
+          "oklch(26% 0.0160 257.21)",
+          "oklch(38% 0.0160 257.21)",
+          "oklch(49% 0.0160 257.21)",
+          "oklch(61% 0.0160 257.21)",
+          "oklch(72% 0.0160 257.21)",
+          "oklch(84% 0.0160 257.21)",
+          "oklch(95% 0.0160 257.21)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "border-input": {
+        "role": "neutral",
+        "displayName": "Border input",
+        "tonalRamp": [
+          "oklch(15% 0.0266 259.81)",
+          "oklch(26% 0.0266 259.81)",
+          "oklch(38% 0.0266 259.81)",
+          "oklch(49% 0.0266 259.81)",
+          "oklch(61% 0.0266 259.81)",
+          "oklch(72% 0.0266 259.81)",
+          "oklch(84% 0.0266 259.81)",
+          "oklch(95% 0.0266 259.81)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "focus-ring": {
+        "role": "neutral",
+        "displayName": "Focus ring",
+        "tonalRamp": [
+          "oklch(15% 0.1801 259.84)",
+          "oklch(26% 0.1801 259.84)",
+          "oklch(38% 0.1801 259.84)",
+          "oklch(49% 0.1801 259.84)",
+          "oklch(61% 0.1801 259.84)",
+          "oklch(72% 0.1801 259.84)",
+          "oklch(84% 0.1801 259.84)",
+          "oklch(95% 0.1801 259.84)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "supporting-gold-soft": {
+        "role": "secondary",
+        "displayName": "Supporting gold soft",
+        "tonalRamp": [
+          "oklch(15% 0.0326 85.48)",
+          "oklch(26% 0.0326 85.48)",
+          "oklch(38% 0.0326 85.48)",
+          "oklch(49% 0.0326 85.48)",
+          "oklch(61% 0.0326 85.48)",
+          "oklch(72% 0.0326 85.48)",
+          "oklch(84% 0.0326 85.48)",
+          "oklch(95% 0.0326 85.48)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "error": {
+        "role": "neutral",
+        "displayName": "Error",
+        "tonalRamp": [
+          "oklch(15% 0.1821 29.51)",
+          "oklch(26% 0.1821 29.51)",
+          "oklch(38% 0.1821 29.51)",
+          "oklch(49% 0.1821 29.51)",
+          "oklch(61% 0.1821 29.51)",
+          "oklch(72% 0.1821 29.51)",
+          "oklch(84% 0.1821 29.51)",
+          "oklch(95% 0.1821 29.51)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "success": {
+        "role": "neutral",
+        "displayName": "Success",
+        "tonalRamp": [
+          "oklch(15% 0.1079 156.24)",
+          "oklch(26% 0.1079 156.24)",
+          "oklch(38% 0.1079 156.24)",
+          "oklch(49% 0.1079 156.24)",
+          "oklch(61% 0.1079 156.24)",
+          "oklch(72% 0.1079 156.24)",
+          "oklch(84% 0.1079 156.24)",
+          "oklch(95% 0.1079 156.24)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-canvas": {
+        "role": "neutral",
+        "displayName": "Dark canvas",
+        "tonalRamp": [
+          "oklch(15% 0.0246 259.26)",
+          "oklch(26% 0.0246 259.26)",
+          "oklch(38% 0.0246 259.26)",
+          "oklch(49% 0.0246 259.26)",
+          "oklch(61% 0.0246 259.26)",
+          "oklch(72% 0.0246 259.26)",
+          "oklch(84% 0.0246 259.26)",
+          "oklch(95% 0.0246 259.26)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark surface",
+        "tonalRamp": [
+          "oklch(15% 0.0304 256.86)",
+          "oklch(26% 0.0304 256.86)",
+          "oklch(38% 0.0304 256.86)",
+          "oklch(49% 0.0304 256.86)",
+          "oklch(61% 0.0304 256.86)",
+          "oklch(72% 0.0304 256.86)",
+          "oklch(84% 0.0304 256.86)",
+          "oklch(95% 0.0304 256.86)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-surface-muted": {
+        "role": "neutral",
+        "displayName": "Dark surface muted",
+        "tonalRamp": [
+          "oklch(15% 0.0321 256.29)",
+          "oklch(26% 0.0321 256.29)",
+          "oklch(38% 0.0321 256.29)",
+          "oklch(49% 0.0321 256.29)",
+          "oklch(61% 0.0321 256.29)",
+          "oklch(72% 0.0321 256.29)",
+          "oklch(84% 0.0321 256.29)",
+          "oklch(95% 0.0321 256.29)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-surface-sunken": {
+        "role": "neutral",
+        "displayName": "Dark surface sunken",
+        "tonalRamp": [
+          "oklch(15% 0.0251 259.23)",
+          "oklch(26% 0.0251 259.23)",
+          "oklch(38% 0.0251 259.23)",
+          "oklch(49% 0.0251 259.23)",
+          "oklch(61% 0.0251 259.23)",
+          "oklch(72% 0.0251 259.23)",
+          "oklch(84% 0.0251 259.23)",
+          "oklch(95% 0.0251 259.23)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-surface-hover": {
+        "role": "neutral",
+        "displayName": "Dark surface hover",
+        "tonalRamp": [
+          "oklch(15% 0.0408 257.30)",
+          "oklch(26% 0.0408 257.30)",
+          "oklch(38% 0.0408 257.30)",
+          "oklch(49% 0.0408 257.30)",
+          "oklch(61% 0.0408 257.30)",
+          "oklch(72% 0.0408 257.30)",
+          "oklch(84% 0.0408 257.30)",
+          "oklch(95% 0.0408 257.30)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-surface-active": {
+        "role": "neutral",
+        "displayName": "Dark surface active",
+        "tonalRamp": [
+          "oklch(15% 0.0439 256.48)",
+          "oklch(26% 0.0439 256.48)",
+          "oklch(38% 0.0439 256.48)",
+          "oklch(49% 0.0439 256.48)",
+          "oklch(61% 0.0439 256.48)",
+          "oklch(72% 0.0439 256.48)",
+          "oklch(84% 0.0439 256.48)",
+          "oklch(95% 0.0439 256.48)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-primary-soft": {
+        "role": "primary",
+        "displayName": "Dark primary soft",
+        "tonalRamp": [
+          "oklch(15% 0.0618 256.21)",
+          "oklch(26% 0.0618 256.21)",
+          "oklch(38% 0.0618 256.21)",
+          "oklch(49% 0.0618 256.21)",
+          "oklch(61% 0.0618 256.21)",
+          "oklch(72% 0.0618 256.21)",
+          "oklch(84% 0.0618 256.21)",
+          "oklch(95% 0.0618 256.21)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-primary": {
+        "role": "primary",
+        "displayName": "Dark primary",
+        "tonalRamp": [
+          "oklch(15% 0.1095 261.27)",
+          "oklch(26% 0.1095 261.27)",
+          "oklch(38% 0.1095 261.27)",
+          "oklch(49% 0.1095 261.27)",
+          "oklch(61% 0.1095 261.27)",
+          "oklch(72% 0.1095 261.27)",
+          "oklch(84% 0.1095 261.27)",
+          "oklch(95% 0.1095 261.27)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-primary-hover": {
+        "role": "primary",
+        "displayName": "Dark primary hover",
+        "tonalRamp": [
+          "oklch(15% 0.0770 261.22)",
+          "oklch(26% 0.0770 261.22)",
+          "oklch(38% 0.0770 261.22)",
+          "oklch(49% 0.0770 261.22)",
+          "oklch(61% 0.0770 261.22)",
+          "oklch(72% 0.0770 261.22)",
+          "oklch(84% 0.0770 261.22)",
+          "oklch(95% 0.0770 261.22)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-primary-active": {
+        "role": "primary",
+        "displayName": "Dark primary active",
+        "tonalRamp": [
+          "oklch(15% 0.0544 258.69)",
+          "oklch(26% 0.0544 258.69)",
+          "oklch(38% 0.0544 258.69)",
+          "oklch(49% 0.0544 258.69)",
+          "oklch(61% 0.0544 258.69)",
+          "oklch(72% 0.0544 258.69)",
+          "oklch(84% 0.0544 258.69)",
+          "oklch(95% 0.0544 258.69)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-primary-border": {
+        "role": "primary",
+        "displayName": "Dark primary border",
+        "tonalRamp": [
+          "oklch(15% 0.0863 254.76)",
+          "oklch(26% 0.0863 254.76)",
+          "oklch(38% 0.0863 254.76)",
+          "oklch(49% 0.0863 254.76)",
+          "oklch(61% 0.0863 254.76)",
+          "oklch(72% 0.0863 254.76)",
+          "oklch(84% 0.0863 254.76)",
+          "oklch(95% 0.0863 254.76)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-link": {
+        "role": "neutral",
+        "displayName": "Dark link",
+        "tonalRamp": [
+          "oklch(15% 0.0838 260.76)",
+          "oklch(26% 0.0838 260.76)",
+          "oklch(38% 0.0838 260.76)",
+          "oklch(49% 0.0838 260.76)",
+          "oklch(61% 0.0838 260.76)",
+          "oklch(72% 0.0838 260.76)",
+          "oklch(84% 0.0838 260.76)",
+          "oklch(95% 0.0838 260.76)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Dark ink",
+        "tonalRamp": [
+          "oklch(15% 0.0080 253.85)",
+          "oklch(26% 0.0080 253.85)",
+          "oklch(38% 0.0080 253.85)",
+          "oklch(49% 0.0080 253.85)",
+          "oklch(61% 0.0080 253.85)",
+          "oklch(72% 0.0080 253.85)",
+          "oklch(84% 0.0080 253.85)",
+          "oklch(95% 0.0080 253.85)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-text-muted": {
+        "role": "neutral",
+        "displayName": "Dark text muted",
+        "tonalRamp": [
+          "oklch(15% 0.0262 255.58)",
+          "oklch(26% 0.0262 255.58)",
+          "oklch(38% 0.0262 255.58)",
+          "oklch(49% 0.0262 255.58)",
+          "oklch(61% 0.0262 255.58)",
+          "oklch(72% 0.0262 255.58)",
+          "oklch(84% 0.0262 255.58)",
+          "oklch(95% 0.0262 255.58)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-text-subtle": {
+        "role": "neutral",
+        "displayName": "Dark text subtle",
+        "tonalRamp": [
+          "oklch(15% 0.0315 256.04)",
+          "oklch(26% 0.0315 256.04)",
+          "oklch(38% 0.0315 256.04)",
+          "oklch(49% 0.0315 256.04)",
+          "oklch(61% 0.0315 256.04)",
+          "oklch(72% 0.0315 256.04)",
+          "oklch(84% 0.0315 256.04)",
+          "oklch(95% 0.0315 256.04)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-border": {
+        "role": "neutral",
+        "displayName": "Dark border",
+        "tonalRamp": [
+          "oklch(15% 0.0397 255.77)",
+          "oklch(26% 0.0397 255.77)",
+          "oklch(38% 0.0397 255.77)",
+          "oklch(49% 0.0397 255.77)",
+          "oklch(61% 0.0397 255.77)",
+          "oklch(72% 0.0397 255.77)",
+          "oklch(84% 0.0397 255.77)",
+          "oklch(95% 0.0397 255.77)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-border-subtle": {
+        "role": "neutral",
+        "displayName": "Dark border subtle",
+        "tonalRamp": [
+          "oklch(15% 0.0371 254.97)",
+          "oklch(26% 0.0371 254.97)",
+          "oklch(38% 0.0371 254.97)",
+          "oklch(49% 0.0371 254.97)",
+          "oklch(61% 0.0371 254.97)",
+          "oklch(72% 0.0371 254.97)",
+          "oklch(84% 0.0371 254.97)",
+          "oklch(95% 0.0371 254.97)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-border-strong": {
+        "role": "neutral",
+        "displayName": "Dark border strong",
+        "tonalRamp": [
+          "oklch(15% 0.0410 255.02)",
+          "oklch(26% 0.0410 255.02)",
+          "oklch(38% 0.0410 255.02)",
+          "oklch(49% 0.0410 255.02)",
+          "oklch(61% 0.0410 255.02)",
+          "oklch(72% 0.0410 255.02)",
+          "oklch(84% 0.0410 255.02)",
+          "oklch(95% 0.0410 255.02)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-border-input": {
+        "role": "neutral",
+        "displayName": "Dark border input",
+        "tonalRamp": [
+          "oklch(15% 0.0403 256.02)",
+          "oklch(26% 0.0403 256.02)",
+          "oklch(38% 0.0403 256.02)",
+          "oklch(49% 0.0403 256.02)",
+          "oklch(61% 0.0403 256.02)",
+          "oklch(72% 0.0403 256.02)",
+          "oklch(84% 0.0403 256.02)",
+          "oklch(95% 0.0403 256.02)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-gold": {
+        "role": "secondary",
+        "displayName": "Dark gold",
+        "tonalRamp": [
+          "oklch(15% 0.1035 81.76)",
+          "oklch(26% 0.1035 81.76)",
+          "oklch(38% 0.1035 81.76)",
+          "oklch(49% 0.1035 81.76)",
+          "oklch(61% 0.1035 81.76)",
+          "oklch(72% 0.1035 81.76)",
+          "oklch(84% 0.1035 81.76)",
+          "oklch(95% 0.1035 81.76)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-gold-soft": {
+        "role": "secondary",
+        "displayName": "Dark gold soft",
+        "tonalRamp": [
+          "oklch(15% 0.0277 75.75)",
+          "oklch(26% 0.0277 75.75)",
+          "oklch(38% 0.0277 75.75)",
+          "oklch(49% 0.0277 75.75)",
+          "oklch(61% 0.0277 75.75)",
+          "oklch(72% 0.0277 75.75)",
+          "oklch(84% 0.0277 75.75)",
+          "oklch(95% 0.0277 75.75)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-error": {
+        "role": "neutral",
+        "displayName": "Dark error",
+        "tonalRamp": [
+          "oklch(15% 0.0891 26.76)",
+          "oklch(26% 0.0891 26.76)",
+          "oklch(38% 0.0891 26.76)",
+          "oklch(49% 0.0891 26.76)",
+          "oklch(61% 0.0891 26.76)",
+          "oklch(72% 0.0891 26.76)",
+          "oklch(84% 0.0891 26.76)",
+          "oklch(95% 0.0891 26.76)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-success": {
+        "role": "neutral",
+        "displayName": "Dark success",
+        "tonalRamp": [
+          "oklch(15% 0.1044 157.61)",
+          "oklch(26% 0.1044 157.61)",
+          "oklch(38% 0.1044 157.61)",
+          "oklch(49% 0.1044 157.61)",
+          "oklch(61% 0.1044 157.61)",
+          "oklch(72% 0.1044 157.61)",
+          "oklch(84% 0.1044 157.61)",
+          "oklch(95% 0.1044 157.61)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "error-surface": {
+        "role": "neutral",
+        "displayName": "Invalid field tint",
+        "tonalRamp": [
+          "oklch(15% 0.0066 28.83)",
+          "oklch(26% 0.0066 28.83)",
+          "oklch(38% 0.0066 28.83)",
+          "oklch(49% 0.0066 28.83)",
+          "oklch(61% 0.0066 28.83)",
+          "oklch(72% 0.0066 28.83)",
+          "oklch(84% 0.0066 28.83)",
+          "oklch(95% 0.0066 28.83)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "dark-error-surface": {
+        "role": "neutral",
+        "displayName": "Dark invalid field tint",
+        "tonalRamp": [
+          "oklch(15% 0.0217 342.75)",
+          "oklch(26% 0.0217 342.75)",
+          "oklch(38% 0.0217 342.75)",
+          "oklch(49% 0.0217 342.75)",
+          "oklch(61% 0.0217 342.75)",
+          "oklch(72% 0.0217 342.75)",
+          "oklch(84% 0.0217 342.75)",
+          "oklch(95% 0.0217 342.75)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "auth-navy": {
+        "role": "secondary",
+        "displayName": "Authentication navy",
+        "tonalRamp": [
+          "oklch(15% 0.0731 259.13)",
+          "oklch(26% 0.0731 259.13)",
+          "oklch(38% 0.0731 259.13)",
+          "oklch(49% 0.0731 259.13)",
+          "oklch(61% 0.0731 259.13)",
+          "oklch(72% 0.0731 259.13)",
+          "oklch(84% 0.0731 259.13)",
+          "oklch(95% 0.0731 259.13)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      },
+      "auth-blue": {
+        "role": "primary",
+        "displayName": "Authentication cobalt",
+        "tonalRamp": [
+          "oklch(15% 0.2255 264.21)",
+          "oklch(26% 0.2255 264.21)",
+          "oklch(38% 0.2255 264.21)",
+          "oklch(49% 0.2255 264.21)",
+          "oklch(61% 0.2255 264.21)",
+          "oklch(72% 0.2255 264.21)",
+          "oklch(84% 0.2255 264.21)",
+          "oklch(95% 0.2255 264.21)"
+        ],
+        "rampPurpose": "Informational synthesized same-hue OKLCH ramp; does not add implementation tokens."
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Public display",
+        "purpose": "Marketing hero headings."
+      },
+      "workspace-heading": {
+        "displayName": "Workspace heading",
+        "purpose": "Task and administration page titles."
+      },
+      "auth-heading": {
+        "displayName": "Authentication heading",
+        "purpose": "Bold balanced login, recovery and code-verification headings."
+      }
+    },
+    "shadows": [
+      {
+        "name": "hero-preview",
+        "value": "0 18px 44px rgb(30 63 128 / 12%)",
+        "purpose": "Static Anumat UI preview."
+      },
+      {
+        "name": "hero-decision",
+        "value": "0 8px 26px rgb(30 63 128 / 8%)",
+        "purpose": "Hero decision callout."
+      },
+      {
+        "name": "panel",
+        "value": "none",
+        "purpose": "Default MUI card."
+      }
+    ],
+    "motion": [
+      {
+        "name": "fast",
+        "value": "100ms",
+        "purpose": "State color transitions."
+      },
+      {
+        "name": "base",
+        "value": "150ms",
+        "purpose": "Tab fades and row hover."
+      },
+      {
+        "name": "slow",
+        "value": "250ms",
+        "purpose": "Page sections arrive."
+      },
+      {
+        "name": "slower",
+        "value": "400ms",
+        "purpose": "Reveals and chart entry."
+      },
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Default state transitions."
+      },
+      {
+        "name": "ease-enter",
+        "value": "cubic-bezier(0, 0, 0.2, 1)",
+        "purpose": "Arrival transitions."
+      },
+      {
+        "name": "ease-exit",
+        "value": "cubic-bezier(0.4, 0, 1, 1)",
+        "purpose": "Departure transitions."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mui-sm",
+        "value": "640px"
+      },
+      {
+        "name": "mui-md / css-mobile-upper-plus-one",
+        "value": "768px"
+      },
+      {
+        "name": "mui-lg",
+        "value": "1024px"
+      },
+      {
+        "name": "css-tablet-upper",
+        "value": "1100px"
+      },
+      {
+        "name": "mui-xl",
+        "value": "1280px"
+      },
+      {
+        "name": "css-wide-workspace",
+        "value": "1600px"
+      }
+    ],
+    "sourceFiles": [
+      "src/styles/theme.css",
+      "src/styles/anumat.css",
+      "src/ui/theme.tsx",
+      "src/ui/components/",
+      "src/layout/Shell.tsx",
+      "src/components/PublicHeader.tsx",
+      "src/ui/components/password-input.tsx",
+      "src/ui/components/code-input.tsx",
+      "src/components/AuthLayout.tsx",
+      "src/pages/SignIn.tsx"
+    ],
+    "themeBehavior": "MUI palette reads computed semantic CSS tokens on theme creation and observes data-theme including portals. Primary contained hover/active explicitly use CSS tokens. Fixed bitmap colors and auth pattern brand colors remain unchanged.",
+    "reducedMotion": "Application animations are disabled; MUI transition and animation durations clamp to 0.01ms.",
+    "controlBehavior": {
+      "sharedMinimumHeight": "var(--an-control-height) (44px)",
+      "largeMinimumHeight": "var(--an-control-height-large) (64px)",
+      "floatingLabel": "Inset resting/shrunk labels; outline legend hidden; primary focus and error tint.",
+      "authentication": "Desktop 2:1 white/navy grid, 580px form cap; art hides at 767px.",
+      "codeInput": "Six digits; numeric paste/autofill, typing advance, arrows, Backspace; named fieldset and digit inputs.",
+      "passwordInput": "Local visibility toggle with changing label and aria-pressed.",
+      "selectMenu": "MUI non-native Select replaces the browser option popup. The portal menu is anchored to the control, at most 420px or 60vh tall, with 44px rows, semantic selected/hover/focus colors, grouped choices, and keyboard navigation. Small selects use compact text and arrow spacing."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary pill with shared height and explicit semantic hover/active states.",
+      "html": "<button class=\"ds-primary\">Continue</button>",
+      "css": ".ds-primary{font-family:var(--a-font-sans);font-weight:600;line-height:1.75;border-radius:var(--an-radius-pill);min-height:var(--an-control-height);padding:6px 20px;cursor:pointer;transition:background-color 100ms var(--a-ease-standard);background:var(--a-color-primary);color:var(--a-color-primary-fg);border:0}.ds-primary:hover{background:var(--a-color-primary-hover)}.ds-primary:active{background:var(--a-color-primary-active)}.ds-primary:focus-visible{outline:2px solid var(--a-color-ring);outline-offset:2px;}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined supporting action.",
+      "html": "<button class=\"ds-secondary\">Cancel</button>",
+      "css": ".ds-secondary{font-family:var(--a-font-sans);font-weight:600;line-height:1.75;border-radius:999px;min-height:44px;padding:6px 20px;cursor:pointer;transition:background-color 100ms var(--a-ease-standard);background:transparent;color:var(--a-color-fg);border:1px solid var(--a-color-border-input);padding:5px 20px}.ds-secondary:hover{background:var(--a-color-surface-hover);border-color:var(--a-color-border-strong)}.ds-secondary:focus-visible{outline:2px solid var(--a-color-ring);outline-offset:2px;}"
+    },
+    {
+      "name": "Tertiary button",
+      "kind": "button",
+      "refersTo": "button-tertiary",
+      "description": "Quiet text action with pill hit area.",
+      "html": "<button class=\"ds-tertiary\">Back</button>",
+      "css": ".ds-tertiary{font-family:var(--a-font-sans);font-weight:600;line-height:1.75;border-radius:999px;min-height:44px;padding:6px 20px;cursor:pointer;transition:background-color 100ms var(--a-ease-standard);background:transparent;color:var(--a-color-primary);border:0}.ds-tertiary:hover{background:var(--a-color-primary-subtle)}.ds-tertiary:focus-visible{outline:2px solid var(--a-color-ring);outline-offset:2px;}"
+    },
+    {
+      "name": "Workspace panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Flat white panel using canvas contrast rather than elevation.",
+      "html": "<section class=\"ds-panel\"><h2>My tasks</h2><p>Requests waiting for your decision.</p></section>",
+      "css": ".ds-panel{background:var(--a-color-surface);color:var(--a-color-fg);border-radius:20px;padding:28px;font-family:var(--a-font-sans)}.ds-panel h2{font-family:var(--an-font-display);font-size:1.25rem;font-weight:600;margin:0 0 8px}.ds-panel p{color:var(--a-color-fg-muted);margin:0;font-size:1rem;line-height:1.75}@media(max-width:639px){.ds-panel{padding:20px}}"
+    },
+    {
+      "name": "Setup field",
+      "kind": "input",
+      "refersTo": "setup-field",
+      "description": "Shared filled inset-label field; empty and focused label states use the same interior geometry.",
+      "html": "<label class=\"ds-field\"><span>Company name</span><input value=\"Lotus Logistics\" placeholder=\" \" /></label>",
+      "css": ".ds-field{position:relative;display:block;font-family:var(--a-font-sans);color:var(--a-color-fg-muted)}.ds-field span{position:absolute;left:18px;top:7px;font-size:0.84375rem;pointer-events:none}.ds-field input{width:calc(100% - 38px);min-height:27px;line-height:1.5;border:1px solid var(--a-color-border-input);border-radius:var(--an-radius-field);padding:26px 18px 10px;background:var(--a-color-surface);color:var(--a-color-fg);font-family:var(--a-font-sans);font-size:1.125rem}.ds-field:has(input:placeholder-shown):not(:focus-within) span{top:19px;font-size:1.125rem}.ds-field input:hover{border-color:var(--a-color-fg)}.ds-field:focus-within span{color:var(--a-color-primary)}.ds-field input:focus-visible{outline:2px solid var(--a-color-primary);outline-offset:-2px}.ds-field:has(input[aria-invalid=\"true\"]) span{color:var(--an-color-error)}.ds-field input[aria-invalid=\"true\"]{border-color:var(--an-color-error);background:var(--an-color-error-surface)}"
+    },
+    {
+      "name": "Selected navigation",
+      "kind": "nav",
+      "refersTo": "navigation-selected",
+      "description": "Pale-blue selected route with icon, weight and aria-current.",
+      "html": "<nav><a href=\"#home\" aria-current=\"page\" class=\"ds-nav\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z\"/></svg>Home</a></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;border-radius:15px;font:600 1rem var(--a-font-sans);text-decoration:none;background:var(--a-color-surface-selected);color:var(--a-color-primary-subtle-fg)}.ds-nav:hover{background:var(--a-color-surface-hover)}.ds-nav:focus-visible{outline:2px solid var(--a-color-ring);outline-offset:2px;}"
+    },
+    {
+      "name": "Status badge",
+      "kind": "chip",
+      "description": "Compact outlined textual status with optional dot.",
+      "html": "<span class=\"ds-badge\"><span aria-hidden=\"true\"></span>Pending</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--a-color-border-strong);border-radius:15px;height:26px;padding:0 8px;font:500 0.75rem var(--a-font-sans);color:var(--a-color-fg)}.ds-badge>span{width:6px;height:6px;border-radius:50%;background:currentColor}"
+    },
+    {
+      "name": "Process choice",
+      "kind": "custom",
+      "refersTo": "process-choice",
+      "description": "Selected setup card with the icon/check upper row and approval-route copy.",
+      "html": "<label class=\"ds-choice\"><span class=\"ds-choice-row\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M6 3h9l3 3v15H6zM9 11h6M9 15h6\"/></svg><input type=\"checkbox\" checked aria-label=\"Purchase requests\" /></span><strong>Purchase requests</strong><span>Manager → Finance</span></label>",
+      "css": ".ds-choice{display:flex;flex-direction:column;min-height:174px;padding:28px;border-radius:20px;border:1px solid var(--a-color-primary);background:var(--a-color-surface);color:var(--a-color-fg);font-family:var(--a-font-sans);cursor:pointer}.ds-choice-row{display:flex;justify-content:space-between;align-items:flex-start;color:var(--a-color-fg-link)}.ds-choice input{accent-color:var(--a-color-primary);width:20px;height:20px}.ds-choice strong{margin-top:28px;font-size:1.25rem;font-weight:600}.ds-choice>span:last-child{margin-top:12px;font-size:0.875rem;line-height:1.6;color:var(--a-color-fg-muted)}.ds-choice:hover{background:var(--a-color-surface-hover)}.ds-choice:focus-within{outline:2px solid var(--a-color-ring);outline-offset:2px;}"
+    },
+    {
+      "name": "Checkbox",
+      "kind": "input",
+      "refersTo": "checkbox",
+      "description": "Shared squared checkbox with semantic selected fill and focus ring.",
+      "html": "<label class=\"ds-check\"><input type=\"checkbox\" checked /><span>Remember me</span></label>",
+      "css": ".ds-check{display:inline-flex;align-items:center;gap:10px;font:1rem var(--a-font-sans);color:var(--a-color-fg-muted)}.ds-check input{appearance:none;display:grid;place-content:center;width:22px;height:22px;margin:0;border:2px solid var(--a-color-border-input);border-radius:5px;background:var(--a-color-surface);cursor:pointer}.ds-check input:checked{border-color:var(--a-color-primary);background:var(--a-color-primary)}.ds-check input:checked::after{content:\"\";width:10px;height:5px;border-left:3px solid var(--a-color-primary-fg);border-bottom:3px solid var(--a-color-primary-fg);transform:translateY(-1px) rotate(-45deg)}.ds-check input:focus-visible{outline:2px solid var(--a-color-ring);outline-offset:2px}.ds-check input:disabled{opacity:0.45}"
+    },
+    {
+      "name": "Password field",
+      "kind": "input",
+      "refersTo": "auth-field",
+      "description": "Auth password visual preview; runtime PasswordInput supplies the accessible visibility toggle.",
+      "html": "<label class=\"ds-password\"><span>Password</span><input type=\"password\" value=\"example\" autocomplete=\"current-password\" /><button type=\"button\" aria-label=\"Show password\" aria-pressed=\"false\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg></button></label>",
+      "css": ".ds-password{display:block;position:relative;font-family:var(--a-font-sans)}.ds-password>span{position:absolute;top:10px;left:20px;font-size:0.875rem;color:var(--a-color-fg-muted)}.ds-password input{width:calc(100% - 74px);height:27px;padding:32px 54px 16px 18px;border:1px solid var(--a-color-border-input);border-radius:var(--an-radius-field);background:var(--a-color-surface);color:var(--a-color-fg);font-size:1.25rem}.ds-password button{position:absolute;right:12px;top:18px;display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:var(--an-radius-pill);background:transparent;color:var(--a-color-fg-muted);cursor:pointer}.ds-password button:hover{background:var(--a-color-surface-hover)}.ds-password input:focus-visible,.ds-password button:focus-visible{outline:2px solid var(--a-color-ring);outline-offset:2px}@media(max-width:767px){.ds-password input{padding-top:26px;padding-bottom:10px;font-size:1.125rem}.ds-password>span{top:7px;left:18px}.ds-password button{top:12px}}"
+    },
+    {
+      "name": "Verification code",
+      "kind": "input",
+      "refersTo": "code-digit",
+      "description": "Six responsive slots; runtime CodeInput supplies paste, autofill and keyboard advancement.",
+      "html": "<fieldset class=\"ds-code\"><legend>Verification code</legend><div><input inputmode=\"numeric\" aria-label=\"Digit 1 of 6\" autocomplete=\"one-time-code\" /><input inputmode=\"numeric\" aria-label=\"Digit 2 of 6\" autocomplete=\"off\" /><input inputmode=\"numeric\" aria-label=\"Digit 3 of 6\" autocomplete=\"off\" /><input inputmode=\"numeric\" aria-label=\"Digit 4 of 6\" autocomplete=\"off\" /><input inputmode=\"numeric\" aria-label=\"Digit 5 of 6\" autocomplete=\"off\" /><input inputmode=\"numeric\" aria-label=\"Digit 6 of 6\" autocomplete=\"off\" /></div></fieldset>",
+      "css": ".ds-code{border:0;padding:0;margin:0;min-width:0;font-family:var(--a-font-sans)}.ds-code legend{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.ds-code>div{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.ds-code input{width:100%;box-sizing:border-box;height:76px;padding:16px 0;text-align:center;font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--a-color-fg);background:var(--a-color-surface);border:1px solid var(--a-color-border-input);border-radius:var(--an-radius-field)}.ds-code input:hover{border-color:var(--a-color-fg)}.ds-code input:focus-visible{outline:2px solid var(--a-color-primary);outline-offset:-2px}.ds-code input[aria-invalid=\"true\"]{border-color:var(--an-color-error);background:var(--an-color-error-surface)}@media(max-width:767px){.ds-code>div{gap:8px}.ds-code input{height:58px}}"
+    },
+    {
+      "name": "Select menu",
+      "kind": "custom",
+      "description": "Token-colored dropdown options with a quiet group heading and pale-blue selected row.",
+      "html": "<div class=\"ds-select\"><button aria-expanded=\"true\">My tasks <span aria-hidden=\"true\"></span></button><div role=\"listbox\"><div role=\"option\" aria-selected=\"true\">My tasks</div><div role=\"option\">Everyone</div><p>People</p><div role=\"option\">Alex Tan</div></div></div>",
+      "css": ".ds-select{width:220px;font-family:var(--a-font-sans);font-size:0.875rem;color:var(--a-color-fg)}.ds-select button{box-sizing:border-box;width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:2px solid var(--a-color-primary);border-radius:var(--an-radius-field);background:var(--a-color-surface);color:var(--a-color-fg);font:inherit}.ds-select [role=listbox]{max-height:240px;overflow:auto;margin-top:4px;border-radius:var(--an-radius-field);background:var(--a-color-surface);box-shadow:0 14px 36px rgb(13 37 73 / 16%)}.ds-select [role=option]{box-sizing:border-box;min-height:44px;padding:12px 16px}.ds-select [aria-selected=true]{background:var(--a-color-surface-selected);color:var(--a-color-fg-link);font-weight:600}.ds-select p{margin:0;padding:10px 16px 4px;color:var(--a-color-fg-muted);font-size:0.75rem;font-weight:600}.ds-select button span{width:8px;height:8px;border-right:1.5px solid var(--a-color-fg-muted);border-bottom:1.5px solid var(--a-color-fg-muted);transform:rotate(45deg)}"
+    }
+  ],
+  "narrative": {
+    "overview": "The user selected Remote marketing, onboarding, login, verification and workspace references as the visual authority. Anumat's built system applies their cool gray canvas, spacious white panels, rounded near-black headings and cobalt pill actions while retaining the Anumat logo and its existing browser-only workflows.\n\nMarketing uses large editorial headings, the actual Anumat Home preview and original textured mint-and-blue folder art. Setup pairs generous outlined fields with inset floating labels, a centered header and blue progress line. Login, recovery and verification use a white form area beside a navy-and-cobalt geometric panel. The workspace gives tasks the broad main canvas, keeps navigation on a white sidebar and quiets utilities in gray. This is the documented implementation, not a claim of full parity with Remote.",
+    "keyCharacteristics": [
+      "Cool gray canvas and generous white rounded panels.",
+      "Rounded display headings with readable Inter product text.",
+      "Cobalt actions and pale-blue selected navigation.",
+      "Original textured folder art beside actual Anumat UI imagery.",
+      "Responsive layouts with light/dark and English/Khmer preferences."
+    ],
+    "rules": [],
+    "dos": [
+      "Do preserve the Anumat logo and the user-selected Remote visual direction.",
+      "Do build new controls through the app-owned MUI adapters and semantic CSS variables.",
+      "Do retain visible focus, labels and textual status alongside color.",
+      "Do let long translated copy wrap and keep mobile utilities inside the viewport.",
+      "Do reuse the original folder art and actual Anumat UI preview with their recorded provenance."
+    ],
+    "donts": [
+      "Don't reintroduce the removed public heading eyebrows.",
+      "Don't imply working authentication, sent invitations or server provisioning through presentation.",
+      "Don't copy Remote logos, product screenshots or unsupported trust claims.",
+      "Don't turn every white panel into a floating shadow card.",
+      "Don't use literal light-theme colors for new shared controls."
+    ]
+  }
+}

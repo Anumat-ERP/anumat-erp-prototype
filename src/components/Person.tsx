@@ -1,8 +1,10 @@
-import { Avatar, Text } from '@repo/ui';
+import { Avatar, Text } from '@app/ui';
 import { useStore } from '../data/store';
+import { useLocale } from '../i18n/LocaleProvider';
 
 /** Avatar with a name and, optionally, the person's role. */
 export function Person({ id, showRole = false, size = 'sm' }: { id: string; showRole?: boolean; size?: 'xs' | 'sm' | 'md' }) {
+  const { t: tr } = useLocale();
   const { person, me } = useStore();
   const p = person(id);
   return (
@@ -10,12 +12,12 @@ export function Person({ id, showRole = false, size = 'sm' }: { id: string; show
       <Avatar name={p.name} size={size} decorative />
       <span className="flex min-w-0 flex-col">
         <Text as="span" variant="body" truncate>
-          {p.name}
-          {p.id === me.id ? <span className="text-fg-muted"> (you)</span> : null}
+          {tr(p.name)}
+          {p.id === me.id ? <span className="text-fg-muted"> {tr('(you)')}</span> : null}
         </Text>
         {showRole ? (
           <Text as="span" variant="bodySm" tone="muted" truncate>
-            {p.role}
+            {tr(p.role)}
           </Text>
         ) : null}
       </span>

@@ -1,5 +1,6 @@
-import { Text, Tooltip, cn } from '@repo/ui';
+import { Text, Tooltip, cn } from '@app/ui';
 import type { ReactNode } from 'react';
+import { useLocale } from '../i18n/LocaleProvider';
 
 export interface BarSegment {
   value: number;
@@ -37,22 +38,33 @@ export function BarTable({
   valueHeader: string;
   targetLabel?: string;
 }) {
-  const top = max ?? Math.max(1, ...rows.map((r) => Math.max(r.target ?? 0, r.segments.reduce((a, s) => a + s.value, 0))));
+  const { t: tr } = useLocale();
+  const top =
+    max ??
+    Math.max(
+      1,
+      ...rows.map((r) =>
+        Math.max(
+          r.target ?? 0,
+          r.segments.reduce((a, s) => a + s.value, 0),
+        ),
+      ),
+    );
   return (
     <table className="w-full border-collapse text-md">
       <caption className="sr-only">{caption}</caption>
       <thead className="sr-only">
         <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Chart</th>
+          <th scope="col">{tr('Name')}</th>
+          <th scope="col">{tr('Chart')}</th>
           <th scope="col">{valueHeader}</th>
         </tr>
       </thead>
       <tbody>
-        {rows.map((r) => (
+        {rows.map((r, row) => (
           <tr key={r.id}>
             <th scope="row" className="w-36 py-2 pe-3 text-start align-middle font-regular text-fg-muted">
-              {r.label}
+              {typeof r.label === 'string' ? tr(r.label) : r.label}
             </th>
             <td className="py-2 align-middle" aria-hidden>
               <Tooltip content={r.detail ?? r.display} side="top">
@@ -63,8 +75,12 @@ export function BarTable({
                       .map((s, i, list) => (
                         <div
                           key={s.label}
-                          className={cn('h-full', i === list.length - 1 && 'rounded-e-sm')}
-                          style={{ width: `${(s.value / top) * 100}%`, background: s.color }}
+                          className={cn('an-grow-x h-full', i === list.length - 1 && 'rounded-e-sm')}
+                          style={{
+                            width: `${(s.value / top) * 100}%`,
+                            background: s.color,
+                            animationDelay: `${row * 40}ms`,
+                          }}
                         />
                       ))}
                   </div>
@@ -88,6 +104,7 @@ export function BarTable({
 
 /** Legend row: a swatch and a text label per series (text stays in ink). */
 export function Legend({ items }: { items: { label: string; color?: string; marker?: 'target' }[] }) {
+  const { t: tr } = useLocale();
   return (
     <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-fg-muted">
       {items.map((i) => (
@@ -97,7 +114,7 @@ export function Legend({ items }: { items: { label: string; color?: string; mark
           ) : (
             <span aria-hidden className="size-2.5 rounded-sm" style={{ background: i.color }} />
           )}
-          {i.label}
+          {tr(i.label)}
         </li>
       ))}
     </ul>
@@ -106,6 +123,7 @@ export function Legend({ items }: { items: { label: string; color?: string; mark
 
 /** Vertical columns over time. Labels only the latest and the highest column. */
 export function ColumnChart({ caption, points }: { caption: string; points: { label: string; value: number; detail: string }[] }) {
+  const { t: tr } = useLocale();
   const max = Math.max(1, ...points.map((p) => p.value));
   // Round the top up to a multiple of 4 with headroom, so ticks are whole numbers.
   const nice = Math.ceil((max * 1.1) / 4) * 4;
@@ -125,10 +143,19 @@ export function ColumnChart({ caption, points }: { caption: string; points: { la
           return (
             <Tooltip key={p.label} content={p.detail}>
               <div className="relative flex flex-1 flex-col items-center justify-end" aria-hidden>
-                {labelled ? <Text as="span" variant="caption" weight="medium" numeric className="mb-1">{p.value}</Text> : null}
+                {labelled ? (
+                  <Text as="span" variant="caption" weight="medium" numeric className="mb-1">
+                    {p.value}
+                  </Text>
+                ) : null}
                 <div
-                  className="w-full max-w-10 rounded-t-sm"
-                  style={{ height: `${(p.value / nice) * 100}%`, background: 'var(--an-chart-1)', minHeight: p.value ? 2 : 0 }}
+                  className="an-grow-y w-full max-w-10 rounded-t-sm"
+                  style={{
+                    height: `${(p.value / nice) * 100}%`,
+                    background: 'var(--an-chart-1)',
+                    minHeight: p.value ? 2 : 0,
+                    animationDelay: `${i * 30}ms`,
+                  }}
                 />
               </div>
             </Tooltip>
@@ -137,8 +164,8 @@ export function ColumnChart({ caption, points }: { caption: string; points: { la
       </div>
       <div aria-hidden className="flex gap-3 ps-8">
         {points.map((p) => (
-          <span key={p.label} className="flex-1 truncate text-center text-xs text-fg-subtle">
-            {p.label}
+          <span key={p.label} className="flex min-w-0 flex-1 justify-center whitespace-nowrap text-xs text-fg-subtle">
+            {tr(p.label)}
           </span>
         ))}
       </div>
@@ -147,7 +174,7 @@ export function ColumnChart({ caption, points }: { caption: string; points: { la
         <tbody>
           {points.map((p) => (
             <tr key={p.label}>
-              <th scope="row">{p.label}</th>
+              <th scope="row">{tr(p.label)}</th>
               <td>{p.value}</td>
             </tr>
           ))}

@@ -146,7 +146,7 @@ export function formatAnswer(field: FormField, value: string | string[] | undefi
   }
   if (field.kind === 'date') {
     const d = localDate(text);
-    return Number.isNaN(d.getTime()) ? text : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    return Number.isNaN(d.getTime()) ? text : d.toLocaleDateString(document.documentElement.lang === 'km' ? 'km-KH' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
   return text;
 }

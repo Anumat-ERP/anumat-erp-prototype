@@ -1,9 +1,10 @@
-import { Button, Card, CardHeader, DatePicker, Field, Input, PageHeader, Select, Text, Textarea, useToast } from '@repo/ui';
+import { Button, Card, CardHeader, DatePicker, Field, Input, PageHeader, Select, Text, Textarea, useToast } from '@app/ui';
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { CheckGroup } from '../components/CheckGroup';
 import { headerLink } from '../components/links';
 import { uid, useStore } from '../data/store';
+import { useLocale } from '../i18n/LocaleProvider';
 
 const DURATIONS = [15, 30, 45, 60, 90].map((m) => ({ value: String(m), label: `${m} minutes` }));
 
@@ -16,6 +17,7 @@ function tomorrow() {
 type Errors = Partial<Record<'title' | 'date' | 'time' | 'attendees', string>>;
 
 export function NewMeeting() {
+  const { t: tr } = useLocale();
   const { state, me, person, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -64,43 +66,43 @@ export function NewMeeting() {
       },
     });
     if (requestId) dispatch({ type: 'update', requestId, patch: { meetingId: id } });
-    toast({ tone: 'success', title: 'Meeting scheduled', description: `${attendees.length - 1} people invited.` });
+    toast({ tone: 'success', title: tr("Meeting scheduled"), description: `${attendees.length - 1} people invited.` });
     navigate(`/meetings/${id}`);
   };
 
   return (
     <>
       <PageHeader
-        title="Schedule a meeting"
-        backAction={linked ? { content: linked.title, href: `/requests/${linked.id}` } : { content: 'Meetings', href: '/meetings' }}
+        title={tr("Schedule a meeting")}
+        backAction={linked ? { content: linked.title, href: `/requests/${linked.id}` } : { content: tr("Meetings"), href: '/meetings' }}
         renderLink={headerLink}
       />
       <form noValidate onSubmit={submit} className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Card className="flex flex-col gap-5">
-          <Field label="Title" required error={errors.title}>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Operations weekly" />
+          <Field label={tr("Title")} required error={errors.title}>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tr("Operations weekly")} />
           </Field>
           <div className="grid gap-4 sm:grid-cols-3">
-            <DatePicker label="Date" value={date} onChange={(e) => setDate(e.target.value)} error={errors.date} />
-            <Field label="Start time" error={errors.time}>
+            <DatePicker label={tr("Date")} value={date} onChange={(e) => setDate(e.target.value)} error={errors.date} />
+            <Field label={tr("Start time")} error={errors.time}>
               <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </Field>
-            <Field label="Length">
+            <Field label={tr("Length")}>
               <Select value={duration} onChange={(e) => setDuration(e.target.value)} options={DURATIONS} />
             </Field>
           </div>
-          <Field label="Where">
+          <Field label={tr("Where")}>
             <Input value={location} onChange={(e) => setLocation(e.target.value)} />
           </Field>
-          <Field label="Agenda" helpText="One item per line." optional>
+          <Field label={tr("Agenda")} helpText="One item per line." optional>
             <Textarea rows={4} autoGrow value={agenda} onChange={(e) => setAgenda(e.target.value)} />
           </Field>
-          <Field label="About a request" optional helpText="Decisions in the meeting link back to it.">
+          <Field label={tr("About a request")} optional helpText="Decisions in the meeting link back to it.">
             <Select
               value={requestId}
               onChange={(e) => setRequestId(e.target.value)}
               options={[
-                { value: '', label: 'No request' },
+                { value: '', label: tr("No request") },
                 ...state.requests
                   .filter((r) => r.status === 'pending' || r.status === 'changes')
                   .map((r) => ({ value: r.id, label: `${r.id} · ${r.title}` })),
@@ -109,15 +111,14 @@ export function NewMeeting() {
           </Field>
           <div className="flex justify-end">
             <Button type="submit" variant="primary">
-              Schedule and invite
-            </Button>
+              {tr("Schedule and invite")}</Button>
           </div>
         </Card>
         <Card className="self-start">
-          <CardHeader title="Invite" description={linked ? 'Suggested: the requester and everyone on the approval route.' : undefined} />
+          <CardHeader title={tr("Invite")} description={linked ? tr("Suggested: the requester and everyone on the approval route.") : undefined} />
           <div className="mt-4">
             <CheckGroup
-              legend="People to invite"
+              legend={tr("People to invite")}
               options={state.people.map((p) => ({ value: p.id, label: p.id === me.id ? `${p.name} (you, organiser)` : `${p.name} · ${p.role}` }))}
               value={attendees}
               onChange={(v) => setAttendees(v.includes(me.id) ? v : [me.id, ...v])}
@@ -129,8 +130,7 @@ export function NewMeeting() {
             </Text>
           ) : (
             <Text tone="muted" variant="bodySm" className="mt-3">
-              {attendees.length} {attendees.length === 1 ? 'person' : 'people'}, including you. Invitees get a notification.
-            </Text>
+              {attendees.length} {attendees.length === 1 ? tr("person") : tr("people")}{tr(", including you. Invitees get a notification.")}</Text>
           )}
           <Text tone="subtle" variant="caption" className="mt-1">
             {attendees.map((a) => person(a).name.split(' ')[0]).join(', ')}

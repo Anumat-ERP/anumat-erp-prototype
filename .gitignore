@@ -3,3 +3,12 @@ dist/
 *.log
 .DS_Store
 dist-artifact/
+
+playwright-report/
+test-results/
+test-results-sales-section/
+
+.impeccable/review/
+
+# Brainstorming companion mockups
+.superpowers/

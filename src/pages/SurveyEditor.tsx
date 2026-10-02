@@ -1,4 +1,4 @@
-import { Banner, Button, cn, Card, CardHeader, EmptyState, Field, Input, Modal, PageHeader, Switch, Text, Textarea, useToast } from '@repo/ui';
+import { Banner, Button, cn, Card, CardHeader, EmptyState, Field, Input, Modal, PageHeader, Switch, Text, Textarea, useToast } from '@app/ui';
 import { CalendarCheck, ClipboardList, GraduationCap, HeartPulse, RotateCcw } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router';
@@ -11,6 +11,7 @@ import { canManageSurveys, surveyAudience, surveyResponsesFor, uid, useStore } f
 import type { FormField, FormValues, Survey } from '../data/types';
 import { cleanFields, formProblems, questionsOf, toDateInput } from '../lib/forms';
 import { DEPARTMENTS } from '../lib/org';
+import { useLocale } from '../i18n/LocaleProvider';
 
 
 const f = (label: string, kind: FormField['kind'], extra: Partial<FormField> = {}): FormField => ({ ...newField(kind), label, ...extra });
@@ -82,6 +83,7 @@ const blank = (me: string): Survey => ({
 });
 
 export function SurveyEditor() {
+  const { t: tr } = useLocale();
   const { id } = useParams();
   const { state, me, dispatch } = useStore();
   const navigate = useNavigate();
@@ -95,16 +97,14 @@ export function SurveyEditor() {
 
   if (!canManageSurveys(state)) {
     return (
-      <EmptyState heading="Only admins can create surveys" action={<Button onClick={() => navigate('/surveys')}>Back to surveys</Button>}>
-        Ask an admin if you’d like to ask the team something.
-      </EmptyState>
+      <EmptyState heading={tr("Only admins can create surveys")} action={<Button onClick={() => navigate('/surveys')}>{tr("Back to surveys")}</Button>}>
+        {tr("Ask an admin if you’d like to ask the team something.")}</EmptyState>
     );
   }
   if (id && !original) {
     return (
-      <EmptyState heading="This survey doesn’t exist" action={<Button onClick={() => navigate('/surveys')}>Back to surveys</Button>}>
-        It may have been deleted.
-      </EmptyState>
+      <EmptyState heading={tr("This survey doesn’t exist")} action={<Button onClick={() => navigate('/surveys')}>{tr("Back to surveys")}</Button>}>
+        {tr("It may have been deleted.")}</EmptyState>
     );
   }
 
@@ -127,24 +127,24 @@ export function SurveyEditor() {
 
   const saveDraft = () => {
     if (!draft.title.trim()) {
-      setErrors({ title: 'A draft needs at least a title.' });
+      setErrors({ title: tr("A draft needs at least a title.") });
       return;
     }
     dispatch({ type: 'saveSurvey', survey: clean() });
-    toast({ tone: 'success', title: 'Draft saved', description: 'Nobody sees it until you send it.' });
+    toast({ tone: 'success', title: tr("Draft saved"), description: tr("Nobody sees it until you send it.") });
     navigate('/surveys');
   };
   const saveChanges = () => {
     if (!check()) return;
     dispatch({ type: 'saveSurvey', survey: clean() });
-    toast({ tone: 'success', title: 'Survey updated' });
+    toast({ tone: 'success', title: tr("Survey updated") });
     navigate(`/surveys/${draft.id}`);
   };
   const publish = () => {
     dispatch({ type: 'saveSurvey', survey: clean() });
     dispatch({ type: 'publishSurvey', surveyId: draft.id });
     setConfirm(false);
-    toast({ tone: 'success', title: `Sent to ${audience.length} people`, description: 'They see it on Home, in Surveys and in their notifications.' });
+    toast({ tone: 'success', title: `Sent to ${audience.length} people`, description: tr("They see it on Home, in Surveys and in their notifications.") });
     navigate(`/surveys/${draft.id}`);
   };
 
@@ -153,22 +153,22 @@ export function SurveyEditor() {
   return (
     <>
       <PageHeader
-        title={original ? (published ? 'Edit survey' : 'Edit draft') : 'New survey'}
-        subtitle={published ? undefined : 'Nobody sees it until you send it.'}
-        backAction={{ content: 'Surveys', href: '/surveys' }}
+        title={original ? (published ? tr("Edit survey") : tr("Edit draft")) : tr("New survey")}
+        subtitle={published ? undefined : tr("Nobody sees it until you send it.")}
+        backAction={{ content: tr("Surveys"), href: '/surveys' }}
         renderLink={headerLink}
         primaryAction={
           published
-            ? { content: 'Save changes', onAction: saveChanges }
-            : { content: 'Review and send', onAction: () => check() && setConfirm(true) }
+            ? { content: tr("Save changes"), onAction: saveChanges }
+            : { content: tr("Review and send"), onAction: () => check() && setConfirm(true) }
         }
-        secondaryActions={published ? undefined : [{ content: 'Save draft', onAction: saveDraft }]}
+        secondaryActions={published ? undefined : [{ content: tr("Save draft"), onAction: saveDraft }]}
       />
 
       {errors.title || questionCount || errors.closesAt ? (
-        <Banner tone="critical" title="Fix these to continue">
+        <Banner tone="critical" title={tr("Fix these to continue")}>
           <ul className="list-disc ps-5">
-            {errors.title ? <li>Add a title.</li> : null}
+            {errors.title ? <li>{tr("Add a title.")}</li> : null}
             {errors.questions?.map((p) => <li key={p}>{p}</li>)}
             {errors.closesAt ? <li>{errors.closesAt}</li> : null}
           </ul>
@@ -176,7 +176,7 @@ export function SurveyEditor() {
       ) : null}
 
       {/* Phones and tablets: switch between building and previewing instead of scrolling past the whole form. */}
-      <div role="tablist" aria-label="Editor view" className="grid grid-cols-2 gap-1 rounded-lg bg-surface-sunken p-1 lg:hidden">
+      <div role="tablist" aria-label={tr("Editor view")} className="grid grid-cols-2 gap-1 rounded-lg bg-surface-sunken p-1 lg:hidden">
         {(['build', 'preview'] as const).map((v) => (
           <button
             key={v}
@@ -189,7 +189,7 @@ export function SurveyEditor() {
               view === v ? 'bg-surface text-fg shadow-xs' : 'text-fg-muted',
             )}
           >
-            {v === 'build' ? 'Build' : `Preview${questionsOf(draft.fields).length ? ` (${questionsOf(draft.fields).length})` : ''}`}
+            {v === 'build' ? tr("Build") : tr("Preview{value0}", { value0: questionsOf(draft.fields).length ? ` (${questionsOf(draft.fields).length})` : '' })}
           </button>
         ))}
       </div>
@@ -198,7 +198,7 @@ export function SurveyEditor() {
         <div className={cn('min-w-0 flex-col gap-6 lg:flex', view === 'build' ? 'flex' : 'hidden')}>
           {!original && draft.fields.length === 0 ? (
             <Card className="flex flex-col gap-3">
-              <CardHeader title="Start from a template" description="Or add your own questions below." />
+              <CardHeader title={tr("Start from a template")} description={tr("Or add your own questions below.")} />
               <div className="grid gap-2 sm:grid-cols-3">
                 {TEMPLATES.map((t) => (
                   <button
@@ -217,8 +217,8 @@ export function SurveyEditor() {
                       {t.icon}
                     </span>
                     <span className="flex min-w-0 flex-col">
-                      <span className="font-medium text-fg">{t.name}</span>
-                      <span className="text-sm text-fg-muted">{t.hint}</span>
+                      <span className="font-medium text-fg">{tr(t.name)}</span>
+                      <span className="text-sm text-fg-muted">{tr(t.hint)}</span>
                     </span>
                   </button>
                 ))}
@@ -227,24 +227,23 @@ export function SurveyEditor() {
           ) : null}
 
           <Card className="flex flex-col gap-4">
-            <CardHeader title="About this survey" />
-            <Field label="Title" required error={errors.title}>
-              <Input value={draft.title} maxLength={80} onChange={(e) => (set({ title: e.target.value }), setErrors({ ...errors, title: undefined }))} />
+            <CardHeader title={tr("About this survey")} />
+            <Field label={tr("Title")} required error={errors.title}>
+              <Input value={tr(draft.title)} maxLength={80} onChange={(e) => (set({ title: e.target.value }), setErrors({ ...errors, title: undefined }))} />
             </Field>
-            <Field label="Introduction" optional helpText="Shown at the top: why you’re asking and what you’ll do with the answers.">
-              <Textarea rows={2} autoGrow value={draft.description} onChange={(e) => set({ description: e.target.value })} />
+            <Field label={tr("Introduction")} optional helpText={tr('Shown at the top: why you’re asking and what you’ll do with the answers.')}>
+              <Textarea rows={2} autoGrow value={tr(draft.description)} onChange={(e) => set({ description: e.target.value })} />
             </Field>
           </Card>
 
           <Card className="flex flex-col gap-4">
             <CardHeader
-              title="Questions"
-              description="Pick an answer type for each question. Use “Only ask when” to skip questions that don’t apply."
+              title={tr("Questions")}
+              description={tr("Pick an answer type for each question. Use “Only ask when” to skip questions that don’t apply.")}
             />
             {locked ? (
               <Banner tone="info" inline>
-                {answered} {answered === 1 ? 'person has' : 'people have'} answered, so the questions can’t change. Duplicate the survey to ask something new.
-              </Banner>
+                {answered} {answered === 1 ? tr("person has") : tr("people have")} {tr("answered, so the questions can’t change. Duplicate the survey to ask something new.")}</Banner>
             ) : null}
             <fieldset disabled={locked} className="contents">
               <FormBuilder fields={draft.fields} onChange={(fields) => (set({ fields }), setErrors({ ...errors, questions: undefined }))} />
@@ -252,9 +251,9 @@ export function SurveyEditor() {
           </Card>
 
           <Card className="flex flex-col gap-4">
-            <CardHeader title="Who and when" />
+            <CardHeader title={tr("Who and when")} />
             <Switch
-              label="Everyone in the workspace"
+              label={tr("Everyone in the workspace")}
               helpText={`${state.people.length} people`}
               checked={draft.audience.length === 0}
               disabled={locked}
@@ -263,10 +262,9 @@ export function SurveyEditor() {
             {draft.audience.length ? (
               <fieldset disabled={locked} className="flex flex-col gap-2">
                 <Text as="span" variant="label" aria-hidden>
-                  Departments to ask
-                </Text>
+                  {tr("Departments to ask")}</Text>
                 <CheckGroup
-                  legend="Departments to ask"
+                  legend={tr("Departments to ask")}
                   options={DEPARTMENTS.map((d) => ({ value: d, label: `${d} (${state.people.filter((p) => p.department === d).length})` }))}
                   value={draft.audience}
                   onChange={(v) => set({ audience: v.length ? v : draft.audience })}
@@ -274,14 +272,14 @@ export function SurveyEditor() {
               </fieldset>
             ) : null}
             <Switch
-              label="Anonymous answers"
+              label={tr("Anonymous answers")}
               helpText="Names are never shown with answers, and results appear only once 3 people have answered."
               checked={draft.anonymous}
               disabled={locked}
               onCheckedChange={(on) => set({ anonymous: on })}
             />
             <Field
-              label="Last day to answer"
+              label={tr("Last day to answer")}
               optional
               helpText={draft.status === 'closed' ? 'This survey is closed. Reopen it from its page to take answers again.' : 'The survey closes at the end of this day.'}
               error={errors.closesAt}
@@ -299,19 +297,18 @@ export function SurveyEditor() {
 
         <Card className={cn('min-w-0 flex-col gap-4 self-start lg:sticky lg:top-20 lg:flex', view === 'preview' ? 'flex' : 'hidden')}>
           <CardHeader
-            title="Preview"
-            description="What people see. Try answering: follow-up questions appear as you go."
+            title={tr("Preview")}
+            description={tr("What people see. Try answering: follow-up questions appear as you go.")}
             actions={
               Object.keys(preview).length ? (
                 <Button size="sm" variant="tertiary" icon={<RotateCcw />} onClick={() => setPreview({})}>
-                  Reset
-                </Button>
+                  {tr("Reset")}</Button>
               ) : null
             }
           />
           <div className="flex flex-col gap-1 border-b border-border pb-3">
-            <Text variant="subtitle">{draft.title || 'Untitled survey'}</Text>
-            {draft.description ? <Text variant="bodySm" tone="muted">{draft.description}</Text> : null}
+            <Text variant="subtitle">{tr(draft.title || 'Untitled survey')}</Text>
+            {draft.description ? <Text variant="bodySm" tone="muted">{tr(draft.description)}</Text> : null}
           </div>
           {draft.fields.length ? (
             <FormRenderer fields={draft.fields} values={preview} onChange={setPreview} idPrefix="preview" numbered />
@@ -319,24 +316,21 @@ export function SurveyEditor() {
             <div className="flex flex-col items-center gap-2 py-6 text-center text-fg-muted">
               <ClipboardList aria-hidden className="size-6" />
               <Text variant="bodySm" tone="muted">
-                Questions you add appear here.
-              </Text>
+                {tr("Questions you add appear here.")}</Text>
             </div>
           )}
         </Card>
       </div>
 
-      <MobileActionBar label="Survey actions">
+      <MobileActionBar label={tr("Survey actions")}>
         {published ? (
           <Button variant="primary" onClick={saveChanges}>
-            Save changes
-          </Button>
+            {tr("Save changes")}</Button>
         ) : (
           <>
-            <Button onClick={saveDraft}>Save draft</Button>
+            <Button onClick={saveDraft}>{tr("Save draft")}</Button>
             <Button variant="primary" onClick={() => check() && setConfirm(true)}>
-              Review and send
-            </Button>
+              {tr("Review and send")}</Button>
           </>
         )}
       </MobileActionBar>
@@ -344,18 +338,17 @@ export function SurveyEditor() {
       <Modal
         open={confirm}
         onOpenChange={setConfirm}
-        title="Send this survey?"
-        primaryAction={{ content: `Send to ${audience.length} people`, onAction: publish }}
-        secondaryActions={[{ content: 'Keep editing', onAction: () => setConfirm(false) }]}
+        title={tr("Send this survey?")}
+        primaryAction={{ content: tr("Send to {value0} people", { value0: audience.length }), onAction: publish }}
+        secondaryActions={[{ content: tr("Keep editing"), onAction: () => setConfirm(false) }]}
       >
         <ul className="flex list-disc flex-col gap-1.5 ps-5 text-md">
           <li>
-            <strong>{draft.title}</strong>: {questionsOf(draft.fields).length} questions
-          </li>
-          <li>Goes to {draft.audience.length ? draft.audience.join(', ') : 'everyone'} ({audience.length} people), on Home and in their notifications.</li>
-          <li>{draft.anonymous ? 'Anonymous: names are never shown with answers.' : 'Answers show who gave them.'}</li>
+            <strong>{tr(draft.title)}</strong>: {questionsOf(draft.fields).length} {tr("questions")}</li>
+          <li>{tr("Goes to")}{' '}{draft.audience.length ? draft.audience.join(', ') : tr("everyone")} ({audience.length} {tr("people), on Home and in their notifications.")}</li>
+          <li>{draft.anonymous ? tr("Anonymous: names are never shown with answers.") : tr("Answers show who gave them.")}</li>
           <li>
-            {draft.closesAt ? `Closes at the end of ${new Date(draft.closesAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}.` : 'Stays open until you close it.'}
+            {draft.closesAt ? tr("Closes at the end of {value0}.", { value0: new Date(draft.closesAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) }) : tr("Stays open until you close it.")}
           </li>
         </ul>
       </Modal>

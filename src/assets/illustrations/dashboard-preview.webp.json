@@ -1,0 +1,4 @@
+{
+  "prompt": "Origin: screenshot of this project\u2019s Home screen, captured at http://localhost:5173/home with seeded demonstration data, then encoded to WebP using cwebp. Created locally for this project; no third-party UI assets.",
+  "source": "src/pages/Home.tsx"
+}

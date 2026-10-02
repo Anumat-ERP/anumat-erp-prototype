@@ -1,4 +1,4 @@
-import { Field, Modal, Textarea, useToast } from '@repo/ui';
+import { Field, Modal, Textarea, useToast } from '@app/ui';
 import { useState } from 'react';
 import { planMove, statusDef, useStore } from '../data/store';
 import type { Task, TaskStatus } from '../data/types';

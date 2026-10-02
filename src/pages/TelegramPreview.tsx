@@ -1,4 +1,4 @@
-import { Button, EmptyState, PageHeader, Text, cn, useToast } from '@repo/ui';
+import { Button, EmptyState, PageHeader, Text, cn, useToast } from '@app/ui';
 import { ArrowLeft, Send } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -6,9 +6,10 @@ import { LogoMark } from '../components/Logo';
 import { headerLink } from '../components/links';
 import { isDone, notificationsFor, prefsFor, stepForm, useStore, waitingOnMe } from '../data/store';
 import type { FormValues } from '../data/types';
-import { choicesFor, isQuestion } from '../lib/forms';
+import { useLocale } from '../i18n/LocaleProvider';
 import { googleCalendarUrl } from '../lib/calendar';
-import { daysUntil, formatMoney, formatTime, formatWeekday, typeLabel, typeName } from '../lib/format';
+import { daysUntil, formatMoney, formatTime, formatWeekday, typeName } from '../lib/format';
+import { choicesFor, isQuestion } from '../lib/forms';
 
 interface Message {
   id: string;
@@ -39,6 +40,7 @@ function InlineButton({ children, onClick, href }: { children: ReactNode; onClic
  * on their notification settings. Approve works for real in the prototype.
  */
 export function TelegramPreview() {
+  const { t: tr } = useLocale();
   const { state, me, person, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -49,10 +51,19 @@ export function TelegramPreview() {
   if (!prefs.telegram) {
     return (
       <>
-        <PageHeader title="Telegram preview" backAction={{ content: 'Notifications', href: '/settings/notifications' }} renderLink={headerLink} />
-        <EmptyState heading="Telegram isn’t connected" action={<Button onClick={() => navigate('/settings/notifications')}>Connect Telegram</Button>}>
-          Connect it in notification settings to see approvals and reminders arrive here.
-        </EmptyState>
+        <PageHeader
+          title={tr('Telegram preview')}
+          backAction={{
+            content: tr('Notifications'),
+            href: '/settings/notifications',
+          }}
+          renderLink={headerLink}
+        />
+        <EmptyState
+          heading={tr('Telegram isn’t connected')}
+          action={<Button onClick={() => navigate('/settings/notifications')}>{tr('Connect Telegram')}</Button>}
+        >
+          {tr("Connect it in notification settings to see approvals and reminders arrive here.")}</EmptyState>
       </>
     );
   }
@@ -68,21 +79,29 @@ export function TelegramPreview() {
         at: r.updatedAt,
         body: (
           <>
-            <b>Approval needed · {r.id}</b>
+            <b>{tr("Approval needed ·")}{' '}{r.id}</b>
             <br />
-            {r.title}
+            {tr(r.title)}
             <br />
             {r.amount !== undefined ? `${formatMoney(r.amount)} · ` : ''}
-            {typeName(r.type, state.processes)} from {person(r.requesterId).name}
+            {typeName(r.type, state.processes)} {tr("from")}{' '}{tr(person(r.requesterId).name)}
             <br />
-            <span className="text-[#6d7d8b]">Your step: {step?.name}</span>
+            <span className="text-[#6d7d8b]">
+              {tr('Your step:')} {tr(step?.name ?? '')}
+            </span>
           </>
         ),
         buttons: (() => {
           const approve = (answers?: FormValues, picked?: string) => {
             const i = r.steps.findIndex((st) => st.status === 'current');
             const next = r.steps[i + 1];
-            dispatch({ type: 'decide', requestId: r.id, decision: 'approve', comment: '', answers });
+            dispatch({
+              type: 'decide',
+              requestId: r.id,
+              decision: 'approve',
+              comment: '',
+              answers,
+            });
             setReplies((list) => [
               ...list,
               {
@@ -90,9 +109,10 @@ export function TelegramPreview() {
                 at: new Date().toISOString(),
                 body: (
                   <>
-                    Approved {r.id}
-                    {picked ? ` on ${picked}` : ''}.{' '}
-                    {next ? `Sent to ${person(next.approverId).name} for ${next.name.toLowerCase()}.` : 'The request is fully approved.'}
+                    {' '}
+                    {tr('Approved')} {r.id}
+                    {picked ? tr(" on {value0}", { value0: picked }) : ''}.{' '}
+                    {next ? tr("Sent to {value0} for {value1}.", { value0: person(next.approverId).name, value1: next.name.toLowerCase() }) : tr('The request is fully approved.')}
                   </>
                 ),
               },
@@ -106,23 +126,23 @@ export function TelegramPreview() {
             <>
               {required.length === 0 ? (
                 <div className="flex gap-1">
-                  <InlineButton onClick={() => approve()}>Approve</InlineButton>
-                  <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>Request changes</InlineButton>
+                  <InlineButton onClick={() => approve()}>{tr('Approve')}</InlineButton>
+                  <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>{tr('Request changes')}</InlineButton>
                 </div>
               ) : pick ? (
                 <>
-                  <span className="px-1 text-xs text-[#6d7d8b]">{pick.label}? Tap to approve:</span>
+                  <span className="px-1 text-xs text-[#6d7d8b]">{tr(pick.label)}{tr("? Tap to approve:")}</span>
                   {choicesFor(pick).map((c) => (
                     <InlineButton key={c} onClick={() => approve({ [pick.id]: c }, c)}>
-                      Approve · {c}
+                      {tr("Approve ·")}{' '}{c}
                     </InlineButton>
                   ))}
-                  <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>Request changes</InlineButton>
+                  <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>{tr('Request changes')}</InlineButton>
                 </>
               ) : (
-                <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>Add details to approve</InlineButton>
+                <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>{tr('Add details to approve')}</InlineButton>
               )}
-              <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>Open in Anumat</InlineButton>
+              <InlineButton onClick={() => navigate(`/requests/${r.id}`)}>{tr("Open in Anumat")}</InlineButton>
             </>
           );
         })(),
@@ -138,17 +158,16 @@ export function TelegramPreview() {
         at: new Date(Math.min(Date.now() - 60_000, start.getTime() - 86_400_000)).toISOString(),
         body: (
           <>
-            <b>Meeting {daysUntil(m.start) === 0 ? 'today' : daysUntil(m.start) === 1 ? 'tomorrow' : formatWeekday(m.start)}</b>
+            <b>{tr("Meeting")}{' '}{daysUntil(m.start) === 0 ? tr("today") : daysUntil(m.start) === 1 ? tr("tomorrow") : formatWeekday(m.start)}</b>
             <br />
-            {m.title} · {formatTime(m.start)}, {m.durationMin} min
-            <br />
-            <span className="text-[#6d7d8b]">{m.location}</span>
+            {tr(m.title)} · {formatTime(m.start)}, {m.durationMin} {tr("min")}{' '}<br />
+            <span className="text-[#6d7d8b]">{tr(m.location)}</span>
           </>
         ),
         buttons: (
           <div className="flex gap-1">
-            <InlineButton href={googleCalendarUrl(m)}>Add to Google Calendar</InlineButton>
-            <InlineButton onClick={() => navigate(`/meetings/${m.id}`)}>Agenda</InlineButton>
+            <InlineButton href={googleCalendarUrl(m)}>{tr("Add to Google Calendar")}</InlineButton>
+            <InlineButton onClick={() => navigate(`/meetings/${m.id}`)}>{tr("Agenda")}</InlineButton>
           </div>
         ),
       });
@@ -162,12 +181,12 @@ export function TelegramPreview() {
         at: new Date(Date.now() - 3 * 3_600_000).toISOString(),
         body: (
           <>
-            <b>{daysUntil(t.due) < 0 ? 'Overdue task' : 'Due today'}</b>
+            <b>{daysUntil(t.due) < 0 ? tr("Overdue task") : tr("Due today")}</b>
             <br />
-            {t.title}
+            {tr(t.title)}
           </>
         ),
-        buttons: <InlineButton onClick={() => navigate('/tasks')}>Open tasks</InlineButton>,
+        buttons: <InlineButton onClick={() => navigate('/tasks')}>{tr("Open tasks")}</InlineButton>,
       });
     }
   }
@@ -182,7 +201,7 @@ export function TelegramPreview() {
         at: n.at,
         body: (
           <>
-            <b>{person(n.personId).name}</b> {n.text}
+            <b>{tr(person(n.personId).name)}</b> {n.text}
           </>
         ),
       });
@@ -194,22 +213,25 @@ export function TelegramPreview() {
   return (
     <>
       <PageHeader
-        title="Telegram preview"
-        subtitle={`What the Anumat bot sends @${prefs.telegram.username}. Buttons work: approving here approves in Anumat.`}
-        backAction={{ content: 'Notifications', href: '/settings/notifications' }}
+        title={tr('Telegram preview')}
+        subtitle={tr("What the Anumat bot sends @{value0}. Buttons work: approving here approves in Anumat.", { value0: prefs.telegram.username })}
+        backAction={{
+          content: tr('Notifications'),
+          href: '/settings/notifications',
+        }}
         renderLink={headerLink}
       />
       <div className="flex justify-center">
         <section
-          aria-label="Telegram chat with the Anumat bot"
-          className="flex h-[40rem] w-full max-w-[24rem] flex-col overflow-hidden rounded-[2rem] border-8 border-[#1b2230] bg-[#1b2230] shadow-lg"
+          aria-label={tr("Telegram chat with the Anumat bot")}
+          className="flex h-[40rem] w-full max-w-[24rem] flex-col overflow-hidden rounded-[2rem] border-8 border-[#0f1a2e] bg-[#0f1a2e] shadow-lg"
         >
           <header className="flex items-center gap-3 bg-[#517da2] px-3 py-2.5 text-white">
             <ArrowLeft aria-hidden className="size-5 opacity-80" />
             <LogoMark className="size-9 rounded-full" />
             <span className="flex flex-col leading-tight">
-              <span className="font-semibold">Anumat</span>
-              <span className="text-xs opacity-80">bot</span>
+              <span className="font-semibold">{tr("Anumat")}</span>
+              <span className="text-xs opacity-80">{tr("bot")}</span>
             </span>
           </header>
           <ol
@@ -221,11 +243,13 @@ export function TelegramPreview() {
             aria-live="polite"
           >
             {all.length === 0 ? (
-              <li className="self-center rounded-full bg-black/20 px-3 py-1 text-xs text-white">Nothing new. Turn on events in notification settings.</li>
+              <li className="self-center rounded-full bg-black/20 px-3 py-1 text-xs text-white">
+                {tr('Nothing new. Turn on events in notification settings.')}
+              </li>
             ) : null}
             {all.map((m) => (
               <li key={m.id} className="flex max-w-[88%] flex-col gap-1">
-                <div className={cn('rounded-xl rounded-tl-sm bg-white px-3 py-2 text-[0.9rem] leading-snug text-[#1b2230] shadow-xs')}>
+                <div className={cn('rounded-xl rounded-tl-sm bg-white px-3 py-2 text-[0.9rem] leading-snug text-[#0f1a2e] shadow-xs')}>
                   {m.body}
                   <span className="mt-1 block text-end text-[0.7rem] text-[#8a9aa9]">{formatTime(m.at)}</span>
                 </div>
@@ -234,13 +258,15 @@ export function TelegramPreview() {
             ))}
           </ol>
           <div className="flex items-center gap-2 bg-white px-3 py-2 text-sm text-[#8a9aa9]" aria-hidden>
-            <span className="flex-1">Message</span>
+            <span className="flex-1">{tr('Message')}</span>
             <Send className="size-4" />
           </div>
         </section>
       </div>
       <Text variant="bodySm" tone="muted" align="center">
-        Prototype: a preview of the real bot. <Link to="/settings/notifications" className="text-fg-link underline">Change what you get</Link>
+        {tr("Prototype: a preview of the real bot.")}{' '}
+        <Link to="/settings/notifications" className="text-fg-link underline">
+          {tr("Change what you get")}</Link>
       </Text>
     </>
   );

@@ -1,0 +1,9 @@
+Kantumruy Pro (KantumruyPro-khmer.woff2)
+Copyright 2022 The Kantumruy Pro Project Authors (https://github.com/sovichet/kantumruy-pro)
+
+Battambang (Battambang-400-khmer.woff2, Battambang-700-khmer.woff2)
+Copyright 2010-2022 The Battambang Project Authors
+
+Both fonts are Khmer-only subsets served by Google Fonts and are licensed under
+the SIL Open Font License, Version 1.1. The full licence text is in
+NotoSansKhmer-OFL.txt in this folder and at https://openfontlicense.org.

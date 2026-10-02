@@ -1,35 +1,45 @@
-import { Button, EmptyState, IndexTable, PageHeader, Tabs, TabsList, TabsTrigger, Text, type DataTableColumn } from '@repo/ui';
-import { useMemo, useState } from 'react';
+import { Button, EmptyState, IndexTable, PageHeader, Tabs, TabsList, TabsTrigger, Text, type DataTableColumn } from '@app/ui';
+import { useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { CheckGroup } from '../components/CheckGroup';
 import { Person } from '../components/Person';
 import { RequestIcon } from '../components/RequestIcon';
 import { StatusBadge } from '../components/StatusBadge';
+import { Time } from '../components/Time';
 import { useStore } from '../data/store';
 import type { Request, RequestStatus, RequestType } from '../data/types';
-import { formatMoney, formatRelative, requestStatus, typeLabel, typeName } from '../lib/format';
+import { useLocale } from '../i18n/LocaleProvider';
+import { formatMoney, requestStatus, typeName } from '../lib/format';
 
 const STATUS_OPTIONS = (Object.keys(requestStatus) as RequestStatus[]).map((s) => ({ value: s, label: requestStatus[s].label }));
 
 export function Requests() {
+  const { t: tr } = useLocale();
   const { state, me } = useStore();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const [scope, setScope] = useState<'all' | 'mine'>('all');
-  const TYPE_OPTIONS = state.processes.map((p) => ({ value: p.requestType, label: typeName(p.requestType, state.processes) }));
+  const pendingParams = useRef(params);
+  useEffect(() => { pendingParams.current = params; }, [params]);
+  const scope = params.get('mine') === '1' ? 'mine' : 'all';
+  const TYPE_OPTIONS = state.processes.map((p) => ({
+    value: p.requestType,
+    label: tr(typeName(p.requestType, state.processes)),
+  }));
   const query = params.get('q') ?? '';
   const statuses = (params.get('status')?.split(',').filter(Boolean) ?? []) as RequestStatus[];
   const types = (params.get('type')?.split(',').filter(Boolean) ?? []) as RequestType[];
 
-  const set = (key: string, value: string) =>
-    setParams(
-      (p) => {
-        if (value) p.set(key, value);
-        else p.delete(key);
-        return p;
-      },
-      { replace: true },
-    );
+  // Keep quick successive actions (clear filters, then switch view) on the same URL state.
+  const replaceParams = (next: URLSearchParams) => {
+    pendingParams.current = next;
+    setParams(next, { replace: true });
+  };
+  const set = (key: string, value: string) => {
+    const next = new URLSearchParams(pendingParams.current);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    replaceParams(next);
+  };
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -42,69 +52,91 @@ export function Requests() {
   }, [state.requests, scope, me.id, statuses, types, query]);
 
   const filtered = Boolean(query || statuses.length || types.length);
-  const clearAll = () => setParams({}, { replace: true });
+  const clearAll = () => replaceParams(new URLSearchParams(pendingParams.current.get('mine') === '1' ? { mine: '1' } : {}));
 
   const columns: DataTableColumn<Request>[] = [
     {
       id: 'title',
-      header: 'Request',
+      header: tr('Request'),
       sortable: true,
       sortValue: (r) => r.title,
       cell: (r) => (
-        <span className="flex min-w-0 items-center gap-3">
-          <RequestIcon type={r.type} className="size-8" />
-          <span className="flex min-w-0 flex-col">
-            <Link
-              to={`/requests/${r.id}`}
-              className="truncate font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring"
-            >
-              {r.title}
+        // On phones the title wraps and the status sits under it, since the other columns are hidden.
+        <span className="flex min-w-0 items-center gap-3 whitespace-normal md:whitespace-nowrap">
+          <RequestIcon type={r.type} className="size-8 shrink-0" />
+          <span className="flex min-w-0 flex-col items-start">
+            <Link to={`/requests/${r.id}`} className="font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring md:truncate">
+              {tr(r.title)}
             </Link>
             <Text as="span" variant="caption" tone="muted">
-              {r.id} · {typeName(r.type, state.processes)}
+              {r.id} · {tr(typeName(r.type, state.processes))}
             </Text>
+            <span className="mt-1 md:hidden">
+              <StatusBadge status={r.status} size="sm" />
+            </span>
           </span>
         </span>
       ),
     },
-    { id: 'requester', header: 'Requested by', cell: (r) => <Person id={r.requesterId} size="xs" /> },
+    {
+      id: 'requester',
+      header: tr('Requested by'),
+      hideBelow: 'md',
+      cell: (r) => <Person id={r.requesterId} size="xs" />,
+    },
     {
       id: 'amount',
-      header: 'Amount',
+      header: tr('Amount'),
+      hideBelow: 'md',
       align: 'end',
       numeric: true,
       sortable: true,
       sortValue: (r) => r.amount ?? -1,
       cell: (r) => formatMoney(r.amount),
     },
-    { id: 'status', header: 'Status', sortable: true, sortValue: (r) => r.status, cell: (r) => <StatusBadge status={r.status} size="sm" /> },
+    {
+      id: 'status',
+      header: tr('Status'),
+      hideBelow: 'md',
+      sortable: true,
+      sortValue: (r) => r.status,
+      cell: (r) => <StatusBadge status={r.status} size="sm" />,
+    },
     {
       id: 'updated',
-      header: 'Updated',
+      header: tr("Updated"),
+      hideBelow: 'md',
       sortable: true,
       sortValue: (r) => r.updatedAt,
-      cell: (r) => <span className="text-fg-muted">{formatRelative(r.updatedAt)}</span>,
+      cell: (r) => (
+        <span className="text-fg-muted">
+          <Time iso={r.updatedAt} />
+        </span>
+      ),
     },
   ];
 
   return (
     <>
       <PageHeader
-        title="Requests"
-        subtitle="Everything people have asked for, and where each one stands."
-        primaryAction={{ content: 'New request', onAction: () => navigate('/requests/new') }}
+        title={tr('Requests')}
+        subtitle={tr('Everything people have asked for, and where each one stands.')}
+        primaryAction={{
+          content: tr('New request'),
+          onAction: () => navigate('/requests/new'),
+        }}
       />
-      <Tabs value={scope} onValueChange={(v) => setScope(v as 'all' | 'mine')}>
-        <TabsList aria-label="Whose requests">
-          <TabsTrigger value="all">All requests</TabsTrigger>
-          <TabsTrigger value="mine">Submitted by you</TabsTrigger>
+      <Tabs value={scope} onValueChange={(v) => set('mine', v === 'mine' ? '1' : '')}>
+        <TabsList aria-label={tr('Whose requests')}>
+          <TabsTrigger value="all">{tr('All requests')}</TabsTrigger>
+          <TabsTrigger value="mine">{tr('Submitted by you')}</TabsTrigger>
         </TabsList>
       </Tabs>
       <IndexTable<Request>
-        caption="Requests"
+        caption={tr("Requests")}
         captionHidden
         selectable={false}
-        resourceName={{ singular: 'request', plural: 'requests' }}
+        resourceName={{ singular: tr("request"), plural: tr("requests") }}
         columns={columns}
         rows={rows}
         getRowLabel={(r) => r.title}
@@ -113,47 +145,62 @@ export function Requests() {
           queryValue: query,
           onQueryChange: (v) => set('q', v),
           onQueryClear: () => set('q', ''),
-          queryPlaceholder: 'Search by title or ID',
-          queryLabel: 'Search requests',
+          queryPlaceholder: tr("Search by title or ID"),
+          queryLabel: tr("Search requests"),
           onClearAll: clearAll,
           filters: [
             {
               key: 'status',
-              label: 'Status',
+              label: tr('Status'),
               pinned: true,
-              filter: <CheckGroup legend="Status" options={STATUS_OPTIONS} value={statuses} onChange={(v) => set('status', v.join(','))} />,
+              filter: <CheckGroup legend={tr("Status")} options={STATUS_OPTIONS} value={statuses} onChange={(v) => set('status', v.join(','))} />,
             },
             {
               key: 'type',
-              label: 'Type',
+              label: tr('Type'),
               pinned: true,
-              filter: <CheckGroup legend="Type" options={TYPE_OPTIONS} value={types} onChange={(v) => set('type', v.join(','))} />,
+              filter: <CheckGroup legend={tr("Type")} options={TYPE_OPTIONS} value={types} onChange={(v) => set('type', v.join(','))} />,
             },
           ],
           appliedFilters: [
             ...(statuses.length
-              ? [{ key: 'status', label: `Status: ${statuses.map((s) => requestStatus[s].label).join(', ')}`, onRemove: () => set('status', '') }]
+              ? [
+                  {
+                    key: 'status',
+                    label: tr("Status: {value0}", { value0: statuses.map((s) => requestStatus[s].label).join(', ') }),
+                    onRemove: () => set('status', ''),
+                  },
+                ]
               : []),
-            ...(types.length ? [{ key: 'type', label: `Type: ${types.map((t) => typeName(t, state.processes)).join(', ')}`, onRemove: () => set('type', '') }] : []),
+            ...(types.length
+              ? [
+                  {
+                    key: 'type',
+                    label: tr("Type: {value0}", { value0: types.map((t) => tr(typeName(t, state.processes))).join(', ') }),
+                    onRemove: () => set('type', ''),
+                  },
+                ]
+              : []),
           ],
         }}
         emptyState={
           filtered ? (
-            <EmptyState size="card" heading="No requests match these filters" action={<Button onClick={clearAll}>Clear filters</Button>}>
-              Try a different search, or clear the filters to see every request.
+            <EmptyState size="card" heading={tr('No requests match these filters')} action={<Button onClick={clearAll}>{tr('Clear filters')}</Button>}>
+              {' '}
+              {tr('Try a different search, or clear the filters to see every request.')}{' '}
             </EmptyState>
           ) : (
             <EmptyState
               size="card"
-              heading="Create your first request"
+              heading={tr('Create your first request')}
               action={
                 <Button variant="primary" onClick={() => navigate('/requests/new')}>
-                  New request
+                  {' '}
+                  {tr('New request')}{' '}
                 </Button>
               }
             >
-              Purchases, leave, expenses and contracts all start here.
-            </EmptyState>
+              {tr("Purchases, leave, expenses and contracts all start here.")}</EmptyState>
           )
         }
       />

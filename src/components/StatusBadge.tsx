@@ -1,12 +1,25 @@
-import { Badge } from '@repo/ui';
+import { cn } from '@app/ui';
 import type { RequestStatus } from '../data/types';
+import { useLocale } from '../i18n/LocaleProvider';
 import { requestStatus } from '../lib/format';
 
-export function StatusBadge({ status, size }: { status: RequestStatus; size?: 'sm' | 'md' }) {
+const DOT: Record<string, string> = {
+  success: 'bg-success',
+  warning: 'bg-warning',
+  critical: 'bg-critical',
+  info: 'bg-info',
+  primary: 'bg-primary',
+  neutral: 'bg-fg-subtle',
+};
+
+/** Status as a small coloured dot and a word: calm in long lists, still clear at a glance. */
+export function StatusBadge({ status, size = 'md' }: { status: RequestStatus; size?: 'sm' | 'md' }) {
+  const { t: tr } = useLocale();
   const s = requestStatus[status];
   return (
-    <Badge tone={s.tone} size={size} dot>
-      {s.label}
-    </Badge>
+    <span className={cn('inline-flex shrink-0 items-center gap-1.5 font-medium whitespace-nowrap text-fg', size === 'sm' ? 'text-sm' : 'text-md')}>
+      <span aria-hidden className={cn('size-2 rounded-full', DOT[s.tone] ?? DOT.neutral)} />
+      {tr(s.label)}
+    </span>
   );
 }

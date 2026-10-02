@@ -4,7 +4,8 @@ import { mekongSeed } from './seedMekong';
 import { cleanValues, matches, validateForm } from '../lib/forms';
 import type { Access, Activity, Channel, FormField, FormValues, Lead, NotificationEvent, NotificationPrefs, ApprovalStep, DataState, Meeting, Process, Request, RequestType, Survey, Task, TaskStatus, TaskStatusDef } from './types';
 
-const STORAGE_KEY = 'anumat-prototype-v11';
+// Its own key: this site shares the anumat-erp.github.io origin with the main prototype.
+const STORAGE_KEY = 'anumat-hackathon-v1';
 
 type Action =
   | { type: 'decide'; requestId: string; decision: 'approve' | 'changes' | 'decline'; comment?: string; answers?: FormValues }

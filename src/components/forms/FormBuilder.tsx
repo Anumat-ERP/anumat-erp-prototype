@@ -1,20 +1,28 @@
-import { ActionMenu, Badge, Button, Checkbox, Field, IconButton, Input, Select, Text } from '@repo/ui';
+import { ActionMenu, Badge, Button, Checkbox, Field, IconButton, Input, Select, Text } from '@app/ui';
 import { ArrowDown, ArrowUp, Copy, GitBranch, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { uid } from '../../data/store';
 import type { Condition, FieldKind, FormField } from '../../data/types';
+import { useLocale } from '../../i18n/LocaleProvider';
 import { FIELD_KINDS, canBranchOn, choicesFor, hasOptions, hasPlaceholder, isQuestion, kindLabel } from '../../lib/forms';
 
 const DEFAULT_OPTIONS = ['Option 1', 'Option 2'];
 
 export function newField(kind: FieldKind): FormField {
-  return { id: uid('fld'), label: '', kind, required: false, ...(hasOptions(kind) ? { options: [...DEFAULT_OPTIONS] } : {}) };
+  return {
+    id: uid('fld'),
+    label: '',
+    kind,
+    required: false,
+    ...(hasOptions(kind) ? { options: [...DEFAULT_OPTIONS] } : {}),
+  };
 }
 
 /** The first real answer of a question, used when a condition is first set up. */
 const firstChoice = (f: FormField) => choicesFor(f).find((c) => c.trim()) ?? '';
 
 function OptionsEditor({ field, onChange }: { field: FormField; onChange: (options: string[], renamed?: { from: string; to: string }) => void }) {
+  const { t: tr } = useLocale();
   const options = field.options ?? [];
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const add = () => {
@@ -28,19 +36,31 @@ function OptionsEditor({ field, onChange }: { field: FormField; onChange: (optio
   };
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-2 text-sm font-medium text-fg">Choices</legend>
+      <legend className="mb-2 text-sm font-medium text-fg">{tr('Choices')}</legend>
       <ul className="flex flex-col gap-2">
         {options.map((o, i) => (
           <li key={i} className="flex items-center gap-2">
-            <span aria-hidden className={field.kind === 'checkboxes' ? 'size-4 shrink-0 rounded-sm border border-border-strong' : 'size-4 shrink-0 rounded-full border border-border-strong'} />
+            <span
+              aria-hidden
+              className={
+                field.kind === 'checkboxes'
+                  ? 'size-4 shrink-0 rounded-sm border border-border-strong'
+                  : 'size-4 shrink-0 rounded-full border border-border-strong'
+              }
+            />
             <Input
               size="sm"
               ref={(el) => {
                 refs.current[i] = el;
               }}
-              aria-label={`Choice ${i + 1}`}
+              aria-label={tr("Choice {value0}", { value0: i + 1 })}
               value={o}
-              onChange={(e) => onChange(options.map((x, j) => (j === i ? e.target.value : x)), { from: o, to: e.target.value })}
+              onChange={(e) =>
+                onChange(
+                  options.map((x, j) => (j === i ? e.target.value : x)),
+                  { from: o, to: e.target.value },
+                )
+              }
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -53,7 +73,7 @@ function OptionsEditor({ field, onChange }: { field: FormField; onChange: (optio
             <IconButton
               size="sm"
               icon={<X />}
-              label={`Remove choice “${o || i + 1}”`}
+              label={tr("Remove choice “{value0}”", { value0: o || i + 1 })}
               disabled={options.length <= 1}
               onClick={() => {
                 onChange(options.filter((_, j) => j !== i));
@@ -64,7 +84,8 @@ function OptionsEditor({ field, onChange }: { field: FormField; onChange: (optio
         ))}
       </ul>
       <Button size="sm" variant="plain" icon={<Plus />} className="self-start" onClick={add}>
-        Add choice
+        {' '}
+        {tr('Add choice')}{' '}
       </Button>
     </fieldset>
   );
@@ -87,41 +108,52 @@ export function ConditionPicker({
   /** Shown before each source's name, e.g. its question number. */
   numberOf?: (f: FormField) => string;
 }) {
+  const { t: tr } = useLocale();
   const source = sources.find((s) => s.id === value.fieldId);
   const multi = source?.kind === 'checkboxes';
   const choices = source ? choicesFor(source).filter((c) => c.trim()) : [];
   const stale = source && !choices.includes(value.equals);
   return (
     <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8.5rem_minmax(0,11rem)] sm:items-end">
-      <Field label="When">
+      <Field label={tr('When')}>
         <Select
           size="sm"
           value={value.fieldId}
           onChange={(e) => {
             const src = sources.find((x) => x.id === e.target.value)!;
-            onChange({ fieldId: src.id, equals: firstChoice(src), op: value.op });
+            onChange({
+              fieldId: src.id,
+              equals: firstChoice(src),
+              op: value.op,
+            });
           }}
-          options={sources.map((s) => ({ value: s.id, label: `${numberOf ? numberOf(s) : ''}${s.label || 'Untitled'}` }))}
+          options={sources.map((s) => ({
+            value: s.id,
+            label: `${numberOf ? numberOf(s) : ''}${tr(s.label || 'Untitled')}`,
+          }))}
         />
       </Field>
-      <Field label="Rule" labelHidden>
+      <Field label={tr('Rule')} labelHidden>
         <Select
           size="sm"
           value={value.op ?? 'is'}
           onChange={(e) => onChange({ ...value, op: e.target.value as Condition['op'] })}
           options={[
-            { value: 'is', label: multi ? 'includes' : 'is' },
-            { value: 'isNot', label: multi ? 'doesn’t include' : 'isn’t' },
+            { value: 'is', label: multi ? tr('includes') : tr('is') },
+            {
+              value: 'isNot',
+              label: multi ? tr('doesn’t include') : tr('isn’t'),
+            },
           ]}
         />
       </Field>
-      <Field label="Answer" labelHidden error={stale ? 'Pick an answer again: that one no longer exists.' : undefined}>
+      <Field label={tr('Answer')} labelHidden error={stale ? tr('Pick an answer again: that one no longer exists.') : undefined}>
         <Select
           size="sm"
           value={stale ? '' : value.equals}
-          placeholder={stale ? 'Choose an answer' : undefined}
+          placeholder={stale ? tr('Choose an answer') : undefined}
           onChange={(e) => onChange({ ...value, equals: e.target.value })}
-          options={choices.map((o) => ({ value: o, label: o }))}
+          options={choices.map((o) => ({ value: o, label: tr(o) }))}
         />
       </Field>
     </div>
@@ -152,6 +184,7 @@ export function FormBuilder({
   /** Limit the answer types on offer. */
   kinds?: FieldKind[];
 }) {
+  const { t: tr } = useLocale();
   // The question just added gets focus, so people can type its wording straight away.
   const [focusId, setFocusId] = useState<string>();
   useEffect(() => {
@@ -180,14 +213,24 @@ export function FormBuilder({
     else requestAnimationFrame(() => document.getElementById(`add-${noun}`)?.focus());
   };
   const duplicate = (i: number) => {
-    const copy = { ...fields[i]!, id: uid('fld'), label: `${fields[i]!.label} (copy)`, options: fields[i]!.options ? [...fields[i]!.options!] : undefined };
+    const copy = {
+      ...fields[i]!,
+      id: uid('fld'),
+      label: `${fields[i]!.label} (copy)`,
+      options: fields[i]!.options ? [...fields[i]!.options!] : undefined,
+    };
     onChange([...fields.slice(0, i + 1), copy, ...fields.slice(i + 1)]);
     setFocusId(copy.id);
   };
   const setKind = (i: number, kind: FieldKind) => {
     const f = fields[i]!;
     const options = hasOptions(kind) ? (f.options?.length ? f.options : [...DEFAULT_OPTIONS]) : undefined;
-    const probe: FormField = { ...f, kind, options, required: kind === 'section' ? false : f.required };
+    const probe: FormField = {
+      ...f,
+      kind,
+      options,
+      required: kind === 'section' ? false : f.required,
+    };
     // Conditions on this question's answers may no longer make sense.
     onChange(
       fields
@@ -223,8 +266,8 @@ export function FormBuilder({
     <div className="flex flex-col gap-3">
       {fields.length === 0 ? (
         <Text variant="bodySm" tone="muted">
-          No {noun}s yet.
-        </Text>
+          {' '}
+          {noun === tr('field') ? tr('No fields yet.') : tr('No questions yet.')}</Text>
       ) : null}
       <ol className="flex flex-col gap-3">
         {fields.map((f, i) => {
@@ -239,44 +282,48 @@ export function FormBuilder({
                 </Badge>
                 <Select
                   size="sm"
-                  aria-label={`Answer type for “${name}”`}
+                  aria-label={tr("Answer type for “{value0}”", { value0: name })}
                   value={f.kind}
                   onChange={(e) => setKind(i, e.target.value as FieldKind)}
-                  options={FIELD_KINDS.filter((k) => offered(k.value) || k.value === f.kind).map((k) => ({ value: k.value, label: k.label }))}
+                  options={FIELD_KINDS.filter((k) => offered(k.value) || k.value === f.kind).map((k) => ({ value: k.value, label: tr(k.label) }))}
                   className="w-40"
                 />
-                {section ? null : <Checkbox label="Required" checked={f.required} onCheckedChange={(c) => update(i, { required: c === true })} />}
+                {section ? null : <Checkbox label={tr('Required')} checked={f.required} onCheckedChange={(c) => update(i, { required: c === true })} />}
                 <span className="ms-auto flex items-center gap-0.5">
-                  <IconButton size="sm" icon={<ArrowUp />} label={`Move “${name}” up`} disabled={i === 0} onClick={() => move(i, -1)} />
-                  <IconButton size="sm" icon={<ArrowDown />} label={`Move “${name}” down`} disabled={i === fields.length - 1} onClick={() => move(i, 1)} />
-                  <IconButton size="sm" icon={<Copy />} label={`Duplicate “${name}”`} onClick={() => duplicate(i)} />
-                  <IconButton size="sm" icon={<Trash2 />} label={`Delete “${name}”`} onClick={() => remove(i)} />
+                  <IconButton size="sm" icon={<ArrowUp />} label={tr("Move “{value0}” up", { value0: name })} disabled={i === 0} onClick={() => move(i, -1)} />
+                  <IconButton size="sm" icon={<ArrowDown />} label={tr("Move “{value0}” down", { value0: name })} disabled={i === fields.length - 1} onClick={() => move(i, 1)} />
+                  <IconButton size="sm" icon={<Copy />} label={tr("Duplicate “{value0}”", { value0: name })} onClick={() => duplicate(i)} />
+                  <IconButton size="sm" icon={<Trash2 />} label={tr("Delete “{value0}”", { value0: name })} onClick={() => remove(i)} />
                 </span>
               </div>
-              <Field label={section ? 'Heading' : 'Question'} id={`question-${f.id}`}>
+              <Field label={section ? tr('Heading') : tr('Question')} id={`question-${f.id}`}>
                 <Input
-                  value={f.label}
-                  placeholder={section ? 'e.g. Travel details' : 'What would you like to ask?'}
+                  value={tr(f.label)}
+                  placeholder={section ? tr('e.g. Travel details') : tr('What would you like to ask?')}
                   onChange={(e) => update(i, { label: e.target.value })}
                 />
               </Field>
-              <Field label={section ? 'Text under the heading' : 'Help text'} optional>
+              <Field label={section ? tr('Text under the heading') : tr('Help text')} optional>
                 <Input
-                  value={f.help ?? ''}
-                  placeholder={section ? 'What this part of the form is about' : 'Shown under the question'}
+                  value={tr(f.help ?? '')}
+                  placeholder={section ? tr('What this part of the form is about') : tr('Shown under the question')}
                   onChange={(e) => update(i, { help: e.target.value || undefined })}
                 />
               </Field>
               {hasPlaceholder(f.kind) ? (
-                <Field label="Placeholder" optional helpText="Example text shown in the empty box.">
-                  <Input value={f.placeholder ?? ''} onChange={(e) => update(i, { placeholder: e.target.value || undefined })} />
+                <Field label={tr('Placeholder')} optional helpText={tr('Example text shown in the empty box.')}>
+                  <Input value={tr(f.placeholder ?? '')} onChange={(e) => update(i, { placeholder: e.target.value || undefined })} />
                 </Field>
               ) : null}
               {hasOptions(f.kind) ? <OptionsEditor field={f} onChange={(options, renamed) => setOptions(i, options, renamed)} /> : null}
               {!hasOptions(f.kind) && !section && !hasPlaceholder(f.kind) ? (
                 <Text variant="caption" tone="subtle">
-                  {kindLabel(f.kind)}
-                  {f.kind === 'department' ? ': people pick one of the workspace’s departments.' : f.kind === 'person' ? ': people pick someone in the workspace.' : '.'}
+                  {tr(kindLabel(f.kind))}
+                  {f.kind === 'department'
+                    ? tr(': people pick one of the workspace’s departments.')
+                    : f.kind === 'person'
+                      ? tr(': people pick someone in the workspace.')
+                      : '.'}
                 </Text>
               ) : null}
               {sources.length ? (
@@ -284,13 +331,23 @@ export function FormBuilder({
                   <Checkbox
                     label={
                       <span className="inline-flex items-center gap-1.5">
-                        <GitBranch aria-hidden className="size-4 text-fg-muted" /> Only {section ? 'show' : 'ask'} when an earlier answer matches
+                        <GitBranch aria-hidden className="size-4 text-fg-muted" /> {tr('Only')} {section ? tr("show") : tr("ask")}{' '}
+                        {tr('when an earlier answer matches')}{' '}
                       </span>
                     }
                     checked={Boolean(f.showIf)}
                     onCheckedChange={(c) => {
                       const src = sources[sources.length - 1]!;
-                      update(i, { showIf: c === true ? { fieldId: src.id, equals: firstChoice(src), op: 'is' } : undefined });
+                      update(i, {
+                        showIf:
+                          c === true
+                            ? {
+                                fieldId: src.id,
+                                equals: firstChoice(src),
+                                op: 'is',
+                              }
+                            : undefined,
+                      });
                     }}
                   />
                   {f.showIf ? (
@@ -312,7 +369,8 @@ export function FormBuilder({
           align="start"
           trigger={
             <Button size="sm" icon={<Plus />} id={`add-${noun}`}>
-              Add {noun}
+              {' '}
+              {tr('Add')} {noun}
             </Button>
           }
           sections={MENU_SECTIONS.map((s) => ({

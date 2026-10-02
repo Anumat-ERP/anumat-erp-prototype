@@ -1,6 +1,7 @@
-import { Select, Tag, Text } from '@repo/ui';
+import { Select, Tag, Text } from '@app/ui';
 import { useId } from 'react';
 import { useStore } from '../data/store';
+import { useLocale } from '../i18n/LocaleProvider';
 
 /** Pick several people: removable tags plus an "Add person" menu. */
 export function PeoplePicker({
@@ -18,6 +19,7 @@ export function PeoplePicker({
   disabled?: boolean;
   emptyText?: string;
 }) {
+  const { t: tr } = useLocale();
   const { state, person } = useStore();
   const id = useId();
   const available = state.people.filter((p) => !value.includes(p.id) && !exclude.includes(p.id));
@@ -39,17 +41,23 @@ export function PeoplePicker({
             onRemove={disabled ? undefined : () => onChange(value.filter((v) => v !== pid))}
             accessibilityLabel={`Remove ${person(pid).name} from ${label.toLowerCase()}`}
           >
-            {person(pid).name}
+            {tr(person(pid).name)}
           </Tag>
         ))}
       </div>
       {!disabled && available.length ? (
         <Select
           size="sm"
-          aria-label={`Add someone to ${label.toLowerCase()}`}
+          aria-label={tr("Add someone to {value0}", { value0: label.toLowerCase() })}
           value=""
           onChange={(e) => e.target.value && onChange([...value, e.target.value])}
-          options={[{ value: '', label: 'Add person…' }, ...available.map((p) => ({ value: p.id, label: `${p.name} · ${p.role}` }))]}
+          options={[
+            { value: '', label: tr('Add person…') },
+            ...available.map((p) => ({
+              value: p.id,
+              label: `${p.name} · ${p.role}`,
+            })),
+          ]}
           className="w-56"
         />
       ) : null}

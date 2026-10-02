@@ -13,7 +13,7 @@ import {
   TabsTrigger,
   Text,
   cn,
-} from '@repo/ui';
+} from '@app/ui';
 import { ChevronDown, ChevronRight, Lock } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { StatusManager } from '../components/StatusManager';
@@ -22,19 +22,21 @@ import { useTaskMover } from '../components/useTaskMover';
 import { canEditTask, firstStatus, isAdmin, isDone, statusDef, useStore } from '../data/store';
 import type { DataState, Task } from '../data/types';
 import { daysUntil, formatShortDate } from '../lib/format';
+import { useLocale } from '../i18n/LocaleProvider';
+import type { createTranslator } from '../i18n/locale';
 
 type View = 'list' | 'board';
 type Source = 'any' | 'meeting' | 'request' | 'none';
 
 const RECENT_DONE_DAYS = 7;
 
-function dueLabel(task: Task, done: boolean) {
-  if (done) return task.doneAt ? `Done ${formatShortDate(task.doneAt)}` : 'Done';
+function dueLabel(task: Task, done: boolean, tr: ReturnType<typeof createTranslator>) {
+  if (done) return task.doneAt ? tr('Done {date}', { date: formatShortDate(task.doneAt) }) : tr('Done');
   const d = daysUntil(task.due);
-  if (d < 0) return `${-d} ${d === -1 ? 'day' : 'days'} overdue`;
-  if (d === 0) return 'Due today';
-  if (d === 1) return 'Due tomorrow';
-  return `Due ${formatShortDate(task.due)}`;
+  if (d < 0) return tr(d === -1 ? '{count} day overdue' : '{count} days overdue', { count: -d });
+  if (d === 0) return tr('Due today');
+  if (d === 1) return tr('Due tomorrow');
+  return tr('Due {date}', { date: formatShortDate(task.due) });
 }
 
 function recentlyDone(t: Task) {
@@ -45,6 +47,7 @@ function recentlyDone(t: Task) {
 type Mover = ReturnType<typeof useTaskMover>['move'];
 
 function TaskRow({ task, state, onOpen, move }: { task: Task; state: DataState; onOpen: () => void; move: Mover }) {
+  const { t: tr } = useLocale();
   const { person } = useStore();
   const done = isDone(state, task);
   const editable = canEditTask(state, task);
@@ -58,7 +61,7 @@ function TaskRow({ task, state, onOpen, move }: { task: Task; state: DataState; 
       <Checkbox
         className="mt-0.5"
         labelHidden
-        label={editable ? (done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`) : `“${task.title}” (view only)`}
+        label={editable ? (done ? tr('Mark “{title}” not done', { title: task.title }) : tr('Mark “{title}” done', { title: task.title })) : tr('“{title}” (view only)', { title: task.title })}
         checked={done}
         disabled={!editable}
         onCheckedChange={(c) => move(task, firstStatus(state, c === true ? 'done' : 'todo'))}
@@ -71,70 +74,67 @@ function TaskRow({ task, state, onOpen, move }: { task: Task; state: DataState; 
             'truncate rounded-sm text-start text-md font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
             done ? 'text-fg-muted line-through' : 'text-fg',
           )}
-          title={task.title}
+          title={tr(task.title)}
         >
-          {task.title}
+          {tr(task.title)}
         </button>
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-muted">
           {status.category === 'active' ? (
             <Badge size="sm" tone={status.tone}>
-              {status.name}
+              {tr(status.name)}
             </Badge>
           ) : null}
           {task.statusNote ? <span className="text-fg">“{task.statusNote}”</span> : null}
           {task.signOffRequestedAt ? (
             <Badge size="sm" tone="warning">
-              {task.assignedById === state.meId ? 'Needs your sign-off' : `Waiting for sign-off from ${assigner.name}`}
+              {task.assignedById === state.meId ? tr('Needs your sign-off') : tr('Waiting for sign-off from {name}', { name: assigner.name })}
             </Badge>
           ) : null}
-          <span className={overdue ? 'font-medium text-critical-subtle-fg' : undefined}>{dueLabel(task, done)}</span>
+          <span className={overdue ? 'font-medium text-critical-subtle-fg' : undefined}>{dueLabel(task, done, tr)}</span>
           {task.source ? (
             <>
               <span aria-hidden>·</span>
-              <span className="truncate">{task.source.label}</span>
+              <span className="truncate">{tr(task.source.label)}</span>
             </>
           ) : null}
           {task.notes ? (
             <>
               <span aria-hidden>·</span>
-              <span>Has notes</span>
+              <span>{tr("Has notes")}</span>
             </>
           ) : null}
           {task.comments?.length ? (
             <>
               <span aria-hidden>·</span>
               <span>
-                {task.comments.length} {task.comments.length === 1 ? 'comment' : 'comments'}
+                {tr(task.comments.length === 1 ? '{count} comment' : '{count} comments', { count: task.comments.length })}
               </span>
             </>
           ) : null}
           {task.consultedIds?.includes(state.meId) ? (
             <Badge size="sm" tone="info">
-              You’re consulted
-            </Badge>
+              {tr("You’re consulted")}</Badge>
           ) : task.informedIds?.includes(state.meId) ? (
-            <Badge size="sm">You’re informed</Badge>
+            <Badge size="sm">{tr("You’re informed")}</Badge>
           ) : null}
           {!editable ? (
             <>
               <span aria-hidden>·</span>
               <span className="inline-flex items-center gap-1">
                 <Lock aria-hidden className="size-3" />
-                View only
-              </span>
+                {tr("View only")}</span>
             </>
           ) : null}
         </span>
       </div>
       {canSignOff ? (
         <Button size="sm" variant="primary" onClick={() => move(task, firstStatus(state, 'done'))}>
-          Sign off
-        </Button>
+          {tr("Sign off")}</Button>
       ) : null}
       <span className="flex shrink-0 items-center gap-2">
         <Avatar name={owner.name} size="xs" decorative />
-        <span className="hidden w-24 truncate text-sm text-fg-muted md:inline">{owner.name}</span>
-        <span className="sr-only md:hidden">{owner.name}</span>
+        <span className="hidden w-24 truncate text-sm text-fg-muted md:inline">{tr(owner.name)}</span>
+        <span className="sr-only md:hidden">{tr(owner.name)}</span>
       </span>
     </li>
   );
@@ -202,6 +202,7 @@ function Group({
 }
 
 export function Tasks() {
+  const { t: tr } = useLocale();
   const { state, me, person } = useStore();
   const { move, dialog } = useTaskMover();
   const admin = isAdmin(state);
@@ -256,87 +257,86 @@ export function Tasks() {
   return (
     <>
       <PageHeader
-        title="Tasks"
-        subtitle="Decisions turned into work, with an owner and a deadline."
-        primaryAction={{ content: 'New task', onAction: () => setCreating(true) }}
-        secondaryActions={admin ? [{ content: 'Manage statuses', onAction: () => setManaging(true) }] : undefined}
+        title={tr("Tasks")}
+        subtitle={tr("Decisions turned into work, with an owner and a deadline.")}
+        primaryAction={{ content: tr("New task"), onAction: () => setCreating(true) }}
+        secondaryActions={admin ? [{ content: tr("Manage statuses"), onAction: () => setManaging(true) }] : undefined}
       />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <Tabs value={view} onValueChange={(v) => setView(v as View)}>
-          <TabsList aria-label="Task view">
-            <TabsTrigger value="list">List</TabsTrigger>
-            <TabsTrigger value="board">Board</TabsTrigger>
+          <TabsList aria-label={tr("Task view")}>
+            <TabsTrigger value="list">{tr("List")}</TabsTrigger>
+            <TabsTrigger value="board">{tr("Board")}</TabsTrigger>
           </TabsList>
         </Tabs>
         <div className="flex flex-wrap items-center gap-2">
           <Select
             size="sm"
-            aria-label="Whose tasks"
+            aria-label={tr("Whose tasks")}
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
             options={[
-              { value: 'me', label: 'My tasks' },
-              { value: 'consulted', label: 'Where I’m consulted' },
-              { value: 'informed', label: 'Where I’m informed' },
-              { value: 'all', label: 'Everyone' },
-              { label: 'People', options: state.people.filter((p) => p.id !== me.id).map((p) => ({ value: p.id, label: p.name })) },
+              { value: 'me', label: tr("My tasks") },
+              { value: 'consulted', label: tr("Where I’m consulted") },
+              { value: 'informed', label: tr("Where I’m informed") },
+              { value: 'all', label: tr("Everyone") },
+              { label: tr("People"), options: state.people.filter((p) => p.id !== me.id).map((p) => ({ value: p.id, label: p.name })) },
             ]}
             className="w-48"
           />
           <Select
             size="sm"
-            aria-label="Where tasks came from"
+            aria-label={tr("Where tasks came from")}
             value={source}
             onChange={(e) => setSource(e.target.value as Source)}
             options={[
-              { value: 'any', label: 'From anywhere' },
-              { value: 'meeting', label: 'From meetings' },
-              { value: 'request', label: 'From requests' },
-              { value: 'none', label: 'Added directly' },
+              { value: 'any', label: tr("From anywhere") },
+              { value: 'meeting', label: tr("From meetings") },
+              { value: 'request', label: tr("From requests") },
+              { value: 'none', label: tr("Added directly") },
             ]}
             className="w-40"
           />
-          <SearchField label="Search tasks" labelHidden size="sm" placeholder="Search tasks" value={query} onChange={setQuery} className="w-full sm:w-56" />
+          <SearchField label={tr("Search tasks")} labelHidden size="sm" placeholder={tr("Search tasks")} value={query} onChange={setQuery} className="w-full sm:w-56" />
         </div>
       </div>
 
       {tasks.length === 0 ? (
         <Card>
           {filtered ? (
-            <EmptyState size="card" heading="No tasks match" action={<Button onClick={clear}>Clear filters</Button>}>
-              Try another search, or show everyone’s tasks.
-            </EmptyState>
+            <EmptyState size="card" heading={tr("No tasks match")} action={<Button onClick={clear}>{tr("Clear filters")}</Button>}>
+              {tr("Try another search, or show everyone’s tasks.")}</EmptyState>
           ) : (
             <EmptyState
               size="card"
               heading={
-                owner === 'consulted' ? 'Nobody needs your input' : owner === 'informed' ? 'Nothing to follow' : owner === 'me' ? 'Nothing on your plate' : 'No tasks yet'
+                owner === 'consulted' ? tr('Nobody needs your input') : owner === 'informed' ? tr('Nothing to follow') : owner === 'me' ? tr('Nothing on your plate') : tr('No tasks yet')
               }
-              action={<Button onClick={() => setCreating(true)}>New task</Button>}
+              action={<Button onClick={() => setCreating(true)}>{tr("New task")}</Button>}
             >
-              Action items from meetings and requests show up here.
-            </EmptyState>
+              {tr("Action items from meetings and requests show up here.")}</EmptyState>
           )}
         </Card>
       ) : view === 'list' ? (
         <Card flush>
           {open.length === 0 ? (
             <Text tone="muted" className="px-4 pt-4">
-              All caught up. Nothing open
-              {owner === 'me' || owner === 'consulted' || owner === 'informed' ? '' : ` for ${owner === 'all' ? 'anyone' : person(owner).name}`}.
+              {owner === 'me' || owner === 'consulted' || owner === 'informed'
+                ? tr('All caught up. Nothing open.')
+                : tr('All caught up. Nothing open for {name}.', { name: owner === 'all' ? tr('anyone') : person(owner).name })}
             </Text>
           ) : null}
-          <Group title="Overdue" tone="critical" tasks={groups.overdue} state={state} onOpen={openDrawer} move={move} />
-          <Group title="Today" tasks={groups.today} state={state} onOpen={openDrawer} move={move} />
-          <Group title="This week" tasks={groups.week} state={state} onOpen={openDrawer} move={move} />
-          <Group title="Later" tasks={groups.later} state={state} onOpen={openDrawer} move={move} />
+          <Group title={tr("Overdue")} tone="critical" tasks={groups.overdue} state={state} onOpen={openDrawer} move={move} />
+          <Group title={tr("Today")} tasks={groups.today} state={state} onOpen={openDrawer} move={move} />
+          <Group title={tr("This week")} tasks={groups.week} state={state} onOpen={openDrawer} move={move} />
+          <Group title={tr("Later")} tasks={groups.later} state={state} onOpen={openDrawer} move={move} />
           {done.length ? (
-            <Group title={showAllDone ? 'Done' : 'Done in the last 7 days'} tasks={shownDone} state={state} onOpen={openDrawer} move={move} collapsible>
+            <Group title={showAllDone ? tr('Done') : tr('Done in the last 7 days')} tasks={shownDone} state={state} onOpen={openDrawer} move={move} collapsible>
               {hiddenDone ? (
                 <div className="px-4 py-2">
                   <Button size="sm" variant="plain" onClick={() => setShowAllDone(true)}>
-                    Show {hiddenDone} older done {hiddenDone === 1 ? 'task' : 'tasks'}
+                    {tr(hiddenDone === 1 ? 'Show {count} older done task' : 'Show {count} older done tasks', { count: hiddenDone })}
                   </Button>
                 </div>
               ) : null}
@@ -345,7 +345,7 @@ export function Tasks() {
           <div className="h-2" />
         </Card>
       ) : (
-        <div className="overflow-x-auto pb-2" role="region" aria-label="Task board" tabIndex={0}>
+        <div className="overflow-x-auto pb-2" role="region" aria-label={tr("Task board")} tabIndex={0}>
           <div className="flex w-max gap-4">
             {state.taskStatuses.map((s) => {
               const all = tasks.filter((t) => t.status === s.id);
@@ -354,11 +354,11 @@ export function Tasks() {
                 <section key={s.id} aria-labelledby={`col-${s.id}`} className="flex w-72 shrink-0 flex-col gap-2 rounded-lg bg-surface-sunken p-3">
                   <h2 className="flex items-center justify-between px-1">
                     <Badge id={`col-${s.id}`} tone={s.tone} size="sm">
-                      {s.name}
+                      {tr(s.name)}
                     </Badge>
                     <Text as="span" variant="caption" tone="muted" numeric>
                       {column.length}
-                      <span className="sr-only"> tasks</span>
+                      <span className="sr-only"> {tr("tasks")}</span>
                     </Text>
                   </h2>
                   {column.length ? (
@@ -372,9 +372,9 @@ export function Tasks() {
                                 type="button"
                                 onClick={() => setOpenId(t.id)}
                                 className="line-clamp-2 rounded-sm text-start text-md font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring"
-                                title={t.title}
+                                title={tr(t.title)}
                               >
-                                {t.title}
+                                {tr(t.title)}
                               </button>
                               <div className="flex items-center justify-between gap-2 text-sm">
                                 <span className="flex min-w-0 items-center gap-1.5 text-fg-muted">
@@ -382,26 +382,25 @@ export function Tasks() {
                                   <span className="truncate">{person(t.ownerId).name.split(' ')[0]}</span>
                                 </span>
                                 <span className={overdue ? 'shrink-0 font-medium text-critical-subtle-fg' : 'shrink-0 text-fg-muted'}>
-                                  {dueLabel(t, s.category === 'done')}
+                                  {dueLabel(t, s.category === 'done', tr)}
                                 </span>
                               </div>
                               {t.statusNote || t.signOffRequestedAt ? (
                                 <Text variant="caption" tone="muted" className="line-clamp-2">
-                                  {t.signOffRequestedAt ? `Waiting for sign-off from ${person(t.assignedById ?? t.ownerId).name}` : `“${t.statusNote}”`}
+                                  {t.signOffRequestedAt ? tr('Waiting for sign-off from {name}', { name: person(t.assignedById ?? t.ownerId).name }) : `“${t.statusNote}”`}
                                 </Text>
                               ) : null}
                               {canEditTask(state, t) ? (
                                 <Select
                                   size="sm"
-                                  aria-label={`Move “${t.title}” to`}
+                                  aria-label={tr('Move “{title}” to', { title: t.title })}
                                   value={t.status}
                                   onChange={(e) => move(t, e.target.value)}
-                                  options={state.taskStatuses.map((x) => ({ value: x.id, label: x.name }))}
+                                  options={state.taskStatuses.map((x) => ({ value: x.id, label: tr(x.name) }))}
                                 />
                               ) : (
                                 <Text variant="caption" tone="muted" className="inline-flex items-center gap-1">
-                                  <Lock aria-hidden className="size-3" /> View only
-                                </Text>
+                                  <Lock aria-hidden className="size-3" /> {tr("View only")}</Text>
                               )}
                             </Card>
                           </li>
@@ -410,13 +409,11 @@ export function Tasks() {
                     </ul>
                   ) : (
                     <Text variant="bodySm" tone="muted" className="px-1 pb-1">
-                      Nothing here.
-                    </Text>
+                      {tr("Nothing here.")}</Text>
                   )}
                   {s.category === 'done' && all.length > column.length ? (
                     <Button size="sm" variant="plain" className="self-start px-1" onClick={() => setShowAllDone(true)}>
-                      Show {all.length - column.length} older
-                    </Button>
+                      {tr("Show")}{' '}{all.length - column.length} {tr("older")}</Button>
                   ) : null}
                 </section>
               );

@@ -1,12 +1,22 @@
-import { Field, Modal, Text, Textarea } from '@repo/ui';
+import { Field, Modal, Text, Textarea } from '@app/ui';
 import { useState } from 'react';
 import type { FormField, FormValues } from '../data/types';
+import { useLocale } from '../i18n/LocaleProvider';
 import { cleanValues, validateForm } from '../lib/forms';
 import { FormRenderer, focusFirstError } from './forms/FormRenderer';
 
 export type Decision = 'approve' | 'changes' | 'decline';
 
-const COPY: Record<Decision, { title: string; action: string; label: string; help: string; required: boolean }> = {
+const COPY: Record<
+  Decision,
+  {
+    title: string;
+    action: string;
+    label: string;
+    help: string;
+    required: boolean;
+  }
+> = {
   approve: {
     title: 'Approve this request?',
     action: 'Approve',
@@ -47,6 +57,7 @@ export function DecisionModal({
   /** What the approver fills in at this step; asked only when approving. */
   fields?: FormField[];
 }) {
+  const { t: tr } = useLocale();
   const [comment, setComment] = useState('');
   const [error, setError] = useState<string>();
   const [answers, setAnswers] = useState<FormValues>({});
@@ -72,7 +83,7 @@ export function DecisionModal({
       }
     }
     if (copy.required && !comment.trim()) {
-      setError(decision === 'changes' ? 'Say what needs to change, so the requester can fix it.' : 'Give a reason for declining.');
+      setError(decision === 'changes' ? tr('Say what needs to change, so the requester can fix it.') : tr('Give a reason for declining.'));
       return;
     }
     onConfirm(decision, comment.trim(), asking ? cleanValues(fields, answers) : undefined);
@@ -83,19 +94,24 @@ export function DecisionModal({
     <Modal
       open={decision !== null}
       onOpenChange={(open) => (open ? undefined : close())}
-      title={copy.title}
+      title={tr(copy.title)}
       description={requestTitle}
-      primaryAction={{ content: copy.action, onAction: confirm, destructive: decision === 'decline' }}
-      secondaryActions={[{ content: 'Cancel', onAction: close }]}
+      primaryAction={{
+        content: tr(copy.action),
+        onAction: confirm,
+        destructive: decision === 'decline',
+      }}
+      secondaryActions={[{ content: tr('Cancel'), onAction: close }]}
     >
       <div className="flex flex-col gap-4">
         {decision === 'approve' ? (
-          <Text tone="muted">{nextStep ? `It moves on to ${nextStep}.` : 'This is the last step, so the request will be approved.'}</Text>
+          <Text tone="muted">{nextStep ? tr("It moves on to {value0}.", { value0: nextStep }) : tr('This is the last step, so the request will be approved.')}</Text>
         ) : null}
         {asking ? (
           <div className="flex flex-col gap-4 rounded-lg border border-border p-3 sm:p-4">
             <Text as="h3" variant="label">
-              Your step asks for
+              {' '}
+              {tr('Your step asks for')}{' '}
             </Text>
             <FormRenderer
               fields={fields}
@@ -109,7 +125,7 @@ export function DecisionModal({
             />
           </div>
         ) : null}
-        <Field label={copy.label} helpText={copy.help} required={copy.required} optional={!copy.required} error={error}>
+        <Field label={tr(copy.label)} helpText={tr(copy.help)} required={copy.required} optional={!copy.required} error={error}>
           <Textarea
             rows={3}
             autoGrow

@@ -1,9 +1,11 @@
-import { Text, cn } from '@repo/ui';
+import { Text, cn } from '@app/ui';
 import { Circle, CircleCheck, CircleX, Clock, Undo2 } from 'lucide-react';
-import { formatAnswer, questionsOf, visibleFields } from '../lib/forms';
 import { useStore } from '../data/store';
 import type { ApprovalStep } from '../data/types';
+import { useLocale } from '../i18n/LocaleProvider';
 import { formatDateTime, stepStatus } from '../lib/format';
+import { formatAnswer, questionsOf, visibleFields } from '../lib/forms';
+import { Changed } from '../lib/motion';
 
 const ICON = {
   done: { Icon: CircleCheck, className: 'text-success' },
@@ -15,11 +17,13 @@ const ICON = {
 
 /** The approval route of a request, top to bottom, with who decided what. */
 export function ApprovalTimeline({ steps }: { steps: ApprovalStep[] }) {
+  const { t: tr } = useLocale();
   const { person, me } = useStore();
   if (steps.length === 0) {
     return (
       <Text tone="muted" variant="bodySm">
-        The route is set when the request is submitted.
+        {' '}
+        {tr('The route is set when the request is submitted.')}{' '}
       </Text>
     );
   }
@@ -35,25 +39,25 @@ export function ApprovalTimeline({ steps }: { steps: ApprovalStep[] }) {
             <Icon aria-hidden className={cn('relative mt-0.5 size-5 shrink-0', className)} />
             <div className="flex min-w-0 flex-col gap-0.5">
               <Text as="span" variant="label">
-                {step.name}
+                {tr(step.name)}
               </Text>
-              <Text as="span" variant="bodySm" tone="muted">
-                {approver.id === me.id ? 'You' : approver.name} · {stepStatus[step.status]}
-                {step.at ? ` · ${formatDateTime(step.at)}` : ''}
-              </Text>
+              <Changed value={step.status} className="-mx-1 px-1">
+                <Text as="span" variant="bodySm" tone="muted">
+                  {approver.id === me.id ? tr('You') : approver.name} · {tr(stepStatus[step.status])}
+                  {step.at ? ` · ${formatDateTime(step.at)}` : ''}
+                </Text>
+              </Changed>
               {step.answers && step.fields ? (
                 <dl className="mt-1 flex flex-col gap-1 rounded-md border border-border-subtle px-3 py-2 text-sm">
                   {questionsOf(visibleFields(step.fields, step.answers)).map((f) => (
                     <div key={f.id} className="flex flex-wrap gap-x-2">
-                      <dt className="text-fg-muted">{f.label}:</dt>
+                      <dt className="text-fg-muted">{tr(f.label)}:</dt>
                       <dd className="font-medium text-fg">{formatAnswer(f, step.answers?.[f.id], (id) => person(id).name)}</dd>
                     </div>
                   ))}
                 </dl>
               ) : null}
-              {step.comment ? (
-                <p className="mt-1 rounded-md bg-surface-sunken px-3 py-2 text-sm text-fg">“{step.comment}”</p>
-              ) : null}
+              {step.comment ? <p className="mt-1 rounded-md bg-surface-sunken px-3 py-2 text-sm text-fg">“{step.comment}”</p> : null}
             </div>
           </li>
         );

@@ -1,4 +1,4 @@
-import { Badge, Drawer, EmptyState, IndexTable, PageHeader, Text, type DataTableColumn } from '@repo/ui';
+import { Badge, Drawer, EmptyState, IndexTable, PageHeader, Text, type DataTableColumn } from '@app/ui';
 import { File, FileSpreadsheet, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { CheckGroup } from '../components/CheckGroup';
@@ -7,11 +7,13 @@ import { Person } from '../components/Person';
 import { useStore } from '../data/store';
 import type { Doc, DocumentStatus } from '../data/types';
 import { docStatus, formatBytesShort, formatDateTime, formatRelative } from '../lib/format';
+import { useLocale } from '../i18n/LocaleProvider';
 
 const KIND_ICON = { pdf: FileText, sheet: FileSpreadsheet, doc: File };
 const STATUS_OPTIONS = (Object.keys(docStatus) as DocumentStatus[]).map((s) => ({ value: s, label: docStatus[s].label }));
 
 export function Documents() {
+  const { t: tr } = useLocale();
   const { state } = useStore();
   const [query, setQuery] = useState('');
   const [statuses, setStatuses] = useState<DocumentStatus[]>([]);
@@ -26,7 +28,7 @@ export function Documents() {
   const columns: DataTableColumn<Doc>[] = [
     {
       id: 'name',
-      header: 'Name',
+      header: tr("Name"),
       sortable: true,
       sortValue: (d) => d.name,
       cell: (d) => {
@@ -38,18 +40,18 @@ export function Documents() {
             className="flex min-w-0 items-center gap-2 rounded-sm text-start font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring"
           >
             <Icon aria-hidden className="size-4 shrink-0 text-fg-subtle" />
-            <span className="truncate">{d.name}</span>
+            <span className="truncate">{tr(d.name)}</span>
           </button>
         );
       },
     },
-    { id: 'linked', header: 'Linked to', cell: (d) => (d.linkedTo ? <AppLink to={d.linkedTo.href}>{d.linkedTo.label}</AppLink> : <span className="text-fg-subtle">—</span>) },
-    { id: 'version', header: 'Version', cell: (d) => <span className="font-mono text-sm">{d.versions[0]?.version}</span> },
-    { id: 'status', header: 'Status', cell: (d) => <Badge size="sm" tone={docStatus[d.status].tone}>{docStatus[d.status].label}</Badge> },
-    { id: 'owner', header: 'Owner', cell: (d) => <Person id={d.ownerId} size="xs" /> },
+    { id: 'linked', header: tr("Linked to"), cell: (d) => (d.linkedTo ? <AppLink to={d.linkedTo.href}>{tr(d.linkedTo.label)}</AppLink> : <span className="text-fg-subtle">—</span>) },
+    { id: 'version', header: tr("Version"), cell: (d) => <span className="font-mono text-sm">{d.versions[0]?.version}</span> },
+    { id: 'status', header: tr("Status"), cell: (d) => <Badge size="sm" tone={docStatus[d.status].tone}>{tr(docStatus[d.status].label)}</Badge> },
+    { id: 'owner', header: tr("Owner"), cell: (d) => <Person id={d.ownerId} size="xs" /> },
     {
       id: 'updated',
-      header: 'Updated',
+      header: tr("Updated"),
       sortable: true,
       sortValue: (d) => d.versions[0]?.at ?? '',
       cell: (d) => <span className="text-fg-muted">{d.versions[0] ? formatRelative(d.versions[0].at) : ''}</span>,
@@ -58,12 +60,12 @@ export function Documents() {
 
   return (
     <>
-      <PageHeader title="Documents" subtitle="Proposals, contracts and policies, each linked to the decision it supports." />
+      <PageHeader title={tr("Documents")} subtitle={tr("Proposals, contracts and policies, each linked to the decision it supports.")} />
       <IndexTable<Doc>
-        caption="Documents"
+        caption={tr("Documents")}
         captionHidden
         selectable={false}
-        resourceName={{ singular: 'document', plural: 'documents' }}
+        resourceName={{ singular: tr("document"), plural: tr("documents") }}
         columns={columns}
         rows={rows}
         getRowLabel={(d) => d.name}
@@ -72,50 +74,46 @@ export function Documents() {
           queryValue: query,
           onQueryChange: setQuery,
           onQueryClear: () => setQuery(''),
-          queryPlaceholder: 'Search documents',
-          queryLabel: 'Search documents',
+          queryPlaceholder: tr("Search documents"),
+          queryLabel: tr("Search documents"),
           onClearAll: () => {
             setQuery('');
             setStatuses([]);
           },
-          filters: [{ key: 'status', label: 'Status', pinned: true, filter: <CheckGroup legend="Status" options={STATUS_OPTIONS} value={statuses} onChange={setStatuses} /> }],
+          filters: [{ key: 'status', label: tr("Status"), pinned: true, filter: <CheckGroup legend={tr("Status")} options={STATUS_OPTIONS.map((option) => ({ ...option, label: tr(option.label) }))} value={statuses} onChange={setStatuses} /> }],
           appliedFilters: statuses.length
-            ? [{ key: 'status', label: `Status: ${statuses.map((s) => docStatus[s].label).join(', ')}`, onRemove: () => setStatuses([]) }]
+            ? [{ key: 'status', label: tr("Status: {value0}", { value0: statuses.map((s) => tr(docStatus[s].label)).join(', ') }), onRemove: () => setStatuses([]) }]
             : [],
         }}
         emptyState={
-          <EmptyState size="card" heading="No documents match">
-            Try another search or clear the status filter.
-          </EmptyState>
+          <EmptyState size="card" heading={tr("No documents match")}>
+            {tr("Try another search or clear the status filter.")}</EmptyState>
         }
       />
       <Drawer
         open={open !== undefined}
         onOpenChange={(o) => (o ? undefined : setOpenId(null))}
         title={open?.name ?? ''}
-        description={open ? `${formatBytesShort(open.size)} · ${docStatus[open.status].label}` : undefined}
+        description={open ? `${formatBytesShort(open.size)} · ${tr(docStatus[open.status].label)}` : undefined}
         size="md"
       >
         {open ? (
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
               <Text variant="caption" tone="muted">
-                Owner
-              </Text>
+                {tr("Owner")}</Text>
               <Person id={open.ownerId} showRole />
             </div>
             {open.linkedTo ? (
               <div className="flex flex-col gap-1">
                 <Text variant="caption" tone="muted">
-                  Linked to
-                </Text>
-                <AppLink to={open.linkedTo.href}>{open.linkedTo.label}</AppLink>
+                  {tr("Linked to")}</Text>
+                <AppLink to={open.linkedTo.href}>{tr(open.linkedTo.label)}</AppLink>
               </div>
             ) : null}
             <div className="flex flex-col gap-3">
               <Text variant="subtitle" as="h3">
-                Version history
-              </Text>
+                {tr("Version history")}</Text>
               <ol className="flex flex-col gap-3">
                 {open.versions.map((v, i) => (
                   <li key={v.version} className="flex gap-3 rounded-md border border-border p-3">
@@ -129,8 +127,7 @@ export function Documents() {
                     </span>
                     {i === 0 ? (
                       <Badge size="sm" tone="primary">
-                        Current
-                      </Badge>
+                        {tr("Current")}</Badge>
                     ) : null}
                   </li>
                 ))}

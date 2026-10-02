@@ -1,4 +1,13 @@
-@import '@repo/ui/styles/globals.css';
+@import '@app/ui/styles/globals.css';
 @import './anumat.css';
+@import './theme.css';
+@import './motion.css';
+/* Default shadcn tokens override the legacy brand palette. */
+@import '@app/ui/styles/shadcn.css';
+@import '@app/ui/styles/controls.css';
+@import './public.css';
+@import './pages.css';
+@import './pricing.css';
+@import './support.css';
 /* App sources for Tailwind to scan. */
 @source '../';
