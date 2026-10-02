@@ -25,6 +25,7 @@ interface ToastContextValue {
 }
 
 const Context = createContext<ToastContextValue | null>(null);
+const MUTED_TEXT = 'text-muted-foreground';
 
 export function useToast() {
   const c = useContext(Context);
@@ -95,7 +96,7 @@ export function ToastProvider({
           toastOptions={{
             classNames: {
               toast: 'rounded-lg border border-border bg-popover text-popover-foreground shadow-lg font-sans',
-              description: 'text-muted-foreground',
+              description: MUTED_TEXT,
               actionButton: 'bg-primary text-primary-foreground',
             },
           }}

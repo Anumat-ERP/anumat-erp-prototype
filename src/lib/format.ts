@@ -88,8 +88,8 @@ export const typeLabel: Record<string, string> = {
 };
 
 export const requestStatus: Record<RequestStatus, { label: string; tone: BadgeTone }> = {
-  draft: { label: 'Draft', tone: 'neutral' },
-  pending: { label: 'Pending', tone: 'warning' },
+  draft: { label: 'To do', tone: 'neutral' },
+  pending: { label: 'In review', tone: 'warning' },
   changes: { label: 'Changes requested', tone: 'critical' },
   approved: { label: 'Approved', tone: 'success' },
   declined: { label: 'Declined', tone: 'critical' },

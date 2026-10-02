@@ -357,7 +357,7 @@ export const extraKm: Record<string, string> = {
   "You can’t move this task": "អ្នកមិនអាចផ្លាស់ទីកិច្ចការនេះបានទេ។",
   "Signed off": "បានចុះហត្ថលេខាបិទ",
   "Waiting on the supplier’s quote": "កំពុងរង់ចាំសម្រង់របស់អ្នកផ្គត់ផ្គង់",
-  "To do": "ដើម្បីធ្វើ",
+  "To do": "ត្រូវធ្វើ",
   "Grey": "ប្រផេះ",
   "Blue": "ខៀវ",
   "Amber": "អំពិល",
