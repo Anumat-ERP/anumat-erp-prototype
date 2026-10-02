@@ -16,6 +16,7 @@ export * from './components/accordion';
 export * from './components/popover';
 export * from './components/action-menu';
 export * from './components/app-shell';
+export * from './components/sidebar';
 export * from './components/navigation';
 export * from './components/text';
 export * from './components/card';

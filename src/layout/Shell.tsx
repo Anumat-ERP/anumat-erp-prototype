@@ -1,12 +1,12 @@
-import { ActionMenu, AppShell, Avatar, IconButton, Navigation, useToast, type NavigationSection } from '@app/ui';
-import { BarChart3, Check, CircleHelp, FileText, Home, Inbox, MoreHorizontal, Moon, Presentation, RotateCcw, Search, Sun, UsersRound, Workflow } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ActionMenu, AppShell, Avatar, IconButton, Navigation, SidebarProvider, useSidebar, useToast, cn, type NavigationSection } from '@app/ui';
+import { BarChart3, Check, ChevronsUpDown, CircleHelp, FileText, LayoutDashboard, LayoutTemplate, ListChecks, Inbox, Moon, Presentation, RotateCcw, Search, Sun, UsersRound, Workflow } from 'lucide-react';
+import { useEffect, useState, type ComponentPropsWithRef } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { CommandPalette } from '../components/CommandPalette';
 import { useTour } from '../components/DemoTour';
 import { FeedbackDialog } from '../components/Feedback';
 import { navLink } from '../components/links';
-import { Logo } from '../components/Logo';
+import { Logo, LogoMark } from '../components/Logo';
 import { Notifications } from '../components/Notifications';
 import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
 import { useStore, waitingOnMe } from '../data/store';
@@ -57,10 +57,35 @@ function useDensity() {
   return [density, setDensity] as const;
 }
 
+/** Page names for the breadcrumb, by top-level path. */
+const PAGE_NAMES: Array<[string, string]> = [
+  ['/home', 'Dashboard'],
+  ['/requests', 'Requests'],
+  ['/approvals', 'Approvals'],
+  ['/tasks', 'Tasks'],
+  ['/insights', 'Insights'],
+  ['/processes', 'Approval processes'],
+  ['/settings/people', 'People & roles'],
+  ['/settings/notifications', 'Notification settings'],
+  ['/meetings', 'Meetings'],
+  ['/documents', 'Documents'],
+  ['/surveys', 'Surveys'],
+  ['/support', 'Help & support'],
+  ['/telegram', 'Telegram preview'],
+];
+
 export function Shell() {
+  return (
+    <SidebarProvider>
+      <ShellFrame />
+    </SidebarProvider>
+  );
+}
+
+function ShellFrame() {
   const { t: tr } = useLocale();
   const { state, me, dispatch } = useStore();
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [theme, setTheme] = useTheme();
@@ -84,21 +109,13 @@ export function Shell() {
   const waiting = waitingOnMe(state).length;
   const at = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
+  const templates = pathname === '/processes' && hash === '#templates';
   const sections: NavigationSection[] = [
     {
+      title: tr('Workspace'),
       items: [
-        {
-          label: tr('Home'),
-          href: '/home',
-          icon: <Home />,
-          selected: at('/home'),
-        },
-        {
-          label: tr('Requests'),
-          href: '/requests',
-          icon: <FileText />,
-          selected: at('/requests'),
-        },
+        { label: tr('Dashboard'), href: '/home', icon: <LayoutDashboard />, selected: at('/home') },
+        { label: tr('Requests'), href: '/requests', icon: <FileText />, selected: at('/requests') },
         {
           label: tr('Approvals'),
           href: '/approvals',
@@ -107,50 +124,25 @@ export function Shell() {
           badge: waiting || undefined,
           badgeLabel: tr('{count} waiting on you', { count: waiting }),
         },
+        { label: tr('Tasks'), href: '/tasks', icon: <ListChecks />, selected: at('/tasks') },
+        { label: tr('Insights'), href: '/insights', icon: <BarChart3 />, selected: at('/insights') },
       ],
     },
     {
       title: tr('Administration'),
       items: [
-        {
-          label: tr('Insights'),
-          href: '/insights',
-          icon: <BarChart3 />,
-          selected: at('/insights'),
-        },
-        {
-          label: tr('Approval processes'),
-          href: '/processes',
-          icon: <Workflow />,
-          selected: at('/processes'),
-        },
-        {
-          label: tr('People & roles'),
-          href: '/settings/people',
-          icon: <UsersRound />,
-          selected: at('/settings/people'),
-        },
+        { label: tr('Approval processes'), href: '/processes', icon: <Workflow />, selected: at('/processes') && !templates },
+        { label: tr('Templates'), href: '/processes#templates', icon: <LayoutTemplate />, selected: templates },
+        { label: tr('People & roles'), href: '/settings/people', icon: <UsersRound />, selected: at('/settings/people') },
       ],
     },
   ];
+  const pageName = PAGE_NAMES.find(([href]) => at(href))?.[1];
 
   const accountMenu = (
       <ActionMenu
         align="end"
-        trigger={
-          <button
-            type="button"
-            aria-label={tr("Account: {value0}, {value1}. Switch who you are viewing as.", { value0: me.name, value1: me.role })}
-            className="an-account flex w-full items-center gap-3 rounded-xl p-3 text-start hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            <Avatar name={me.name} size="sm" decorative />
-            <span className="an-account-copy flex min-w-0 flex-1 flex-col text-start leading-relaxed">
-              <span className="truncate text-md font-medium text-fg">{tr(me.name)}</span>
-              <span className="text-xs text-fg-muted">{tr(me.role)}</span>
-            </span>
-            <MoreHorizontal aria-hidden className="size-5 shrink-0 text-fg-muted" />
-          </button>
-        }
+        trigger={<AccountButton label={tr("Account: {value0}, {value1}. Switch who you are viewing as.", { value0: me.name, value1: me.role })} name={tr(me.name)} role={tr(me.role)} avatarName={me.name} />}
         sections={[
           {
             title: tr('View the prototype as'),
@@ -220,7 +212,17 @@ export function Shell() {
 
   const topBar = (
     <>
-      <IconButton icon={<Search />} label={tr('Search')} onClick={() => setSearching(true)} aria-keyshortcuts="Meta+K Control+K" />
+      <button
+        type="button"
+        onClick={() => setSearching(true)}
+        aria-keyshortcuts="Meta+K Control+K"
+        aria-label={tr('Search')}
+        className="inline-flex h-8 items-center gap-2 rounded-md border border-input bg-card px-2.5 text-sm text-muted-foreground shadow-xs hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:w-56"
+      >
+        <Search aria-hidden className="size-4" />
+        <span className="hidden lg:inline">{tr('Search…')}</span>
+        <kbd aria-hidden className="ms-auto hidden rounded-sm border border-border bg-muted px-1.5 font-sans text-xs lg:inline">⌘K</kbd>
+      </button>
       <LanguageSwitch />
       <ActionMenu
         align="end"
@@ -261,28 +263,75 @@ export function Shell() {
       openNavigationLabel={tr('Open navigation')}
       closeNavigationLabel={tr('Close navigation')}
       topBar={topBar}
-      sidebarHeader={
-        <>
-          <Link to="/home" aria-label={tr("Anumat home")} className="an-brand inline-flex rounded-lg focus-visible:outline-2 focus-visible:outline-ring">
-            <Logo className="h-9 w-auto" />
-          </Link>
-          <div className="an-workspace"><WorkspaceSwitcher /></div>
-        </>
+      toggleSidebarLabel={tr('Toggle sidebar')}
+      sidebarHeader={<SidebarBrand homeLabel={tr('Anumat home')} />}
+      breadcrumb={
+        <nav aria-label={tr('Breadcrumb')}>
+          <ol className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+            <li className="hidden lg:block">{tr(state.org.name)}</li>
+            {pageName ? (
+              <>
+                <li aria-hidden className="hidden lg:block">/</li>
+                <li aria-current="page" className="truncate font-medium text-foreground">{tr(pageName)}</li>
+              </>
+            ) : null}
+          </ol>
+        </nav>
       }
       sidebarFooter={accountMenu}
-      navigation={
-        <>
-          <Navigation className="an-navigation" sections={sections} renderLink={navLink} />
-        </>
-      }
-      mainClassName="an-main"
+      navigation={<Navigation sections={sections} renderLink={navLink} aria-label={tr('Main navigation')} />}
     >
-      <div key={pathname} className="an-page mx-auto flex w-full max-w-[1500px] flex-col gap-8">
+      <div key={pathname} className="an-page mx-auto flex w-full max-w-[1400px] flex-col gap-6">
         <Outlet />
       </div>
       <CommandPalette open={searching} onOpenChange={setSearching} />
 
       <FeedbackDialog kind={feedback} onClose={() => setFeedback(null)} />
     </AppShell>
+  );
+}
+
+/** Logo and workspace switcher at the top of the sidebar; the mark alone when collapsed. */
+function SidebarBrand({ homeLabel }: { homeLabel: string }) {
+  const { collapsed } = useSidebar();
+  return (
+    <div className={cn('flex flex-col gap-3', collapsed && 'items-center')}>
+      <Link
+        to="/home"
+        aria-label={homeLabel}
+        className={cn('an-brand inline-flex h-9 items-center rounded-md focus-visible:outline-2 focus-visible:outline-ring', !collapsed && 'px-1')}
+      >
+        {collapsed ? <LogoMark className="size-8" /> : <Logo className="h-7 w-auto text-foreground" />}
+      </Link>
+      <WorkspaceSwitcher />
+    </div>
+  );
+}
+
+/** The account menu trigger: name and role, or just the avatar in the rail and on phones. */
+function AccountButton({ label, name, role, avatarName, className, ...props }: ComponentPropsWithRef<'button'> & { label: string; name: string; role: string; avatarName: string }) {
+  const { collapsed } = useSidebar();
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      {...props}
+      className={cn(
+        'an-account flex w-full items-center gap-2.5 rounded-md p-1.5 text-start hover:bg-sidebar-accent/70 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+        collapsed && 'justify-center',
+        className,
+      )}
+    >
+      <Avatar name={avatarName} size="sm" decorative />
+      {collapsed ? null : (
+        <>
+          <span className="an-account-copy flex min-w-0 flex-1 flex-col text-start leading-tight">
+            <span className="truncate text-sm font-medium text-foreground">{name}</span>
+            <span className="truncate text-xs text-muted-foreground">{role}</span>
+          </span>
+          <ChevronsUpDown aria-hidden className="an-account-chevron size-4 shrink-0 text-muted-foreground" />
+        </>
+      )}
+    </button>
   );
 }

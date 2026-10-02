@@ -6,6 +6,7 @@ import type {
   ReactNode,
 } from 'react';
 import { cn } from '../lib/cn';
+import { useSidebar } from './sidebar';
 import { Tooltip } from './tooltip';
 
 /** Props handed to `renderLink`. Spread them onto your router’s link. */
@@ -137,10 +138,12 @@ function Item({
 export function Navigation({
   sections,
   renderLink = defaultLink,
-  collapsed,
+  collapsed: collapsedProp,
   className,
   ...props
 }: NavigationProps) {
+  const sidebar = useSidebar();
+  const collapsed = collapsedProp ?? sidebar.collapsed;
   return (
     <nav
       className={cn('an-navigation flex flex-col gap-4', className)}

@@ -6,7 +6,7 @@ import { km } from '../src/i18n/messages';
 const files = readdirSync('src', { recursive: true, encoding: 'utf8' }).filter((f) => f.endsWith('.tsx')).map((f) => `src/${f.replaceAll('\\', '/')}`);
 const uiProps = new Set(['title', 'subtitle', 'heading', 'description', 'label', 'placeholder', 'caption', 'aria-label', 'helperText', 'queryPlaceholder', 'queryLabel', 'emptyLabel', 'content', 'legend', 'header', 'singular', 'plural']);
 // Brand names, CSS classes and semantic HTML tags are intentionally not translated.
-const literalsToKeep = new Set(['Lotus Logistics', 'text-2xl font-semibold tracking-tight', 'text-xl font-semibold', 'text-lg font-semibold', 'text-md font-medium', 'h2', 'h3', 'h4']);
+const literalsToKeep = new Set(['Lotus Logistics', '⌘K', 'text-2xl font-semibold tracking-tight', 'text-xl font-semibold', 'text-lg font-semibold', 'text-md font-medium', 'h2', 'h3', 'h4']);
 const uncovered = new Map<string, string[]>();
 for (const file of files) {
   const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
