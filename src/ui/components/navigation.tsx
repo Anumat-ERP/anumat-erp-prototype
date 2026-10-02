@@ -1,24 +1,12 @@
 'use client';
 
-import {
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  ListSubheader,
-  Chip,
-} from '@mui/material';
-import {
-  cloneElement,
-  isValidElement,
-  forwardRef,
-  useMemo,
-  type ComponentPropsWithRef,
-  type MouseEventHandler,
-  type ReactNode,
+import type {
+  ComponentPropsWithRef,
+  MouseEventHandler,
+  ReactNode,
 } from 'react';
 import { cn } from '../lib/cn';
+import { Tooltip } from './tooltip';
 
 /** Props handed to `renderLink`. Spread them onto your router’s link. */
 export interface NavigationLinkProps {
@@ -26,6 +14,8 @@ export interface NavigationLinkProps {
   className: string;
   children: ReactNode;
   'aria-current'?: 'page';
+  'aria-label'?: string;
+  'data-collapsed'?: 'true';
   target?: string;
   rel?: string;
   onClick?: MouseEventHandler<HTMLAnchorElement>;
@@ -33,189 +23,146 @@ export interface NavigationLinkProps {
 
 /** A nested destination under a top-level item. */
 export interface NavigationSubItem {
-  /** Visible label. */
   label: string;
-  /** Destination. */
   href: string;
-  /** This is the current page: highlighted and `aria-current="page"`. */
   selected?: boolean;
-  /** A count or short status after the label. */
   badge?: ReactNode;
-  /** Called on click, e.g. to close a mobile drawer. */
   onClick?: MouseEventHandler<HTMLAnchorElement>;
 }
 
 /** A top-level destination. */
 export interface NavigationItem {
-  /** Visible label. */
   label: string;
-  /** Destination. */
   href: string;
-  /** Leading icon (lucide). */
   icon?: ReactNode;
-  /** A count or short status after the label (e.g. unfulfilled orders). */
   badge?: ReactNode;
-  /** What the badge means, for assistive technology: “12 unfulfilled”. */
+  /** What the badge means, for assistive technology: “4 waiting on you”. */
   badgeLabel?: string;
-  /** This is the current page. Also reveals `subItems`. */
+  /** The current page: highlighted and `aria-current="page"`. Also reveals `subItems`. */
   selected?: boolean;
-  /** Shown but not navigable — e.g. a module the plan doesn’t include. Explain why elsewhere. */
   disabled?: boolean;
-  /** Opens in a new tab with an external-link icon, e.g. the online store. */
   external?: boolean;
-  /** Children, shown when this item or one of them is selected. */
   subItems?: NavigationSubItem[];
-  /** Called on click. */
   onClick?: MouseEventHandler<HTMLAnchorElement>;
 }
 
 /** A group of items with an optional heading. */
 export interface NavigationSection {
-  /** Section heading, e.g. “Sales channels”. */
   title?: string;
-  /** The items. */
   items: NavigationItem[];
-  /** Trailing element in the heading row, e.g. an IconButton to add a channel. */
   action?: ReactNode;
 }
 
 export interface NavigationProps
   extends Omit<ComponentPropsWithRef<'nav'>, 'children'> {
-  /** Grouped destinations, top to bottom. */
   sections: NavigationSection[];
-  /** Render links with your router. Defaults to a plain `<a>`. */
   renderLink?: (props: NavigationLinkProps) => ReactNode;
-  /** Accessible name of the landmark. */
   'aria-label'?: string;
+  /** Icon-only rail: labels move into tooltips and the accessible name. */
+  collapsed?: boolean;
 }
 
 const defaultLink = (props: NavigationLinkProps) => <a {...props} />;
+
+const itemClasses = cn(
+  'group/nav relative flex h-9 w-full min-w-0 items-center gap-3 rounded-md px-2.5 text-sm text-sidebar-foreground',
+  'transition-colors duration-(--a-duration-fast) ease-standard',
+  'hover:bg-sidebar-accent/70 hover:text-foreground',
+  'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+  'aria-[current=page]:bg-sidebar-accent aria-[current=page]:font-semibold aria-[current=page]:text-sidebar-accent-foreground',
+  "[&_svg]:size-[1.125rem] [&_svg]:shrink-0",
+);
+
 function Item({
   item,
   renderLink,
+  collapsed,
 }: {
   item: NavigationItem;
   renderLink: (props: NavigationLinkProps) => ReactNode;
+  collapsed?: boolean;
 }) {
-  const Link = useMemo(
-    () =>
-      forwardRef<HTMLDivElement, { children?: ReactNode; className?: string }>(
-        function NavigationLink(props, ref) {
-          // Router links remain responsible for navigation; MUI owns their interaction styles.
-          const element = renderLink({
-            href: item.href,
-            className: props.className ?? '',
-            children: props.children,
-            'aria-current': item.selected ? 'page' : undefined,
-            onClick: item.onClick,
-            target: item.external ? '_blank' : undefined,
-            rel: item.external ? 'noopener noreferrer' : undefined,
-          });
-          return isValidElement<{ ref?: React.Ref<HTMLDivElement> }>(element)
-            ? cloneElement(element, { ref })
-            : element;
-        },
-      ),
-    [item.href, item.selected, item.onClick, item.external, renderLink],
-  );
-  return (
-    <ListItem disablePadding sx={{ display: 'block', mb: 0.5 }}>
-      <ListItemButton
-        component={Link}
-        selected={item.selected}
-        disabled={item.disabled}
-        sx={{
-          borderRadius: 1.5,
-          minHeight: 52,
-          px: 2,
-          gap: 1.5,
-          '&.Mui-selected': {
-            bgcolor: 'var(--a-color-surface-selected)',
-            color: 'var(--a-color-primary-subtle-fg)',
-          },
-        }}
-      >
-        {item.icon ? (
-          <ListItemIcon
-            sx={{
-              minWidth: 26,
-              color: 'inherit',
-              '& svg': { width: 22, height: 22 },
-            }}
-          >
-            {item.icon}
-          </ListItemIcon>
-        ) : null}
-        <ListItemText
-          primary={item.label}
-          slotProps={{
-            primary: {
-              sx: {
-                fontSize: '1rem',
-                fontWeight: item.selected ? 600 : 400,
-              },
-            },
-          }}
-        />
+  const badgeText =
+    item.badge !== undefined && item.badgeLabel ? item.badgeLabel : undefined;
+  const link = renderLink({
+    href: item.href,
+    className: cn(itemClasses, collapsed && 'justify-center px-0', item.disabled && 'pointer-events-none opacity-50'),
+    'aria-current': item.selected ? 'page' : undefined,
+    'aria-label': collapsed ? [item.label, badgeText].filter(Boolean).join(', ') : undefined,
+    'data-collapsed': collapsed ? 'true' : undefined,
+    onClick: item.onClick,
+    target: item.external ? '_blank' : undefined,
+    rel: item.external ? 'noopener noreferrer' : undefined,
+    children: (
+      <>
+        {item.icon ? <span aria-hidden className="flex">{item.icon}</span> : null}
+        {collapsed ? null : <span className="min-w-0 flex-1 truncate">{item.label}</span>}
         {item.badge !== undefined ? (
-          <Chip
-            size="small"
-            label={item.badge}
+          <span
             aria-label={item.badgeLabel}
-            sx={{ height: 22, fontSize: '0.75rem' }}
-          />
+            className={cn(
+              'inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular-nums',
+              collapsed && 'absolute -top-0.5 end-0.5 h-4 min-w-4 px-1 text-[0.625rem]',
+            )}
+          >
+            {item.badge}
+          </span>
         ) : null}
-      </ListItemButton>
-      {(item.selected || item.subItems?.some((sub) => sub.selected)) &&
+      </>
+    ),
+  });
+  return (
+    <li>
+      {collapsed ? (
+        <Tooltip content={item.label} side="right">
+          {link as React.ReactElement}
+        </Tooltip>
+      ) : (
+        link
+      )}
+      {!collapsed &&
+      (item.selected || item.subItems?.some((sub) => sub.selected)) &&
       item.subItems?.length ? (
-        <List disablePadding sx={{ pl: 3 }}>
+        <ul className="mt-0.5 ms-5 flex flex-col gap-0.5 border-s border-sidebar-border ps-2">
           {item.subItems.map((sub) => (
             <Item key={sub.href} item={sub} renderLink={renderLink} />
           ))}
-        </List>
+        </ul>
       ) : null}
-    </ListItem>
+    </li>
   );
 }
+
+/** Grouped app navigation (shadcn sidebar menu). */
 export function Navigation({
   sections,
   renderLink = defaultLink,
+  collapsed,
   className,
   ...props
 }: NavigationProps) {
   return (
-    <nav className={className} aria-label="Main navigation" {...props}>
+    <nav
+      className={cn('an-navigation flex flex-col gap-4', className)}
+      aria-label="Main navigation"
+      {...props}
+    >
       {sections.map((section, i) => (
-        <List
-          key={i}
-          disablePadding
-          sx={{ px: 2, pb: 2, pt: 0 }}
-          subheader={
-            section.title ? (
-              <ListSubheader
-                component="li"
-                sx={{
-                  px: 1.5,
-                  bgcolor: 'transparent',
-                  lineHeight: '48px',
-                  textTransform: 'uppercase',
-                  fontSize: '0.6875rem',
-                  letterSpacing: '0.04em',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontWeight: 600,
-                }}
-              >
-                {section.title}
-                {section.action}
-              </ListSubheader>
-            ) : undefined
-          }
-        >
-          {section.items.map((item) => (
-            <Item key={item.href} item={item} renderLink={renderLink} />
-          ))}
-        </List>
+        <div key={i} className="flex flex-col gap-1">
+          {section.title && !collapsed ? (
+            <div className="flex h-7 items-center justify-between px-2.5 text-xs font-medium text-muted-foreground">
+              <span>{section.title}</span>
+              {section.action}
+            </div>
+          ) : section.title ? (
+            <div aria-hidden className="mx-2.5 my-1.5 h-px bg-sidebar-border" />
+          ) : null}
+          <ul className="flex flex-col gap-0.5">
+            {section.items.map((item) => (
+              <Item key={item.href} item={item} renderLink={renderLink} collapsed={collapsed} />
+            ))}
+          </ul>
+        </div>
       ))}
     </nav>
   );

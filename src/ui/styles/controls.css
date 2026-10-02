@@ -70,3 +70,10 @@ html[lang='km'] .an-floating-field[data-filled] .an-floating-label { top: 0.35re
 @media (prefers-reduced-motion: reduce) {
   .an-sheet[data-state='open'], .an-overlay[data-state='open'] { animation: none; }
 }
+
+/* Page-specific control sizes that used to target MUI internals. */
+.an-language-switch { width: 7rem; flex-shrink: 0; }
+.an-setup-form .an-setup-actions button { min-height: 2.75rem; padding-inline: 1.5rem; }
+.an-auth-submit > button,
+.an-auth-message > button { min-height: 3rem; padding-inline: 2rem; font-size: var(--a-text-md); }
+.an-public-close > button { margin-top: 1.75rem; }

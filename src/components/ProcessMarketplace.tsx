@@ -1,4 +1,3 @@
-import { ButtonBase } from '@mui/material';
 import { Button, Field, Input, Select, Text, useToast } from '@app/ui';
 import { Search, Workflow } from 'lucide-react';
 import { useState } from 'react';
@@ -101,7 +100,7 @@ export function ProcessMarketplace() {
             <ul className="divide-y divide-border">
               {results.map((p) => (
                 <li key={p.id}>
-                  <ButtonBase
+                  <button
                     type="button"
                     aria-pressed={selected === p.id}
                     onClick={() => {
@@ -131,7 +130,7 @@ export function ProcessMarketplace() {
                         })}
                       </span>
                     </span>
-                  </ButtonBase>
+                  </button>
                 </li>
               ))}
             </ul>

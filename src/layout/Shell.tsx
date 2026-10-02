@@ -1,4 +1,3 @@
-import { ButtonBase } from '@mui/material';
 import { ActionMenu, AppShell, Avatar, IconButton, Navigation, useToast, type NavigationSection } from '@app/ui';
 import { BarChart3, Check, CircleHelp, FileText, Home, Inbox, MoreHorizontal, Moon, Presentation, RotateCcw, Search, Sun, UsersRound, Workflow } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -139,7 +138,7 @@ export function Shell() {
       <ActionMenu
         align="end"
         trigger={
-          <ButtonBase
+          <button
             type="button"
             aria-label={tr("Account: {value0}, {value1}. Switch who you are viewing as.", { value0: me.name, value1: me.role })}
             className="an-account flex w-full items-center gap-3 rounded-xl p-3 text-start hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -150,7 +149,7 @@ export function Shell() {
               <span className="text-xs text-fg-muted">{tr(me.role)}</span>
             </span>
             <MoreHorizontal aria-hidden className="size-5 shrink-0 text-fg-muted" />
-          </ButtonBase>
+          </button>
         }
         sections={[
           {

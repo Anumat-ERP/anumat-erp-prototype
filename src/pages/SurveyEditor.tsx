@@ -1,4 +1,3 @@
-import { ButtonBase } from '@mui/material';
 import { Banner, Button, cn, Card, CardHeader, EmptyState, Field, Input, Modal, PageHeader, Switch, Text, Textarea, useToast } from '@app/ui';
 import { CalendarCheck, ClipboardList, GraduationCap, HeartPulse, RotateCcw } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
@@ -179,7 +178,7 @@ export function SurveyEditor() {
       {/* Phones and tablets: switch between building and previewing instead of scrolling past the whole form. */}
       <div role="tablist" aria-label={tr("Editor view")} className="grid grid-cols-2 gap-1 rounded-lg bg-surface-sunken p-1 lg:hidden">
         {(['build', 'preview'] as const).map((v) => (
-          <ButtonBase
+          <button
             key={v}
             type="button"
             role="tab"
@@ -191,7 +190,7 @@ export function SurveyEditor() {
             )}
           >
             {v === 'build' ? tr("Build") : tr("Preview{value0}", { value0: questionsOf(draft.fields).length ? ` (${questionsOf(draft.fields).length})` : '' })}
-          </ButtonBase>
+          </button>
         ))}
       </div>
 
@@ -202,7 +201,7 @@ export function SurveyEditor() {
               <CardHeader title={tr("Start from a template")} description={tr("Or add your own questions below.")} />
               <div className="grid gap-2 sm:grid-cols-3">
                 {TEMPLATES.map((t) => (
-                  <ButtonBase
+                  <button
                     key={t.id}
                     type="button"
                     onClick={() => {
@@ -221,7 +220,7 @@ export function SurveyEditor() {
                       <span className="font-medium text-fg">{tr(t.name)}</span>
                       <span className="text-sm text-fg-muted">{tr(t.hint)}</span>
                     </span>
-                  </ButtonBase>
+                  </button>
                 ))}
               </div>
             </Card>

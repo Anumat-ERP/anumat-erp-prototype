@@ -1,4 +1,3 @@
-import { ButtonBase } from '@mui/material';
 import { Badge, Banner, Button, Card, CardHeader, EmptyState, Field, IconButton, Input, PageHeader, Select, Switch, Text, cn, useToast } from '@app/ui';
 import { ArrowDown, ArrowUp, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -306,7 +305,7 @@ export function ProcessEditor() {
                         </Field>
                       </div>
                       <div className="flex flex-col gap-3 border-t border-border pt-3">
-                        <ButtonBase
+                        <button
                           type="button"
                           aria-expanded={openForms.includes(s.id)}
                           onClick={() => setOpenForms(openForms.includes(s.id) ? openForms.filter((x) => x !== s.id) : [...openForms, s.id])}
@@ -317,7 +316,7 @@ export function ProcessEditor() {
                           <Badge size="sm" tone={s.fields?.length ? 'primary' : 'neutral'}>
                             {s.fields?.length ? tr("{value0} fields", { value0: questionsOf(s.fields).length }) : tr('Nothing')}
                           </Badge>
-                        </ButtonBase>
+                        </button>
                         {openForms.includes(s.id) ? (
                           <>
                             <Text variant="bodySm" tone="muted">

@@ -193,10 +193,11 @@ test('dark theme, Khmer and mobile navigation stay usable', async ({
     await page
       .getByRole('button', { name: 'បើកការរុករក', exact: true })
       .click();
-    await expect(page.locator('.MuiDrawer-paper')).toBeVisible();
-    await page.locator('.MuiDrawer-paper a[href="/requests"]').click();
+    const sheet = page.getByRole('dialog');
+    await expect(sheet).toBeVisible();
+    await sheet.locator('a[href="/requests"]').click();
     await expect(page).toHaveURL('/requests');
-    await expect(page.locator('.MuiDrawer-paper')).not.toBeVisible();
+    await expect(sheet).not.toBeVisible();
   }
   const overflow = await page.evaluate(
     () => Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) > window.innerWidth,

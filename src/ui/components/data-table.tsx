@@ -1,12 +1,3 @@
-import {
-  Table,
-  TableHead,
-  TableBody,
-  TableFooter,
-  TableRow,
-  TableCell,
-} from '@mui/material';
-('use client');
 
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { useLocale } from '../../i18n/LocaleProvider';
@@ -27,6 +18,18 @@ import {
 } from './bulk-actions';
 import { SelectionCheckbox } from './selection-checkbox';
 import { Spinner } from './spinner';
+
+/* Native table parts. A cell with `scope` is a header cell. */
+type CellProps = ComponentPropsWithRef<'td'> & { component?: 'th' | 'td'; scope?: string };
+const Table = (props: ComponentPropsWithRef<'table'>) => <table {...props} />;
+const TableHead = (props: ComponentPropsWithRef<'thead'>) => <thead {...props} />;
+const TableBody = (props: ComponentPropsWithRef<'tbody'>) => <tbody {...props} />;
+const TableFooter = (props: ComponentPropsWithRef<'tfoot'>) => <tfoot {...props} />;
+const TableRow = (props: ComponentPropsWithRef<'tr'>) => <tr {...props} />;
+function TableCell({ component, scope, ...props }: CellProps) {
+  const Cell = component ?? (scope ? 'th' : 'td');
+  return <Cell scope={scope} {...(props as ComponentPropsWithRef<'th'>)} />;
+}
 
 export type SortDirection = 'ascending' | 'descending';
 
@@ -350,7 +353,7 @@ export function DataTable<T>({
       className={cn(
         'relative flex min-w-0 flex-col',
         bordered &&
-          'overflow-hidden rounded-[20px] bg-surface',
+          'overflow-hidden rounded-xl border border-border bg-card shadow-card',
         className,
       )}
       style={style}
@@ -414,7 +417,7 @@ export function DataTable<T>({
       >
         <Table
           className={cn(
-            'w-full border-separate border-spacing-0 text-md text-fg',
+            'w-full border-separate border-spacing-0 text-sm text-fg',
             // The container's border closes the table; the last row doesn't need its own.
             '[&>tbody>tr:last-child>*]:border-b-0',
           )}

@@ -1,4 +1,4 @@
-import { Drawer as MuiDrawer } from '@mui/material';
+import { Dialog } from 'radix-ui';
 import { Menu, X } from 'lucide-react';
 import { useState, type ComponentPropsWithRef, type ReactNode } from 'react';
 import { cn } from '../lib/cn';
@@ -45,14 +45,18 @@ export function AppShell({ topBar, sidebarHeader, sidebarFooter, navigation, chi
         </header>
         <main id={mainId} tabIndex={-1} className={cn('min-w-0 outline-none', mainClassName)}>{children}</main>
       </div>
-      {navigation ? <MuiDrawer anchor="left" open={open} onClose={() => setOpen(false)} slotProps={{ paper: { sx: { width: 296, maxWidth: '85vw' } } }}>
-        <div className="an-drawer-content" aria-label={navigationLabel} onClick={(e) => {
-          if ((e.target as HTMLElement).closest('a[href]')) setOpen(false);
-        }}>
-          <IconButton icon={<X />} label={closeNavigationLabel} className="an-drawer-close" onClick={() => setOpen(false)} />
-          {sidebar}
-        </div>
-      </MuiDrawer> : null}
+      {navigation ? <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="an-overlay fixed inset-0 z-50 bg-foreground/40 md:hidden" />
+          <Dialog.Content aria-describedby={undefined} data-side="left" className="an-sheet an-drawer-content fixed inset-y-0 start-0 z-50 flex w-74 max-w-[85vw] flex-col overflow-y-auto border-e border-sidebar-border bg-sidebar outline-none md:hidden" onClick={(e) => {
+            if ((e.target as HTMLElement).closest('a[href]')) setOpen(false);
+          }}>
+            <Dialog.Title className="sr-only">{navigationLabel}</Dialog.Title>
+            <IconButton icon={<X />} label={closeNavigationLabel} className="an-drawer-close" onClick={() => setOpen(false)} />
+            {sidebar}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root> : null}
     </div>
   );
 }

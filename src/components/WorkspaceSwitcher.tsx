@@ -1,4 +1,3 @@
-import { ButtonBase } from '@mui/material';
 import { ActionMenu, useToast } from '@app/ui';
 import { Check, ChevronsUpDown, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -27,7 +26,7 @@ export function WorkspaceSwitcher() {
       <ActionMenu
         align="start"
         trigger={
-          <ButtonBase
+          <button
             type="button"
             aria-label={tr("Workspace: {value0}. Switch workspace", { value0: state.org.name })}
             className="flex w-full items-center gap-2.5 rounded-xl bg-surface-muted p-3 text-start hover:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
@@ -40,7 +39,7 @@ export function WorkspaceSwitcher() {
               <span className="truncate text-xs text-fg-muted">{current?.access ? ACCESS[current.access] : ''}</span>
             </span>
             <ChevronsUpDown aria-hidden className="size-4 shrink-0 text-fg-subtle" />
-          </ButtonBase>
+          </button>
         }
         sections={[
           {

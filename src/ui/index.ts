@@ -1,4 +1,4 @@
-// App-owned adapters around Material UI. Workflow-facing APIs stay stable.
+// App-owned adapters built on shadcn/ui (Radix + Tailwind). Workflow-facing APIs stay stable.
 export * from './lib/cn';
 export * from './components/button';
 export * from './components/input';

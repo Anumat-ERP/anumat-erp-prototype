@@ -1,4 +1,3 @@
-import { ButtonBase } from '@mui/material';
 import { Checkbox, Field, Input, RadioGroup, RadioGroupItem, Select, Text, Textarea, cn, useField } from '@app/ui';
 import { useRef, type KeyboardEvent } from 'react';
 import { useStore } from '../../data/store';
@@ -63,7 +62,7 @@ export function ChoiceScale({
         }}
       >
         {choices.map((c, i) => (
-          <ButtonBase
+          <button
             key={c}
             ref={(el) => {
               refs.current[i] = el;
@@ -86,7 +85,7 @@ export function ChoiceScale({
             )}
           >
             {c}
-          </ButtonBase>
+          </button>
         ))}
       </div>
       <div className="flex justify-between text-xs text-fg-muted" aria-hidden>

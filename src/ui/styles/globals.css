@@ -2,7 +2,7 @@
  * Reset < Material UI < explicit layout utilities. index.html declares this
  * order before Emotion injects styles; MaterialProvider owns component styling.
  */
-@layer theme, base, mui, components, utilities;
+@layer theme, base, components, utilities;
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/preflight.css' layer(base);
 @import 'tailwindcss/utilities.css' layer(utilities);

@@ -1,4 +1,4 @@
-import { MaterialProvider, ToastProvider, TooltipProvider } from '@app/ui';
+import { ThemeProvider, ToastProvider, TooltipProvider } from '@app/ui';
 import { StrictMode, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, MemoryRouter } from 'react-router';
@@ -24,7 +24,7 @@ const Router =
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <MaterialProvider>
+    <ThemeProvider>
       <LocaleProvider>
         <Router>
           <StoreProvider>
@@ -38,6 +38,6 @@ createRoot(document.getElementById('root')!).render(
           </StoreProvider>
         </Router>
       </LocaleProvider>
-    </MaterialProvider>
+    </ThemeProvider>
   </StrictMode>,
 );
