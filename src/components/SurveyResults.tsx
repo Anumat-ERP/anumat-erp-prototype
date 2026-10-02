@@ -4,6 +4,7 @@ import type { FormField, Survey, SurveyResponse } from '../data/types';
 import { useStore } from '../data/store';
 import { choicesFor, describeCondition, formatAnswer, kindLabel, parseNumber, questionsOf, visibleFields } from '../lib/forms';
 import { BarTable, ColumnChart } from './charts';
+import { useLocale } from '../i18n/LocaleProvider';
 
 const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
 const COLOR = 'var(--an-chart-1)';
@@ -43,13 +44,14 @@ function ChoiceBars({
   respondents: number;
   labelOf?: (choice: string) => string;
 }) {
+  const { t: tr } = useLocale();
   const multi = field.kind === 'checkboxes';
   const choices = field.kind === 'rating' ? [...choicesFor(field)].reverse() : choicesFor(field);
   const count = (c: string) => answers.filter((a) => (Array.isArray(a) ? a.includes(c) : a === c)).length;
   return (
     <>
       <BarTable
-        caption={`Answers to “${field.label}”`}
+        caption={tr("Answers to “{value0}”", { value0: field.label })}
         valueHeader={multi ? 'People' : 'Answers'}
         max={respondents}
         rows={choices.map((c) => {
@@ -66,14 +68,14 @@ function ChoiceBars({
       />
       {multi ? (
         <Text variant="caption" tone="subtle">
-          People could choose more than one, so the percentages add up to more than 100.
-        </Text>
+          {tr("People could choose more than one, so the percentages add up to more than 100.")}</Text>
       ) : null}
     </>
   );
 }
 
 function TextAnswers({ answers }: { answers: string[] }) {
+  const { t: tr } = useLocale();
   const [all, setAll] = useState(false);
   const shown = all ? answers : answers.slice(0, 4);
   return (
@@ -87,7 +89,7 @@ function TextAnswers({ answers }: { answers: string[] }) {
       </ul>
       {answers.length > 4 ? (
         <Button size="sm" variant="plain" className="self-start" onClick={() => setAll(!all)}>
-          {all ? 'Show fewer' : `Show all ${answers.length}`}
+          {all ? tr("Show fewer") : tr("Show all {value0}", { value0: answers.length })}
         </Button>
       ) : null}
     </div>
@@ -119,6 +121,7 @@ function QuestionResult({
   anonymous: boolean;
   minAnswers: number;
 }) {
+  const { t: tr } = useLocale();
   const { person } = useStore();
   // People who were asked this question (conditions hide it for some).
   const asked = responses.filter((r) => visibleFields(fields, r.answers).some((f) => f.id === field.id));
@@ -132,14 +135,12 @@ function QuestionResult({
   if (tooFew) {
     body = (
       <Text tone="muted" variant="bodySm">
-        Hidden until {minAnswers} people answer this question, so nobody can be picked out. {answers.length} so far.
-      </Text>
+        {tr("Hidden until")}{' '}{minAnswers} {tr("people answer this question, so nobody can be picked out.")}{' '}{answers.length} {tr("so far.")}</Text>
     );
   } else if (!answers.length) {
     body = (
       <Text tone="muted" variant="bodySm">
-        No answers yet.
-      </Text>
+        {tr("No answers yet.")}</Text>
     );
   } else if (field.kind === 'scale') {
     const scores = answers.map(Number);
@@ -147,9 +148,9 @@ function QuestionResult({
     body = (
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-x-8 gap-y-3">
-          <Stat label="Average" value={(scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)} hint="Out of 10" />
+          <Stat label={tr("Average")} value={(scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)} hint="Out of 10" />
           {/recommend/i.test(field.label) ? (
-            <Stat label="Recommend score" value={score === null ? '—' : `${score > 0 ? '+' : ''}${score}`} hint="% 9–10 minus % 0–6" />
+            <Stat label={tr("Recommend score")} value={score === null ? '—' : `${score > 0 ? '+' : ''}${score}`} hint="% 9–10 minus % 0–6" />
           ) : null}
           <Stat
             label="9–10 · 7–8 · 0–6"
@@ -158,7 +159,7 @@ function QuestionResult({
           />
         </div>
         <ColumnChart
-          caption={`How people scored “${field.label}” from 0 to 10`}
+          caption={tr("How people scored “{value0}” from 0 to 10", { value0: field.label })}
           points={choicesFor(field).map((c) => {
             const n = scores.filter((s) => String(s) === c).length;
             return { label: c, value: n, detail: `${n} ${n === 1 ? 'person' : 'people'} chose ${c}` };
@@ -170,7 +171,7 @@ function QuestionResult({
     const scores = answers.map(Number);
     body = (
       <div className="flex flex-col gap-3">
-        <Stat label="Average" value={`${(scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)} / 5`} />
+        <Stat label={tr("Average")} value={`${(scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)} / 5`} />
         <ChoiceBars field={field} answers={answers} respondents={answers.length} />
       </div>
     );
@@ -185,15 +186,14 @@ function QuestionResult({
       field.kind === 'money' ? n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }) : n.toLocaleString(undefined, { maximumFractionDigits: 1 });
     body = nums.length ? (
       <div className="flex flex-wrap gap-x-8 gap-y-3">
-        <Stat label="Average" value={fmt(nums.reduce((a, b) => a + b, 0) / nums.length)} />
-        <Stat label="Lowest" value={fmt(Math.min(...nums))} />
-        <Stat label="Highest" value={fmt(Math.max(...nums))} />
-        {field.kind === 'money' ? <Stat label="Total" value={fmt(nums.reduce((a, b) => a + b, 0))} /> : null}
+        <Stat label={tr("Average")} value={fmt(nums.reduce((a, b) => a + b, 0) / nums.length)} />
+        <Stat label={tr("Lowest")} value={fmt(Math.min(...nums))} />
+        <Stat label={tr("Highest")} value={fmt(Math.max(...nums))} />
+        {field.kind === 'money' ? <Stat label={tr("Total")} value={fmt(nums.reduce((a, b) => a + b, 0))} /> : null}
       </div>
     ) : (
       <Text tone="muted" variant="bodySm">
-        No numbers to add up.
-      </Text>
+        {tr("No numbers to add up.")}</Text>
     );
   } else if (field.kind === 'date') {
     body = <TextAnswers answers={answers.map((a) => formatAnswer(field, a))} />;
@@ -205,15 +205,14 @@ function QuestionResult({
     <Card className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
         <Text as="h3" variant="title">
-          {number}. {field.label}
+          {number}. {tr(field.label)}
         </Text>
         <span className="flex flex-wrap items-center gap-2">
           <Badge size="sm" tone="neutral">
             {kindLabel(field.kind)}
           </Badge>
           <Text as="span" variant="caption" tone="muted">
-            {answers.length} of {asked.length} answered
-            {source ? ` · asked when ${describeCondition(field.showIf!, fields)}` : ''}
+            {answers.length} {tr("of")}{' '}{asked.length} {tr("answered")}{' '}{source ? tr(" · asked when {value0}", { value0: describeCondition(field.showIf!, fields) }) : ''}
           </Text>
         </span>
       </div>

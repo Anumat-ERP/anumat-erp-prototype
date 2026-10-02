@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { cn } from '../lib/cn';
 import { IconButton } from './button';
+import { useLocale } from '../../i18n/LocaleProvider';
 
 export interface RejectedFile {
   file: File;
@@ -100,6 +101,7 @@ export function DropZone({
   className,
   ...props
 }: DropZoneProps) {
+  const { t: tr } = useLocale();
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -114,23 +116,19 @@ export function DropZone({
         rejected.push({
           file,
           reason: 'type',
-          message: `${file.name} isn’t an accepted file type.`,
+          message: tr('{name} isn’t an accepted file type.', { name: file.name }),
         });
       } else if (maxSize != null && file.size > maxSize) {
         rejected.push({
           file,
           reason: 'size',
-          message: `${file.name} is ${formatBytes(
-            file.size,
-          )}; the limit is ${formatBytes(maxSize)}.`,
+          message: tr('{name} is {size}; the limit is {limit}.', { name: file.name, size: formatBytes(file.size), limit: formatBytes(maxSize) }),
         });
       } else if (accepted.length >= limit) {
         rejected.push({
           file,
           reason: 'count',
-          message: `${file.name} wasn’t added — only ${limit} file${
-            limit === 1 ? '' : 's'
-          } at a time.`,
+          message: tr(limit === 1 ? '{name} wasn’t added — only {count} file at a time.' : '{name} wasn’t added — only {count} files at a time.', { name: file.name, count: limit }),
         });
       } else accepted.push(file);
     }
@@ -188,9 +186,9 @@ export function DropZone({
               className={cn('text-md', disabled ? 'text-fg-muted' : 'text-fg')}
             >
               <span className={cn('font-medium', !disabled && 'text-fg-link')}>
-                Choose {multiple ? 'files' : 'a file'}
+                {tr(multiple ? 'Choose files' : 'Choose a file')}
               </span>{' '}
-              or drag {multiple ? 'them' : 'it'} here
+              {tr(multiple ? 'or drag them here' : 'or drag it here')}
             </p>
             {hint ? (
               <p className={cn('text-sm', 'text-fg-muted')}>{hint}</p>
@@ -209,7 +207,6 @@ export function DropZone({
           className={cn(
             'absolute inset-0 size-full cursor-pointer opacity-0',
             disabled && 'cursor-not-allowed',
-            children && 'hidden',
           )}
           onChange={(e) => {
             handle(Array.from(e.target.files ?? []));
@@ -249,6 +246,7 @@ export function DropZoneFileList({
   onRemove?: (id: string) => void;
   className?: string;
 }) {
+  const { t: tr } = useLocale();
   return (
     <ul
       className={cn(
@@ -273,7 +271,7 @@ export function DropZoneFileList({
                 className="h-1 w-full appearance-none overflow-hidden rounded-full bg-surface-sunken [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:bg-surface-sunken [&::-webkit-progress-value]:bg-primary"
                 value={f.progress}
                 max={100}
-                aria-label={`Uploading ${f.name}`}
+                aria-label={tr('Uploading {name}', { name: f.name })}
               />
             ) : null}
             {f.error ? (

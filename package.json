@@ -9,6 +9,7 @@
     "build": "tsc --noEmit && vite build && cp dist/index.html dist/404.html",
     "preview": "vite preview",
     "check-types": "tsc --noEmit",
+    "check:i18n": "bun scripts/audit-i18n.ts",
     "build:artifact": "tsc --noEmit && vite build --mode artifact && node scripts/build-artifact.mjs",
     "test:e2e": "playwright test"
   },

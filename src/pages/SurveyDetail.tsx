@@ -29,6 +29,7 @@ import type { FormValues, Survey, SurveyResponse } from '../data/types';
 import { cleanValues, formatAnswer, questionsOf, validateForm, visibleFields } from '../lib/forms';
 import { formatDate, formatDateTime } from '../lib/format';
 import { audienceLabel, closesLabel, surveyStatus } from './Surveys';
+import { useLocale } from '../i18n/LocaleProvider';
 
 /** Results stay hidden below this many answers on anonymous surveys, so nobody can be picked out. */
 const ANON_MIN = 3;
@@ -49,6 +50,7 @@ function Answers({ survey, response }: { survey: Survey; response: SurveyRespons
 }
 
 function AnswerPanel({ survey }: { survey: Survey }) {
+  const { t: tr } = useLocale();
   const { state, me, dispatch } = useStore();
   const { toast } = useToast();
   const [values, setValues] = useState<FormValues>({});
@@ -63,10 +65,10 @@ function AnswerPanel({ survey }: { survey: Survey }) {
           <CircleCheck aria-hidden className="mt-0.5 size-6 shrink-0 text-success" />
           <div className="flex flex-col gap-1">
             <Text as="h2" variant="title">
-              Thanks, you answered on {formatDate(mine.at)}
+              {tr("Thanks, you answered on")}{' '}{formatDate(mine.at)}
             </Text>
             <Text variant="bodySm" tone="muted">
-              {survey.anonymous ? 'Only you see these answers with your name. Everyone else sees totals.' : 'Here’s what you sent.'}
+              {survey.anonymous ? tr('Only you see these answers with your name. Everyone else sees totals.') : tr('Here’s what you sent.')}
             </Text>
           </div>
         </div>
@@ -77,16 +79,16 @@ function AnswerPanel({ survey }: { survey: Survey }) {
   if (!isOpen(survey)) {
     return (
       <Card>
-        <EmptyState size="card" headingAs="h2" heading="This survey is closed" image={null}>
-          It stopped taking answers {survey.closesAt ? `on ${formatDate(survey.closesAt)}` : ''}.
+        <EmptyState size="card" headingAs="h2" heading={tr("This survey is closed")} image={null}>
+          {tr("It stopped taking answers")}{' '}{survey.closesAt ? tr('on {date}', { date: formatDate(survey.closesAt) }) : ''}.
         </EmptyState>
       </Card>
     );
   }
   if (!asked) {
     return (
-      <Banner tone="info" title="This survey isn’t for your department">
-        It asks {audienceLabel(survey)}.
+      <Banner tone="info" title={tr("This survey isn’t for your department")}>
+        {tr("It asks")}{' '}{audienceLabel(survey, tr)}.
       </Banner>
     );
   }
@@ -100,7 +102,7 @@ function AnswerPanel({ survey }: { survey: Survey }) {
       return;
     }
     dispatch({ type: 'answerSurvey', surveyId: survey.id, answers: cleanValues(survey.fields, values) });
-    toast({ tone: 'success', title: 'Thanks! Your answers were sent' });
+    toast({ tone: 'success', title: tr("Thanks! Your answers were sent") });
   };
   const count = Object.keys(errors).length;
 
@@ -110,14 +112,12 @@ function AnswerPanel({ survey }: { survey: Survey }) {
         {survey.anonymous ? (
           <Banner tone="info" inline>
             <span className="inline-flex items-center gap-1.5">
-              <EyeOff aria-hidden className="size-4" /> Anonymous: your name is never shown with your answers.
-            </span>
+              <EyeOff aria-hidden className="size-4" /> {tr("Anonymous: your name is never shown with your answers.")}</span>
           </Banner>
         ) : null}
         {count > 1 ? (
-          <Banner tone="critical" title={`Answer ${count} more questions to send`}>
-            Each one is marked below.
-          </Banner>
+          <Banner tone="critical" title={tr('Answer {count} more questions to send', { count })}>
+            {tr("Each one is marked below.")}</Banner>
         ) : null}
         <FormRenderer
           fields={survey.fields}
@@ -133,10 +133,9 @@ function AnswerPanel({ survey }: { survey: Survey }) {
       </Card>
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" variant="primary">
-          Send answers
-        </Button>
+          {tr("Send answers")}</Button>
         <Text variant="bodySm" tone="muted">
-          {closesLabel(survey)}
+          {closesLabel(survey, tr)}
         </Text>
       </div>
     </form>
@@ -144,6 +143,7 @@ function AnswerPanel({ survey }: { survey: Survey }) {
 }
 
 function ResultsPanel({ survey, responses }: { survey: Survey; responses: SurveyResponse[] }) {
+  const { t: tr } = useLocale();
   const { state } = useStore();
   const { toast } = useToast();
   const audience = surveyAudience(state, survey);
@@ -155,56 +155,52 @@ function ResultsPanel({ survey, responses }: { survey: Survey; responses: Survey
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Card className="col-span-2 flex flex-col gap-2 sm:col-span-1">
           <Text as="span" variant="bodySm" tone="muted">
-            Answered
-          </Text>
+            {tr("Answered")}</Text>
           <Text as="span" variant="heading" numeric>
-            {responses.length} of {audience.length}
+            {responses.length} {tr("of")}{' '}{audience.length}
           </Text>
-          <ProgressBar size="sm" label="Response rate" labelHidden value={responses.length} max={Math.max(1, audience.length)} />
+          <ProgressBar size="sm" label={tr("Response rate")} labelHidden value={responses.length} max={Math.max(1, audience.length)} />
         </Card>
         <Card className="flex flex-col gap-1">
           <Text as="span" variant="bodySm" tone="muted">
-            Status
-          </Text>
+            {tr("Status")}</Text>
           <Text as="span" variant="heading">
-            {surveyStatus(survey).label}
+            {tr(surveyStatus(survey, tr).label)}
           </Text>
           <Text as="span" variant="caption" tone="subtle">
-            {closesLabel(survey)}
+            {closesLabel(survey, tr)}
           </Text>
         </Card>
         <Card className="flex flex-col gap-1">
           {/* A timestamp could tie an answer to whoever just said they'd answered, so anonymous surveys don't show one. */}
           <Text as="span" variant="bodySm" tone="muted">
-            {survey.anonymous ? 'Privacy' : 'Last answer'}
+            {survey.anonymous ? tr('Privacy') : tr('Last answer')}
           </Text>
           <Text as="span" variant="heading">
-            {survey.anonymous ? 'Anonymous' : responses.length ? formatDate([...responses].sort((a, b) => b.at.localeCompare(a.at))[0]!.at) : '—'}
+            {survey.anonymous ? tr('Anonymous') : responses.length ? formatDate([...responses].sort((a, b) => b.at.localeCompare(a.at))[0]!.at) : '—'}
           </Text>
           <Text as="span" variant="caption" tone="subtle">
-            {questionsOf(survey.fields).length} questions
-          </Text>
+            {questionsOf(survey.fields).length} {tr("questions")}</Text>
         </Card>
       </div>
 
       {isOpen(survey) && missing.length ? (
         <Card className="flex flex-col gap-3">
           <CardHeader
-            title="Not answered yet"
+            title={tr("Not answered yet")}
             description={
               survey.anonymous
-                ? `${missing.length} ${missing.length === 1 ? 'person hasn’t' : 'people haven’t'} answered. Names stay hidden on anonymous surveys.`
-                : `${missing.length} ${missing.length === 1 ? 'person' : 'people'}`
+                ? tr(missing.length === 1 ? '{count} person hasn’t answered. Names stay hidden on anonymous surveys.' : '{count} people haven’t answered. Names stay hidden on anonymous surveys.', { count: missing.length })
+                : tr(missing.length === 1 ? '{count} person' : '{count} people', { count: missing.length })
             }
             actions={
               <Button
                 size="sm"
                 onClick={() =>
-                  toast({ tone: 'success', title: `Reminder sent to ${missing.length} ${missing.length === 1 ? 'person' : 'people'}`, description: 'In Anumat, and on Telegram for people who connected it.' })
+                  toast({ tone: 'success', title: tr(missing.length === 1 ? 'Reminder sent to {count} person' : 'Reminder sent to {count} people', { count: missing.length }), description: tr("In Anumat, and on Telegram for people who connected it.") })
                 }
               >
-                Send a reminder
-              </Button>
+                {tr("Send a reminder")}</Button>
             }
           />
           {!survey.anonymous ? (
@@ -212,7 +208,7 @@ function ResultsPanel({ survey, responses }: { survey: Survey; responses: Survey
               {missing.map((p) => (
                 <li key={p.id} className="flex items-center gap-2 rounded-full border border-border py-1 ps-1 pe-3 text-sm">
                   <Avatar name={p.name} size="xs" decorative />
-                  {p.name}
+                  {tr(p.name)}
                 </li>
               ))}
             </ul>
@@ -221,16 +217,14 @@ function ResultsPanel({ survey, responses }: { survey: Survey; responses: Survey
       ) : null}
 
       {hidden ? (
-        <Banner tone="info" title={`Results appear after ${ANON_MIN} answers`}>
-          This survey is anonymous, so totals stay hidden until nobody can be picked out from them. {responses.length} so far.
-        </Banner>
+        <Banner tone="info" title={tr('Results appear after {count} answers', { count: ANON_MIN })}>
+          {tr("This survey is anonymous, so totals stay hidden until nobody can be picked out from them.")}{' '}{responses.length} {tr("so far.")}</Banner>
       ) : responses.length ? (
         <SurveyResults survey={survey} responses={responses} minAnswers={ANON_MIN} />
       ) : (
         <Card>
-          <EmptyState size="card" headingAs="h2" heading="No answers yet" image={null}>
-            Results appear here as people answer.
-          </EmptyState>
+          <EmptyState size="card" headingAs="h2" heading={tr("No answers yet")} image={null}>
+            {tr("Results appear here as people answer.")}</EmptyState>
         </Card>
       )}
     </div>
@@ -238,19 +232,18 @@ function ResultsPanel({ survey, responses }: { survey: Survey; responses: Survey
 }
 
 function ResponsesPanel({ survey, responses }: { survey: Survey; responses: SurveyResponse[] }) {
+  const { t: tr } = useLocale();
   if (survey.anonymous) {
     return (
-      <Banner tone="info" title="Individual answers are hidden">
-        This survey is anonymous. See the totals under Results.
-      </Banner>
+      <Banner tone="info" title={tr("Individual answers are hidden")}>
+        {tr("This survey is anonymous. See the totals under Results.")}</Banner>
     );
   }
   if (!responses.length) {
     return (
       <Card>
-        <EmptyState size="card" headingAs="h2" heading="No answers yet" image={null}>
-          Each person’s answers appear here.
-        </EmptyState>
+        <EmptyState size="card" headingAs="h2" heading={tr("No answers yet")} image={null}>
+          {tr("Each person’s answers appear here.")}</EmptyState>
       </Card>
     );
   }
@@ -276,6 +269,7 @@ function ResponsesPanel({ survey, responses }: { survey: Survey; responses: Surv
 }
 
 export function SurveyDetail() {
+  const { t: tr } = useLocale();
   const { id } = useParams();
   const { state, person, dispatch } = useStore();
   const navigate = useNavigate();
@@ -292,14 +286,13 @@ export function SurveyDetail() {
 
   if (!survey || (survey.status === 'draft' && !manage)) {
     return (
-      <EmptyState heading="This survey isn’t available" action={<Button onClick={() => navigate('/surveys')}>Back to surveys</Button>}>
-        It may have been deleted, or it hasn’t been sent yet.
-      </EmptyState>
+      <EmptyState heading={tr("This survey isn’t available")} action={<Button onClick={() => navigate('/surveys')}>{tr("Back to surveys")}</Button>}>
+        {tr("It may have been deleted, or it hasn’t been sent yet.")}</EmptyState>
     );
   }
 
   const responses = surveyResponsesFor(state, survey.id);
-  const status = surveyStatus(survey);
+  const status = surveyStatus(survey, tr);
   const open = isOpen(survey);
   const asked = surveyAudience(state, survey).some((p) => p.id === state.meId);
 
@@ -307,7 +300,7 @@ export function SurveyDetail() {
     const copy: Survey = {
       ...survey,
       id: uid('survey'),
-      title: `${survey.title} (copy)`,
+      title: `${survey.title} ${tr('(copy)')}`,
       status: 'draft',
       createdBy: state.meId,
       createdAt: new Date().toISOString(),
@@ -315,54 +308,53 @@ export function SurveyDetail() {
       closesAt: undefined,
     };
     dispatch({ type: 'saveSurvey', survey: copy });
-    toast({ tone: 'success', title: 'Copied as a draft' });
+    toast({ tone: 'success', title: tr("Copied as a draft") });
     navigate(`/surveys/${copy.id}/edit`);
   };
 
   const actions = manage
     ? [
-        ...(survey.status === 'draft' ? [] : [{ content: 'Edit', onAction: () => navigate(`/surveys/${survey.id}/edit`) }]),
+        ...(survey.status === 'draft' ? [] : [{ content: tr("Edit"), onAction: () => navigate(`/surveys/${survey.id}/edit`) }]),
         ...(survey.status === 'draft'
-          ? [{ content: 'Edit draft', onAction: () => navigate(`/surveys/${survey.id}/edit`) }]
+          ? [{ content: tr("Edit draft"), onAction: () => navigate(`/surveys/${survey.id}/edit`) }]
           : open
             ? [
                 {
-                  content: 'Close survey',
+                  content: tr("Close survey"),
                   onAction: () => {
                     dispatch({ type: 'closeSurvey', surveyId: survey.id });
-                    toast({ title: 'Survey closed', description: 'Nobody else can answer. Results stay here.' });
+                    toast({ title: tr("Survey closed"), description: tr("Nobody else can answer. Results stay here.") });
                   },
                 },
               ]
             : [
                 {
-                  content: 'Reopen for 7 days',
+                  content: tr("Reopen for 7 days"),
                   onAction: () => {
                     dispatch({ type: 'reopenSurvey', surveyId: survey.id, closesAt: new Date(Date.now() + 7 * 86_400_000).toISOString() });
-                    toast({ tone: 'success', title: 'Survey reopened for 7 days' });
+                    toast({ tone: 'success', title: tr("Survey reopened for 7 days") });
                   },
                 },
               ]),
-        { content: 'Duplicate', onAction: duplicate },
-        { content: 'Delete', destructive: true, onAction: () => setConfirmDelete(true) },
+        { content: tr("Duplicate"), onAction: duplicate },
+        { content: tr("Delete"), destructive: true, onAction: () => setConfirmDelete(true) },
       ]
     : undefined;
 
   const meta = (
     <Text variant="bodySm" tone="muted" className="flex flex-wrap items-center gap-x-3 gap-y-1">
       <Badge size="sm" tone={status.tone}>
-        {status.label}
+        {tr(status.label)}
       </Badge>
       <span className="inline-flex items-center gap-1">
-        <Users aria-hidden className="size-3.5" /> {audienceLabel(survey)}
+        <Users aria-hidden className="size-3.5" /> {audienceLabel(survey, tr)}
       </span>
       {survey.anonymous ? (
         <span className="inline-flex items-center gap-1">
-          <EyeOff aria-hidden className="size-3.5" /> Anonymous
-        </span>
+          <EyeOff aria-hidden className="size-3.5" /> {tr("Anonymous")}</span>
       ) : null}
-      <span>{closesLabel(survey)}</span>
-      <span>From {person(survey.createdBy).name}</span>
+      <span>{closesLabel(survey, tr)}</span>
+      <span>{tr("From")}{' '}{tr(person(survey.createdBy).name)}</span>
     </Text>
   );
 
@@ -371,9 +363,9 @@ export function SurveyDetail() {
   return (
     <>
       <PageHeader
-        title={survey.title}
+        title={tr(survey.title)}
         subtitle={survey.description || undefined}
-        backAction={{ content: 'Surveys', href: '/surveys' }}
+        backAction={{ content: tr("Surveys"), href: '/surveys' }}
         renderLink={headerLink}
         secondaryActions={actions}
         maxVisibleSecondaryActions={1}
@@ -382,21 +374,19 @@ export function SurveyDetail() {
       {survey.status === 'draft' ? (
         <Banner
           tone="warning"
-          title="Draft: nobody can see this yet"
-          action={{ label: 'Edit and send', onAction: () => navigate(`/surveys/${survey.id}/edit`) }}
+          title={tr("Draft: nobody can see this yet")}
+          action={{ label: tr("Edit and send"), onAction: () => navigate(`/surveys/${survey.id}/edit`) }}
         >
-          Finish the questions and send it when you’re ready.
-        </Banner>
+          {tr("Finish the questions and send it when you’re ready.")}</Banner>
       ) : null}
 
       {manage ? (
         <Tabs value={tab === 'answer' && !answerTab ? 'results' : tab} onValueChange={setTab}>
-          <TabsList aria-label="Survey views">
-            <TabsTrigger value="results">Results</TabsTrigger>
+          <TabsList aria-label={tr("Survey views")}>
+            <TabsTrigger value="results">{tr("Results")}</TabsTrigger>
             <TabsTrigger value="responses" badge={survey.anonymous ? undefined : responses.length || undefined}>
-              Responses
-            </TabsTrigger>
-            {answerTab ? <TabsTrigger value="answer">Your answer</TabsTrigger> : null}
+              {tr("Responses")}</TabsTrigger>
+            {answerTab ? <TabsTrigger value="answer">{tr("Your answer")}</TabsTrigger> : null}
           </TabsList>
           <TabsContent value="results" className="pt-4">
             <ResultsPanel survey={survey} responses={responses} />
@@ -420,21 +410,20 @@ export function SurveyDetail() {
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
         size="sm"
-        title="Delete this survey?"
+        title={tr("Delete this survey?")}
         primaryAction={{
-          content: 'Delete survey',
+          content: tr("Delete survey"),
           destructive: true,
           onAction: () => {
             dispatch({ type: 'deleteSurvey', surveyId: survey.id });
-            toast({ title: `Deleted “${survey.title}”` });
+            toast({ title: tr('Deleted “{title}”', { title: survey.title }) });
             navigate('/surveys');
           },
         }}
-        secondaryActions={[{ content: 'Cancel', onAction: () => setConfirmDelete(false) }]}
+        secondaryActions={[{ content: tr("Cancel"), onAction: () => setConfirmDelete(false) }]}
       >
         <Text>
-          {responses.length ? `Its ${responses.length} answers are deleted too. ` : ''}This can’t be undone.
-        </Text>
+          {responses.length ? tr("Its {value0} answers are deleted too. ", { value0: responses.length }) : ''}{tr("This can’t be undone.")}</Text>
       </Modal>
     </>
   );

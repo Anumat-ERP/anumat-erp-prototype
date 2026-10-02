@@ -76,7 +76,7 @@ export function Processes() {
       ) : (
         <>
           {!builder ? (
-            <Text tone="muted">You can view processes. Admins, and people they allow under People &amp; roles, can create and change them.</Text>
+            <Text tone="muted">{tr("You can view processes. Admins, and people they allow under People & roles, can create and change them.")}</Text>
           ) : null}
           <div className="grid gap-4 md:grid-cols-2">
             {state.processes.map((p) => (
@@ -85,10 +85,10 @@ export function Processes() {
                   <RequestIcon type={p.requestType} />
                   <div className="flex min-w-0 flex-1 flex-col">
                     <Text as="h2" variant="subtitle">
-                      {p.name}
+                      {tr(p.name)}
                     </Text>
                     <Text variant="bodySm" tone="muted">
-                      When: {p.trigger.toLowerCase()}
+                      {tr("When:")}{' '}{tr(p.trigger).toLowerCase()}
                     </Text>
                   </div>
                   <Switch
@@ -98,7 +98,7 @@ export function Processes() {
                     onCheckedChange={(active) => {
                       dispatch({ type: 'saveProcess', process: { ...p, active } });
                       toast({
-                        title: active ? `${p.name} is active` : `${p.name} is paused`,
+                        title: tr(active ? '{process} is active' : '{process} is paused', { process: tr(p.name) }),
                         description: active ? undefined : tr('New requests of this type skip approval.'),
                       });
                     }}
@@ -109,24 +109,24 @@ export function Processes() {
                     <Fragment key={s.id}>
                       {i > 0 ? <ChevronRight aria-hidden className="size-4 text-fg-subtle" /> : null}
                       <li className="rounded-md border border-border bg-surface-muted px-2 py-1 text-sm">
-                        <span className="font-medium">{s.name}</span>
+                        <span className="font-medium">{tr(s.name)}</span>
                         <span className="text-fg-muted">
                           {' '}
                           · {person(s.approverId).name.split(' ')[0]}
-                          {s.minAmount !== undefined ? ` · over ${formatMoney(s.minAmount).replace('.00', '')}` : ''}
+                          {s.minAmount !== undefined ? ` · ${tr('over {amount}', { amount: formatMoney(s.minAmount).replace('.00', '') })}` : ''}
                         </span>
                       </li>
                     </Fragment>
                   ))}
                 </ol>
                 <Text variant="bodySm" tone="muted">
-                  {p.submitters?.length ? `Submitted by ${p.submitters.join(', ')}` : tr('Anyone can submit')}
-                  {p.fields?.length ? ` · ${p.fields.length} extra ${p.fields.length === 1 ? 'field' : 'fields'}` : ''}
+                  {p.submitters?.length ? tr("Submitted by {value0}", { value0: p.submitters.join(', ') }) : tr('Anyone can submit')}
+                  {p.fields?.length ? ` · ${tr(p.fields.length === 1 ? '{count} extra field' : '{count} extra fields', { count: p.fields.length })}` : ''}
                 </Text>
                 <div className="mt-auto flex items-center justify-between gap-3">
                   <Text variant="bodySm" tone="muted" className="flex items-center gap-1.5">
                     <Timer aria-hidden className="size-4" />
-                    {p.runs30d} runs in 30 days · average {p.avgHours < 24 ? `${p.avgHours} h` : `${Math.round(p.avgHours / 24)} days`}
+                    {p.runs30d} {tr("runs in 30 days · average")}{' '}{p.avgHours < 24 ? tr("{value0} h", { value0: p.avgHours }) : tr("{value0} days", { value0: Math.round(p.avgHours / 24) })}
                   </Text>
                   <Button size="sm" onClick={() => navigate(`/processes/${p.id}`)}>
                     {builder ? tr('Edit') : tr('View')}

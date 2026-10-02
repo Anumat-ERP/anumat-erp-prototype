@@ -5,8 +5,10 @@ import { AvatarGroup } from '../components/Person';
 import { useStore } from '../data/store';
 import type { Meeting } from '../data/types';
 import { formatTime, formatWeekday } from '../lib/format';
+import { useLocale } from '../i18n/LocaleProvider';
 
 function MeetingRow({ m }: { m: Meeting }) {
+  const { t: tr } = useLocale();
   const d = new Date(m.start);
   return (
     <li>
@@ -24,16 +26,15 @@ function MeetingRow({ m }: { m: Meeting }) {
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <Text as="span" variant="label" truncate>
-            {m.title}
+            {tr(m.title)}
           </Text>
           <Text as="span" variant="bodySm" tone="muted" className="flex items-center gap-1">
-            {formatWeekday(m.start)}, {formatTime(m.start)} · {m.durationMin} min ·
-            <MapPin aria-hidden className="size-3.5" /> {m.location}
+            {formatWeekday(m.start)}, {formatTime(m.start)} · {m.durationMin} {tr("min ·")}{' '}<MapPin aria-hidden className="size-3.5" /> {tr(m.location)}
           </Text>
         </span>
         {m.decisions.length ? (
           <Badge tone="success" size="sm" className="hidden sm:inline-flex">
-            {m.decisions.length} {m.decisions.length === 1 ? 'decision' : 'decisions'}
+            {m.decisions.length} {m.decisions.length === 1 ? tr("decision") : tr("decisions")}
           </Badge>
         ) : null}
         <AvatarGroup ids={m.attendeeIds} max={3} />
@@ -43,6 +44,7 @@ function MeetingRow({ m }: { m: Meeting }) {
 }
 
 export function Meetings() {
+  const { t: tr } = useLocale();
   const { state } = useStore();
   const navigate = useNavigate();
   const now = Date.now();
@@ -52,13 +54,13 @@ export function Meetings() {
   return (
     <>
       <PageHeader
-        title="Meetings"
-        subtitle="Agendas, decisions and the action items that come out of them."
-        primaryAction={{ content: 'Schedule a meeting', onAction: () => navigate('/meetings/new') }}
+        title={tr("Meetings")}
+        subtitle={tr("Agendas, decisions and the action items that come out of them.")}
+        primaryAction={{ content: tr("Schedule a meeting"), onAction: () => navigate('/meetings/new') }}
       />
       {[
-        { title: 'Upcoming', list: upcoming },
-        { title: 'Past', list: past },
+        { title: tr("Upcoming"), list: upcoming },
+        { title: tr("Past"), list: past },
       ].map(({ title, list }) => (
         <section key={title} className="flex flex-col gap-3" aria-labelledby={`h-${title}`}>
           <Text as="h2" id={`h-${title}`} variant="subtitle">
@@ -73,8 +75,7 @@ export function Meetings() {
               </ul>
             ) : (
               <Text tone="muted" className="p-4">
-                No {title.toLowerCase()} meetings.
-              </Text>
+                {tr("No")}{' '}{title.toLowerCase()} {tr("meetings.")}</Text>
             )}
           </Card>
         </section>

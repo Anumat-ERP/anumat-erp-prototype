@@ -166,11 +166,11 @@ export function FormRenderer({
           return (
             <div key={f.id} className="flex flex-col gap-1 border-t border-border pt-5 first:border-0 first:pt-0">
               <Text as="h3" variant="subtitle">
-                {f.label || 'Untitled section'}
+                {f.label ? tr(f.label) : tr('Untitled section')}
               </Text>
               {f.help ? (
                 <Text variant="bodySm" tone="muted">
-                  {f.help}
+                  {tr(f.help)}
                 </Text>
               ) : null}
             </div>
@@ -178,11 +178,12 @@ export function FormRenderer({
         }
         n += 1;
         const id = questionId(idPrefix, f.id);
-        const label = numbered ? `${n}. ${f.label || 'Untitled question'}` : f.label || 'Untitled question';
+        const shownLabel = f.label ? tr(f.label) : tr('Untitled question');
+        const label = numbered ? `${n}. ${shownLabel}` : shownLabel;
         const common = {
           label,
           required: f.required,
-          helpText: f.help || undefined,
+          helpText: f.help ? tr(f.help) : undefined,
           error: errors[f.id] ? tr(errors[f.id]!) : undefined,
           disabled,
         };
@@ -193,7 +194,7 @@ export function FormRenderer({
           case 'longtext':
             return (
               <Field key={f.id} id={id} {...common}>
-                <Textarea rows={3} autoGrow value={text} placeholder={f.placeholder} onChange={(e) => set(f.id, e.target.value)} />
+                <Textarea rows={3} autoGrow value={text} placeholder={f.placeholder ? tr(f.placeholder) : undefined} onChange={(e) => set(f.id, e.target.value)} />
               </Field>
             );
           case 'select':
@@ -208,7 +209,7 @@ export function FormRenderer({
                     .filter(Boolean)
                     .map((o) => ({
                       value: o,
-                      label: f.kind === 'yesno' ? tr(o) : o,
+                      label: tr(o),
                     }))}
                 />
               </Field>
@@ -227,7 +228,7 @@ export function FormRenderer({
                   {choicesFor(f)
                     .filter(Boolean)
                     .map((o) => (
-                      <RadioGroupItem key={o} value={o} label={f.kind === 'yesno' ? tr(o) : o} />
+                      <RadioGroupItem key={o} value={o} label={tr(o)} />
                     ))}
                 </RadioGroup>
               </Field>
@@ -239,7 +240,7 @@ export function FormRenderer({
                   {(f.options ?? []).filter(Boolean).map((o) => (
                     <Checkbox
                       key={o}
-                      label={o}
+                      label={tr(o)}
                       checked={list.includes(o)}
                       onCheckedChange={(c) => set(f.id, c === true ? [...list, o] : list.filter((x) => x !== o))}
                     />
@@ -273,7 +274,7 @@ export function FormRenderer({
                   inputMode={t?.inputMode}
                   autoComplete={t?.autoComplete}
                   prefix={f.kind === 'money' ? '$' : undefined}
-                  placeholder={f.placeholder}
+                  placeholder={f.placeholder ? tr(f.placeholder) : undefined}
                   value={text}
                   onChange={(e) => set(f.id, e.target.value)}
                   className={t?.narrow ? 'max-w-xs' : undefined}

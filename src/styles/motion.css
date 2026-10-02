@@ -80,15 +80,56 @@
   transform: translateY(12px);
 }
 
-/* 9. Light and dark themes cross-fade (browsers with View Transitions). */
+/* 8b. You followed a #link to a section: its parts settle in a beat apart, so
+ * the eye lands on where the scroll stopped. Applied by RouteFocus. */
+.an-arrive > :not(.an-stagger), .an-arrive .an-stagger > * {
+  animation: an-rise var(--a-duration-slower) var(--a-ease-enter) 200ms backwards;
+}
+.an-arrive .an-stagger > :nth-child(2) { animation-delay: 260ms; }
+.an-arrive .an-stagger > :nth-child(3) { animation-delay: 320ms; }
+
+/* 8c. Sign-up steps: the next step slides in from the side you moved toward,
+ * settling out of a slight blur; Back reverses it. Step dots cross-fade their
+ * colour and the check pops in as a step completes. */
+.an-step-panel { animation: an-step-forward var(--a-duration-slower) var(--a-ease-enter) both; }
+.an-step-panel[data-direction='back'] { animation-name: an-step-back; }
+.an-step-dot { transition: background-color var(--a-duration-slow) var(--a-ease-standard), color var(--a-duration-slow) var(--a-ease-standard), border-color var(--a-duration-slow) var(--a-ease-standard); }
+.an-step-check { animation: an-pop var(--a-duration-slow) var(--a-ease-enter) both; }
+.an-setup-progress > span { transition-duration: var(--a-duration-slower) !important; transition-timing-function: var(--a-ease-enter) !important; }
+
+/* 9. Light and dark themes cross-fade, and moving between public pages (landing,
+ * pricing, sign-in) does the same with a short lift on the incoming page
+ * (browsers with View Transitions). The header is named, so it holds still
+ * while the page under it changes. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: var(--a-duration-slow);
   animation-timing-function: var(--a-ease-standard);
 }
+.an-public-header { view-transition-name: an-public-header; }
+::view-transition-new(root) {
+  animation-name: an-page-in;
+  animation-timing-function: var(--a-ease-enter);
+}
+::view-transition-old(root) { animation-name: an-fade-out; }
 
 @keyframes an-rise {
   from { opacity: 0; transform: translateY(4px); }
+}
+@keyframes an-page-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+@keyframes an-fade-out {
+  to { opacity: 0; }
+}
+@keyframes an-step-forward {
+  from { opacity: 0; transform: translateX(24px); filter: blur(3px); }
+}
+@keyframes an-step-back {
+  from { opacity: 0; transform: translateX(-24px); filter: blur(3px); }
+}
+@keyframes an-pop {
+  from { opacity: 0; transform: scale(0.5); }
 }
 @keyframes an-fade {
   from { opacity: 0; }
@@ -107,13 +148,22 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
   :is(.an-page, .an-stagger) > *,
   [role='tabpanel'],
   .an-enter,
   .an-grow-y,
   .an-grow-x,
   .an-bar-in,
-  .an-changed {
+  .an-changed,
+  .an-step-panel,
+  .an-step-check,
+  .an-arrive > :not(.an-stagger),
+  .an-arrive .an-stagger > * {
     animation: none !important;
   }
   [data-reveal] {

@@ -39,11 +39,11 @@ export function ApprovalTimeline({ steps }: { steps: ApprovalStep[] }) {
             <Icon aria-hidden className={cn('relative mt-0.5 size-5 shrink-0', className)} />
             <div className="flex min-w-0 flex-col gap-0.5">
               <Text as="span" variant="label">
-                {step.name}
+                {tr(step.name)}
               </Text>
               <Changed value={step.status} className="-mx-1 px-1">
                 <Text as="span" variant="bodySm" tone="muted">
-                  {approver.id === me.id ? tr('You') : approver.name} · {stepStatus[step.status]}
+                  {approver.id === me.id ? tr('You') : approver.name} · {tr(stepStatus[step.status])}
                   {step.at ? ` · ${formatDateTime(step.at)}` : ''}
                 </Text>
               </Changed>
@@ -51,7 +51,7 @@ export function ApprovalTimeline({ steps }: { steps: ApprovalStep[] }) {
                 <dl className="mt-1 flex flex-col gap-1 rounded-md border border-border-subtle px-3 py-2 text-sm">
                   {questionsOf(visibleFields(step.fields, step.answers)).map((f) => (
                     <div key={f.id} className="flex flex-wrap gap-x-2">
-                      <dt className="text-fg-muted">{f.label}:</dt>
+                      <dt className="text-fg-muted">{tr(f.label)}:</dt>
                       <dd className="font-medium text-fg">{formatAnswer(f, step.answers?.[f.id], (id) => person(id).name)}</dd>
                     </div>
                   ))}

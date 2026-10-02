@@ -1,11 +1,13 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button } from '@app/ui';
 import { ArrowRight, Check, FileText, History, Inbox, ShieldCheck, Workflow } from 'lucide-react';
+import { useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ContactChannels } from '../components/ContactChannels';
 import { useTour } from '../components/DemoTour';
 import { Logo } from '../components/Logo';
 import { PublicHeader } from '../components/PublicHeader';
 import { useLocale } from '../i18n/LocaleProvider';
+import { useReveal } from '../lib/motion';
 import workspaceArt from '../assets/illustrations/workspace-folder.webp';
 import dashboardPreview from '../assets/illustrations/dashboard-preview.webp';
 
@@ -31,13 +33,15 @@ export function Landing() {
   const { t: tr } = useLocale();
   const navigate = useNavigate();
   const tour = useTour();
+  const mainRef = useRef<HTMLElement>(null);
+  useReveal(mainRef);
   const startFree = () => navigate(tour.step !== null ? '/welcome?demo=1' : '/welcome');
   return <div className="an-marketing min-h-dvh bg-bg text-fg">
     <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-surface focus:p-3">{tr('Skip to content')}</a>
     <PublicHeader />
-    <main id="main-content" tabIndex={-1} className="outline-none">
+    <main ref={mainRef} id="main-content" tabIndex={-1} className="outline-none">
       <section className="an-marketing-hero" aria-labelledby="hero-title">
-        <div className="an-hero-copy">
+        <div className="an-hero-copy an-stagger">
           <h1 id="hero-title">{tr('Requests + approvals.')}<br />{tr('All together.')}</h1>
           <p>{tr('One workspace for the decisions that keep your company moving. Request, review and approve with clear ownership at every step.')}</p>
           <div className="flex flex-wrap gap-4">
@@ -55,7 +59,7 @@ export function Landing() {
       <div className="an-use-cases" aria-label={tr('Request types')}>
         {['Purchase requests', 'Leave and time off', 'Expense claims', 'Contract review'].map((label) => <span key={label}><Check aria-hidden className="size-4" />{tr(label)}</span>)}
       </div>
-      <section id="how" className="an-public-section an-flow-section" aria-labelledby="how-title">
+      <section data-reveal id="how" className="an-public-section an-flow-section" aria-labelledby="how-title">
         <div className="an-flow-art"><img src={workspaceArt} alt="" width="1024" height="1024" loading="lazy" /></div>
         <div>
 
@@ -64,19 +68,46 @@ export function Landing() {
           <Button variant="primary" trailingIcon={<ArrowRight />} onClick={() => navigate('/home')}>{tr('Open the prototype')}</Button>
         </div>
       </section>
-      <section id="product" className="an-public-section" aria-labelledby="product-title">
+      <section data-reveal id="product" className="an-public-section" aria-labelledby="product-title">
         <div className="an-section-intro"><h2 id="product-title">{tr('One workspace. Less back and forth.')}</h2><p>{tr('Keep the request, the people and the decision connected.')}</p></div>
-        <div className="an-module-grid">{MODULES.map(({ icon: Icon, title, text, to, tone }) => <Link className="an-module-card" to={to} key={title}>
+        <div className="an-module-grid an-stagger">{MODULES.map(({ icon: Icon, title, text, to, tone }) => <Link className="an-module-card" to={to} key={title}>
           <span className={`an-module-icon an-module-${tone}`} aria-hidden><Icon className="size-6" /></span><h3>{tr(title)}</h3><p>{tr(text)}</p><span className="an-module-link">{tr('Explore')}<ArrowRight aria-hidden className="size-4" /></span>
         </Link>)}</div>
       </section>
-      <section id="trust" className="an-public-section an-trust-section" aria-labelledby="trust-title">
+      <section data-reveal id="trust" className="an-public-section an-trust-section" aria-labelledby="trust-title">
         <div><h2 id="trust-title">{tr('Know who decides. Know what happened.')}</h2><p>{tr('Approvers are assigned by your process. Decisions and comments stay with the request, so the history is easy to follow.')}</p></div>
         <div className="an-trust-list"><div><ShieldCheck aria-hidden /><h3>{tr('People and roles')}</h3><p>{tr('Choose who manages your workspace and who reviews each request.')}</p></div><div><History aria-hidden /><h3>{tr('A history you can follow')}</h3><p>{tr('See every submission, decision and comment, with who and when.')}</p></div></div>
       </section>
-      <section id="faq" className="an-public-section an-faq-section" aria-labelledby="faq-title"><h2 id="faq-title">{tr('A few things to know')}</h2><Accordion type="single" collapsible>{FAQ.map(({q,a},i) => <AccordionItem value={`faq-${i}`} key={q}><AccordionTrigger>{tr(q)}</AccordionTrigger><AccordionContent>{tr(a)}</AccordionContent></AccordionItem>)}</Accordion></section>
-      <section className="an-public-section an-public-close"><h2>{tr('Make the next decision clearer.')}</h2><p>{tr('Try the approval workflow with a ready-to-use demo workspace.')}</p><Button size="lg" trailingIcon={<ArrowRight />} variant="primary" onClick={() => navigate('/home')}>{tr('Open the prototype')}</Button></section>
+      <section data-reveal id="faq" className="an-public-section an-faq-section" aria-labelledby="faq-title"><h2 id="faq-title">{tr('A few things to know')}</h2><Accordion type="single" collapsible>{FAQ.map(({q,a},i) => <AccordionItem value={`faq-${i}`} key={q}><AccordionTrigger>{tr(q)}</AccordionTrigger><AccordionContent>{tr(a)}</AccordionContent></AccordionItem>)}</Accordion></section>
+      <section data-reveal className="an-public-section an-public-close"><h2>{tr('Make the next decision clearer.')}</h2><p>{tr('Try the approval workflow with a ready-to-use demo workspace.')}</p><Button size="lg" trailingIcon={<ArrowRight />} variant="primary" onClick={() => navigate('/home')}>{tr('Open the prototype')}</Button></section>
     </main>
-    <footer className="an-public-footer"><div><Logo className="h-8 w-auto" /><p>{tr('Requests, approvals and a clear way forward.')}</p><p className="text-sm text-fg-muted">{tr('Browser-only prototype. Changes stay on this device.')}</p></div><nav aria-label="Footer"><Link to="/pricing">{tr('Pricing & deployment')}</Link><Link to="/signin">{tr('Sign in')}</Link><Link to="/support">{tr('Help & support')}</Link><ContactChannels /></nav></footer>
+    <footer className="an-public-footer">
+      <div className="an-footer-grid">
+        <div className="an-footer-brand">
+          <Logo className="h-8 w-auto" />
+          <p>{tr('Requests, approvals and a clear way forward.')}</p>
+        </div>
+        <nav aria-label={tr('Product')} className="an-footer-col">
+          <h2>{tr('Product')}</h2>
+          <Link to="/#product">{tr('Product')}</Link>
+          <Link to="/#how">{tr('How it works')}</Link>
+          <Link to="/pricing" viewTransition>{tr('Pricing & deployment')}</Link>
+        </nav>
+        <nav aria-label={tr('Help & support')} className="an-footer-col">
+          <h2>{tr('Help & support')}</h2>
+          <Link to="/support" viewTransition>{tr('Help & support')}</Link>
+          <Link to="/signin" viewTransition>{tr('Sign in')}</Link>
+          <Link to="/welcome" viewTransition>{tr('Create a workspace')}</Link>
+        </nav>
+        <div className="an-footer-col an-footer-contact">
+          <h2>{tr('Contact us')}</h2>
+          <ContactChannels compact />
+        </div>
+      </div>
+      <div className="an-footer-base">
+        <span>© {new Date().getFullYear()} Anumat</span>
+        <span>{tr('Browser-only prototype. Changes stay on this device.')}</span>
+      </div>
+    </footer>
   </div>;
 }

@@ -27,7 +27,7 @@ export function Notifications() {
     >
       <PopoverTrigger asChild>
         <span className="relative inline-flex">
-          <IconButton icon={<Bell />} label={unread ? `Notifications, ${unread} unread` : tr('Notifications')} />
+          <IconButton icon={<Bell />} label={unread ? tr("Notifications, {value0} unread", { value0: unread }) : tr('Notifications')} />
           {unread ? (
             <span
               aria-hidden
@@ -46,7 +46,7 @@ export function Notifications() {
           </Text>
           <span className="flex items-center gap-3">
             <Text as="span" variant="caption" tone="muted">
-              {unread ? `${unread} new` : tr('All read')}
+              {unread ? tr("{value0} new", { value0: unread }) : tr('All read')}
             </Text>
             <Link to="/settings/notifications" onClick={() => setOpen(false)} className="text-sm text-fg-link underline underline-offset-2">
               {' '}
@@ -66,11 +66,11 @@ export function Notifications() {
                   <span aria-hidden className={n.at > seen ? 'mt-2 size-2 shrink-0 rounded-full bg-primary' : 'mt-2 size-2 shrink-0'} />
                   <span className="flex min-w-0 flex-col gap-0.5">
                     <span className="text-md">
-                      <span className="font-medium">{person(n.personId).name}</span> {n.text}
+                      <span className="font-medium">{tr(person(n.personId).name)}</span> {n.text}
                     </span>
                     <Text as="span" variant="caption" tone="subtle">
                       <Time iso={n.at} />
-                      {n.at > seen ? <span className="sr-only"> (unread)</span> : null}
+                      {n.at > seen ? <span className="sr-only"> {tr("(unread)")}</span> : null}
                     </Text>
                   </span>
                 </Link>

@@ -13,12 +13,14 @@ export interface AppShellProps extends Omit<ComponentPropsWithRef<'div'>, 'child
   mainId?: string;
   skipLinkLabel?: string;
   navigationLabel?: string;
+  openNavigationLabel?: string;
+  closeNavigationLabel?: string;
   navigationOpen?: boolean;
   onNavigationOpenChange?: (open: boolean) => void;
   mainClassName?: string;
 }
 export function AppShell({ topBar, sidebarHeader, sidebarFooter, navigation, children,
-  mainId = 'main-content', skipLinkLabel = 'Skip to content', navigationLabel = 'Navigation',
+  mainId = 'main-content', skipLinkLabel = 'Skip to content', navigationLabel = 'Navigation', openNavigationLabel = 'Open navigation', closeNavigationLabel = 'Close navigation',
   navigationOpen, onNavigationOpenChange, mainClassName, className, ...props }: AppShellProps) {
   const [local, setLocal] = useState(false);
   const open = navigationOpen ?? local;
@@ -37,7 +39,7 @@ export function AppShell({ topBar, sidebarHeader, sidebarFooter, navigation, chi
       {navigation ? <aside className="an-sidebar" aria-label={navigationLabel}>{sidebar}</aside> : null}
       <div className="an-content">
         <header className="an-utilities">
-          {navigation ? <IconButton icon={<Menu />} label="Open navigation" className="md:hidden" aria-expanded={open} onClick={() => setOpen(true)} /> : null}
+          {navigation ? <IconButton icon={<Menu />} label={openNavigationLabel} className="md:hidden" aria-expanded={open} onClick={() => setOpen(true)} /> : null}
           <div className="an-mobile-account md:hidden">{sidebarFooter}</div>
           <div className="ms-auto flex items-center gap-1 sm:gap-2">{topBar}</div>
         </header>
@@ -47,7 +49,7 @@ export function AppShell({ topBar, sidebarHeader, sidebarFooter, navigation, chi
         <div className="an-drawer-content" aria-label={navigationLabel} onClick={(e) => {
           if ((e.target as HTMLElement).closest('a[href]')) setOpen(false);
         }}>
-          <IconButton icon={<X />} label="Close navigation" className="an-drawer-close" onClick={() => setOpen(false)} />
+          <IconButton icon={<X />} label={closeNavigationLabel} className="an-drawer-close" onClick={() => setOpen(false)} />
           {sidebar}
         </div>
       </MuiDrawer> : null}

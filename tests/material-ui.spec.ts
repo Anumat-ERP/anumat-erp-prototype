@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+test('Khmer translates seeded workflow content and form choices', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('anumat-locale', 'km'));
+  await page.goto('/home');
+  await expect(page.getByText('កុំព្យូទ័រយួរដៃសម្រាប់សមាជិកថ្មី', { exact: true }).first()).toBeVisible();
+  await page.goto('/processes/proc-purchase');
+  await expect(page.getByRole('heading', { name: 'ការអនុម័តការទិញ' })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: /ប្រភេទចម្លើយ/ }).first()).toBeVisible();
+  await expect(page.getByText('ជម្រើសច្រើន', { exact: true }).first()).toBeVisible();
+  await page.goto('/tasks');
+  await expect(page.getByText('កំណត់តំបន់ឃ្លាំងសម្រាប់សាកល្បងរាប់ស្តុក', { exact: true }).first()).toBeVisible();
+});
+
 test('requests support search, clearing, filtering and view tabs', async ({
   page,
 }) => {
@@ -179,7 +191,7 @@ test('dark theme, Khmer and mobile navigation stay usable', async ({
   await expect(page.locator('html')).toHaveAttribute('lang', 'km');
   if (testInfo.project.name === 'mobile') {
     await page
-      .getByRole('button', { name: 'Open navigation', exact: true })
+      .getByRole('button', { name: 'បើកការរុករក', exact: true })
       .click();
     await expect(page.locator('.MuiDrawer-paper')).toBeVisible();
     await page.locator('.MuiDrawer-paper a[href="/requests"]').click();

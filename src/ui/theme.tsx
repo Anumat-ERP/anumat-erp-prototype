@@ -51,12 +51,12 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
         },
         typography: {
           fontFamily:
-            '"Inter Variable", Inter, "Noto Sans Khmer", system-ui, sans-serif',
+            '"Inter Variable", Inter, "Kantumruy Pro", Battambang, "Noto Sans Khmer", system-ui, sans-serif',
           fontSize: 16,
           button: { textTransform: 'none', fontWeight: 600, lineHeight: 1.75 },
           h4: { fontSize: '1.75rem', fontWeight: 600, lineHeight: 1.4 },
           h5: { fontSize: '1.5rem', fontWeight: 600, lineHeight: 1.4 },
-          h6: { fontFamily: '"Plus Jakarta Sans", "Noto Sans Khmer", sans-serif', fontSize: '1.25rem', fontWeight: 600, lineHeight: 1.5 },
+          h6: { fontFamily: '"Plus Jakarta Sans", "Kantumruy Pro", Battambang, "Noto Sans Khmer", sans-serif', fontSize: '1.25rem', fontWeight: 600, lineHeight: 1.5 },
           body1: { fontSize: '1rem', lineHeight: 1.75 },
           body2: { fontSize: '0.875rem', lineHeight: 1.75 },
           caption: { fontSize: '0.75rem', lineHeight: 1.75 },

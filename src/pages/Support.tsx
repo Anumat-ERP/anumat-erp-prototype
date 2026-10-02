@@ -13,9 +13,9 @@ export function Support() {
   const [dialog, setDialog] = useState<'feedback' | 'problem' | null>(null);
   return (
     <>
-      <PageHeader title={tr('Help & support')} subtitle="Talk to a person, report a problem, or tell us what to build next." />
+      <PageHeader title={tr('Help & support')} subtitle={tr("Talk to a person, report a problem, or tell us what to build next.")} />
       <Card className="flex flex-col gap-4">
-        <CardHeader title="Contact us" description="We usually reply fastest on Telegram." />
+        <CardHeader title={tr("Contact us")} description={tr("We usually reply fastest on Telegram.")} />
         <ContactChannels />
       </Card>
       <div className="grid gap-4 md:grid-cols-3">
@@ -24,7 +24,7 @@ export function Support() {
             {' '}
             {tr('Report a problem')}{' '}
           </Text>
-          <Text tone="muted">Something broken or confusing? Tell us what happened.</Text>
+          <Text tone="muted">{tr("Something broken or confusing? Tell us what happened.")}</Text>
           <Button className="mt-auto self-start" onClick={() => setDialog('problem')}>
             {' '}
             {tr('Report a problem')}{' '}
@@ -32,9 +32,8 @@ export function Support() {
         </Card>
         <Card className="flex flex-col gap-2">
           <Text as="h2" variant="subtitle">
-            Share feedback
-          </Text>
-          <Text tone="muted">Ideas and wishes go straight to the product team.</Text>
+            {tr("Share feedback")}</Text>
+          <Text tone="muted">{tr("Ideas and wishes go straight to the product team.")}</Text>
           <Button className="mt-auto self-start" onClick={() => setDialog('feedback')}>
             {' '}
             {tr('Send feedback')}{' '}
@@ -42,17 +41,15 @@ export function Support() {
         </Card>
         <Card className="flex flex-col gap-2">
           <Text as="h2" variant="subtitle">
-            Buying or installing
-          </Text>
-          <Text tone="muted">Anumat Cloud, your own cloud, or on-premise.</Text>
+            {tr("Buying or installing")}</Text>
+          <Text tone="muted">{tr("Anumat Cloud, your own cloud, or on-premise.")}</Text>
           <Button className="mt-auto self-start" onClick={() => navigate('/pricing')}>
-            See deployment options
-          </Button>
+            {tr("See deployment options")}</Button>
         </Card>
       </div>
       <Card tone="muted" className="flex flex-wrap items-center justify-between gap-3">
-        <Text>New here? The 3-minute tour shows how a request goes from ask to decision.</Text>
-        <Button onClick={tour.start}>Take the tour</Button>
+        <Text>{tr("New here? The 3-minute tour shows how a request goes from ask to decision.")}</Text>
+        <Button onClick={tour.start}>{tr("Take the tour")}</Button>
       </Card>
       <FeedbackDialog kind={dialog} onClose={() => setDialog(null)} />
     </>

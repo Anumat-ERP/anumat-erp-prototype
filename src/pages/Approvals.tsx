@@ -30,7 +30,7 @@ function titleCell(r: Request, processes: Process[], tr: (message: string) => st
 }
 
 export function Approvals() {
-  const { t: tr } = useLocale();
+  const { t: tr, locale } = useLocale();
   const { state, me, person, dispatch } = useStore();
   const { toast } = useToast();
   const [selected, setSelected] = useState<Selection>([]);
@@ -59,7 +59,7 @@ export function Approvals() {
       header: tr('Your step'),
       cell: (r) => (
         <span className="flex flex-col">
-          {r.steps.find((s) => s.status === 'current')?.name}
+          {tr(r.steps.find((s) => s.status === 'current')?.name ?? '')}
           {needsDetails(state, r) ? (
             <Text as="span" variant="caption" tone="muted">
               {' '}
@@ -103,7 +103,7 @@ export function Approvals() {
     {
       id: 'decision',
       header: tr('Your decision'),
-      cell: (x) => (x.step ? stepStatus[x.step.status] : ''),
+      cell: (x) => (x.step ? tr(stepStatus[x.step.status]) : ''),
     },
     {
       id: 'status',
@@ -122,7 +122,7 @@ export function Approvals() {
       <PageHeader title={tr('Approvals')} subtitle={tr('Decide what’s waiting on you. Oldest first.')} />
       <Tabs defaultValue="waiting">
         <TabsList aria-label={tr('Approvals')}>
-          <TabsTrigger value="waiting" badge={waiting.length || undefined} badgeLabel={`${waiting.length} waiting`}>
+          <TabsTrigger value="waiting" badge={waiting.length || undefined} badgeLabel={tr('{count} waiting', { count: waiting.length })}>
             {' '}
             {tr('Waiting on you')}{' '}
           </TabsTrigger>
@@ -150,15 +150,15 @@ export function Approvals() {
                     <RequestIcon type={r.type} className="size-9 shrink-0" />
                     <span className="flex min-w-0 flex-1 flex-col gap-1">
                       <span className="flex items-start justify-between gap-2">
-                        <span className="font-medium text-fg">{r.title}</span>
+                        <span className="font-medium text-fg">{tr(r.title)}</span>
                         {r.amount !== undefined ? <span className="shrink-0 font-semibold tabular-nums">{formatMoney(r.amount)}</span> : null}
                       </span>
                       <Text as="span" variant="caption" tone="muted">
-                        {r.id} · {tr(typeName(r.type, state.processes))} · {person(r.requesterId).name}
+                        {r.id} · {tr(typeName(r.type, state.processes))} · {tr(person(r.requesterId).name)}
                       </Text>
                       <span className="flex items-center justify-between gap-2 text-sm">
                         <span className="text-fg-muted">
-                          {tr('Your step:')} {r.steps.find((st) => st.status === 'current')?.name}
+                          {tr('Your step:')} {tr(r.steps.find((st) => st.status === 'current')?.name ?? '')}
                         </span>
                         <span className={days >= 2 ? 'font-medium text-critical-subtle-fg' : 'text-fg-muted'}>
                           <Time iso={r.createdAt} />
@@ -173,7 +173,7 @@ export function Approvals() {
           </ul>
           <div className="hidden md:block">
             <IndexTable<Request>
-              caption="Requests waiting on your decision"
+              caption={tr("Requests waiting on your decision")}
               captionHidden
               resourceName={REQUESTS}
               columns={waitingColumns}
@@ -229,9 +229,9 @@ export function Approvals() {
                   className="flex items-center gap-3 p-4 active:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
                 >
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="truncate font-medium text-fg">{x.r.title}</span>
+                    <span className="truncate font-medium text-fg">{tr(x.r.title)}</span>
                     <Text as="span" variant="caption" tone="muted">
-                      {x.step ? stepStatus[x.step.status] : ''} · {x.step?.at ? formatRelative(x.step.at) : ''}
+                      {x.step ? tr(stepStatus[x.step.status]) : ''} · {x.step?.at ? formatRelative(x.step.at, locale) : ''}
                     </Text>
                   </span>
                   <StatusBadge status={x.r.status} size="sm" />
@@ -246,7 +246,7 @@ export function Approvals() {
           </ul>
           <div className="hidden md:block">
             <IndexTable<(typeof decided)[number]>
-              caption="Requests you decided"
+              caption={tr("Requests you decided")}
               captionHidden
               selectable={false}
               resourceName={REQUESTS}

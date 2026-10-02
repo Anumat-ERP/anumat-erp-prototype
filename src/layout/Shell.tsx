@@ -106,7 +106,7 @@ export function Shell() {
           icon: <Inbox />,
           selected: at('/approvals'),
           badge: waiting || undefined,
-          badgeLabel: `${waiting} waiting on you`,
+          badgeLabel: tr('{count} waiting on you', { count: waiting }),
         },
       ],
     },
@@ -141,13 +141,13 @@ export function Shell() {
         trigger={
           <ButtonBase
             type="button"
-            aria-label={`Account: ${me.name}, ${me.role}. Switch who you are viewing as.`}
+            aria-label={tr("Account: {value0}, {value1}. Switch who you are viewing as.", { value0: me.name, value1: me.role })}
             className="an-account flex w-full items-center gap-3 rounded-xl p-3 text-start hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <Avatar name={me.name} size="sm" decorative />
             <span className="an-account-copy flex min-w-0 flex-1 flex-col text-start leading-relaxed">
-              <span className="truncate text-md font-medium text-fg">{me.name}</span>
-              <span className="text-xs text-fg-muted">{me.role}</span>
+              <span className="truncate text-md font-medium text-fg">{tr(me.name)}</span>
+              <span className="text-xs text-fg-muted">{tr(me.role)}</span>
             </span>
             <MoreHorizontal aria-hidden className="size-5 shrink-0 text-fg-muted" />
           </ButtonBase>
@@ -257,10 +257,14 @@ export function Shell() {
 
   return (
     <AppShell
+      skipLinkLabel={tr('Skip to content')}
+      navigationLabel={tr('Navigation')}
+      openNavigationLabel={tr('Open navigation')}
+      closeNavigationLabel={tr('Close navigation')}
       topBar={topBar}
       sidebarHeader={
         <>
-          <Link to="/home" aria-label="Anumat home" className="an-brand inline-flex rounded-lg focus-visible:outline-2 focus-visible:outline-ring">
+          <Link to="/home" aria-label={tr("Anumat home")} className="an-brand inline-flex rounded-lg focus-visible:outline-2 focus-visible:outline-ring">
             <Logo className="h-9 w-auto" />
           </Link>
           <div className="an-workspace"><WorkspaceSwitcher /></div>

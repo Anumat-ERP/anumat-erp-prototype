@@ -12,12 +12,12 @@ export function Person({ id, showRole = false, size = 'sm' }: { id: string; show
       <Avatar name={p.name} size={size} decorative />
       <span className="flex min-w-0 flex-col">
         <Text as="span" variant="body" truncate>
-          {p.name}
+          {tr(p.name)}
           {p.id === me.id ? <span className="text-fg-muted"> {tr('(you)')}</span> : null}
         </Text>
         {showRole ? (
           <Text as="span" variant="bodySm" tone="muted" truncate>
-            {p.role}
+            {tr(p.role)}
           </Text>
         ) : null}
       </span>

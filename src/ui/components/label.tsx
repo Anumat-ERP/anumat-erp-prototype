@@ -2,6 +2,7 @@
 
 import type { ComponentPropsWithRef, ReactNode } from 'react';
 import { cn } from '../lib/cn';
+import { useLocale } from '../../i18n/LocaleProvider';
 
 /** Shared label typography, also used for a Field's `<legend>`. */
 export const labelClasses =
@@ -66,6 +67,7 @@ export function LabelContent({
   optional,
   children,
 }: Pick<LabelProps, 'required' | 'optional' | 'children'>) {
+  const { t: tr } = useLocale();
   return (
     <>
       {children}
@@ -78,7 +80,7 @@ export function LabelContent({
       {optional && !required ? ' ' : null}
       {optional && !required ? (
         <span className="text-sm font-regular text-fg-muted">
-          {typeof optional === 'string' ? optional : '(optional)'}
+          {typeof optional === 'string' ? optional : tr('(optional)')}
         </span>
       ) : null}
     </>

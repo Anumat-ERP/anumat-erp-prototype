@@ -1,6 +1,9 @@
 import type { BadgeTone } from '@app/ui';
 import type { DocumentStatus, Process, RequestStatus, RequestType, StepStatus } from '../data/types';
-import { intlLocale, type Locale } from '../i18n/locale';
+import { intlLocale, isLocale, type Locale } from '../i18n/locale';
+
+/** Dates follow the interface language; LocaleProvider keeps <html lang> current. */
+const dateLocale = () => intlLocale(typeof document !== 'undefined' && isLocale(document.documentElement.lang) ? document.documentElement.lang : 'en');
 
 const money = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -8,32 +11,47 @@ const money = new Intl.NumberFormat('en-US', {
 });
 export const formatMoney = (n?: number) => (n === undefined ? '—' : money.format(n));
 
-export const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', {
+const displayLocale = (): Locale => {
+  try {
+    return localStorage.getItem('anumat-locale') === 'km' ? 'km' : 'en';
+  } catch {
+    return typeof document !== 'undefined' && document.documentElement.lang === 'km' ? 'km' : 'en';
+  }
+};
+const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+const khmerWeekdays = ['អាទិត្យ', 'ចន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
+
+export const formatDate = (iso: string, locale: Locale = displayLocale()) => locale === 'km'
+  ? `${new Date(iso).getDate()} ${khmerMonths[new Date(iso).getMonth()]} ${new Date(iso).getFullYear()}`
+  : new Date(iso).toLocaleDateString(intlLocale(locale), {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   });
 
-export const formatShortDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+export const formatShortDate = (iso: string, locale: Locale = displayLocale()) => locale === 'km'
+  ? `${new Date(iso).getDate()} ${khmerMonths[new Date(iso).getMonth()]}`
+  : new Date(iso).toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'short' });
 
-export const formatTime = (iso: string) =>
-  new Date(iso).toLocaleTimeString('en-GB', {
+export const formatTime = (iso: string, locale: Locale = displayLocale()) => locale === 'km'
+  ? new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
+  : new Date(iso).toLocaleTimeString(intlLocale(locale), {
     hour: '2-digit',
     minute: '2-digit',
   });
 
-export const formatDateTime = (iso: string) => `${formatShortDate(iso)}, ${formatTime(iso)}`;
+export const formatDateTime = (iso: string, locale: Locale = displayLocale()) => `${formatShortDate(iso, locale)}, ${formatTime(iso, locale)}`;
 
-export const formatWeekday = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', {
+export const formatWeekday = (iso: string, locale: Locale = displayLocale()) => locale === 'km'
+  ? `${khmerWeekdays[new Date(iso).getDay()]} ${formatShortDate(iso, locale)}`
+  : new Date(iso).toLocaleDateString(intlLocale(locale), {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
   });
 
 /** “3 hours ago”, “in 2 days”. */
-export function formatRelative(iso: string, locale: Locale = 'en') {
+export function formatRelative(iso: string, locale: Locale = displayLocale()) {
   const diff = new Date(iso).getTime() - Date.now();
   const rtf = new Intl.RelativeTimeFormat(intlLocale(locale), {
     numeric: 'auto',

@@ -25,9 +25,9 @@ export function Home() {
     .sort((a, b) => b.at.localeCompare(a.at))
     .slice(0, 5);
   const summaries = [
-    { status: 'pending', label: 'In progress' },
-    { status: 'changes', label: 'Changes requested' },
-    { status: 'draft', label: 'Drafts' },
+    { status: 'pending', label: tr("In progress") },
+    { status: 'changes', label: tr("Changes requested") },
+    { status: 'draft', label: tr("Drafts") },
   ];
 
   return (
@@ -49,8 +49,8 @@ export function Home() {
                     <Link to={`/requests/${r.id}`} className="an-task-row focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring">
                       <RequestIcon type={r.type} />
                       <span className="flex min-w-0 flex-1 flex-col gap-1">
-                        <Text as="span" variant="label" className="leading-relaxed">{r.title}</Text>
-                        <Text as="span" variant="bodySm" tone="muted">{person(r.requesterId).name} · {tr(typeName(r.type, state.processes))}</Text>
+                        <Text as="span" variant="label" className="leading-relaxed">{tr(r.title)}</Text>
+                        <Text as="span" variant="bodySm" tone="muted">{tr(person(r.requesterId).name)} · {tr(typeName(r.type, state.processes))}</Text>
                         <Text as="span" variant="caption" tone="subtle">{tr('Waiting on you')} · {r.id}{r.amount !== undefined ? <span className="sm:hidden"> · {formatMoney(r.amount)}</span> : null}</Text>
                       </span>
                       <span className="hidden shrink-0 flex-col items-end gap-1 text-end sm:flex">
@@ -85,7 +85,7 @@ export function Home() {
                 <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
                 <div className="min-w-0 text-sm leading-relaxed">
                   <span className="font-medium">{a.personId === me.id ? tr('You') : person(a.personId).name}</span>{' '}
-                  {a.kind === 'comment' ? tr('commented on') : `${tr(a.text)} ·`}{' '}<AppLink to={`/requests/${a.request.id}`}>{a.request.title}</AppLink>
+                  {a.kind === 'comment' ? tr('commented on') : `${tr(a.text)} ·`}{' '}<AppLink to={`/requests/${a.request.id}`}>{tr(a.request.title)}</AppLink>
                   <Text variant="caption" as="p" tone="subtle" className="mt-1"><Time iso={a.at} /></Text>
                 </div>
               </li>)}

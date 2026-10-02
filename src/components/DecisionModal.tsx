@@ -105,7 +105,7 @@ export function DecisionModal({
     >
       <div className="flex flex-col gap-4">
         {decision === 'approve' ? (
-          <Text tone="muted">{nextStep ? `It moves on to ${nextStep}.` : tr('This is the last step, so the request will be approved.')}</Text>
+          <Text tone="muted">{nextStep ? tr("It moves on to {value0}.", { value0: nextStep }) : tr('This is the last step, so the request will be approved.')}</Text>
         ) : null}
         {asking ? (
           <div className="flex flex-col gap-4 rounded-lg border border-border p-3 sm:p-4">

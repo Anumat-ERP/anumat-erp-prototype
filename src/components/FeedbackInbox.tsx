@@ -2,6 +2,8 @@ import { Badge, Card, CardHeader, EmptyState, Text } from '@app/ui';
 import { Person } from './Person';
 import { useStore } from '../data/store';
 import { formatDateTime } from '../lib/format';
+import { useLocale } from '../i18n/LocaleProvider';
+
 
 const DEPLOY = { cloud: 'Anumat Cloud', 'private-cloud': 'Own cloud', 'on-premise': 'On-premise', 'not-sure': 'Not sure' } as const;
 
@@ -15,6 +17,7 @@ function nps(scores: number[]) {
 
 /** What people told the Anumat team (survey, feedback, problems) and sales enquiries. Shown to admins on the Surveys page. */
 export function FeedbackInbox() {
+  const { t: tr } = useLocale();
   const { state } = useStore();
   const surveys = state.feedback.filter((f) => f.kind === 'survey' && f.score !== undefined);
   const scores = surveys.map((f) => f.score as number);
@@ -23,10 +26,10 @@ export function FeedbackInbox() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Text tone="muted">What people in this workspace told the Anumat team from Help &amp; support, and who asked about buying.</Text>
+      <Text tone="muted">{tr("What people in this workspace told the Anumat team from Help & support, and who asked about buying.")}</Text>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
-          ['Recommend score (NPS)', score === null ? '—' : `${score > 0 ? '+' : ''}${score}`, `From ${scores.length} survey answers, −100 to +100`],
+          ['Recommend score (NPS)', score === null ? '—' : `${score > 0 ? '+' : ''}${score}`, tr("From {value0} survey answers, −100 to +100", { value0: scores.length })],
           ['Average rating', scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '—', 'Out of 10'],
           ['Comments', String(state.feedback.filter((f) => f.text).length), 'Survey, feedback and problems'],
           ['Sales enquiries', String(state.leads.length), 'From the pricing page'],
@@ -46,8 +49,7 @@ export function FeedbackInbox() {
       </div>
       <section aria-labelledby="inbox-feedback" className="flex flex-col gap-3">
         <Text as="h2" id="inbox-feedback" variant="title">
-          Feedback to Anumat
-        </Text>
+          {tr("Feedback to Anumat")}</Text>
         <Card flush>
           {state.feedback.length ? (
             <ul className="divide-y divide-border">
@@ -59,7 +61,7 @@ export function FeedbackInbox() {
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="flex flex-wrap items-center gap-2">
                       <Badge size="sm" tone={f.kind === 'problem' ? 'critical' : f.kind === 'survey' ? 'info' : 'neutral'}>
-                        {f.kind === 'survey' ? 'Survey' : f.kind === 'problem' ? 'Problem' : 'Feedback'}
+                        {f.kind === 'survey' ? tr("Survey") : f.kind === 'problem' ? tr("Problem") : tr("Feedback")}
                       </Badge>
                       {f.score !== undefined ? (
                         <Text as="span" variant="bodySm">
@@ -67,7 +69,7 @@ export function FeedbackInbox() {
                         </Text>
                       ) : null}
                     </span>
-                    {f.text ? <Text>{f.text}</Text> : <Text tone="muted">No comment</Text>}
+                    {f.text ? <Text>{f.text}</Text> : <Text tone="muted">{tr("No comment")}</Text>}
                   </div>
                   <Text as="span" variant="caption" tone="subtle" className="shrink-0">
                     {formatDateTime(f.at)}
@@ -76,16 +78,14 @@ export function FeedbackInbox() {
               ))}
             </ul>
           ) : (
-            <EmptyState size="card" heading="No feedback yet">
-              Answers to the survey and feedback from Help &amp; support show up here.
-            </EmptyState>
+            <EmptyState size="card" heading={tr("No feedback yet")}>
+              {tr("Answers to the survey and feedback from Help & support show up here.")}</EmptyState>
           )}
         </Card>
       </section>
       <section aria-labelledby="inbox-leads" className="flex flex-col gap-3">
         <Text as="h2" id="inbox-leads" variant="title">
-          Sales enquiries
-        </Text>
+          {tr("Sales enquiries")}</Text>
         <Card flush>
           {state.leads.length ? (
             <ul className="divide-y divide-border">
@@ -99,11 +99,11 @@ export function FeedbackInbox() {
                       {DEPLOY[l.deployment]}
                     </Badge>
                     <Text as="span" variant="caption" tone="muted">
-                      {l.size} people · {formatDateTime(l.at)}
+                      {l.size} {tr("people ·")}{' '}{formatDateTime(l.at)}
                     </Text>
                   </span>
                   <Text variant="bodySm">
-                    {l.name} · <span className="font-mono">{l.email}</span>
+                    {tr(l.name)} · <span className="font-mono">{l.email}</span>
                   </Text>
                   {l.message ? <Text tone="muted">{l.message}</Text> : null}
                 </li>
@@ -111,7 +111,7 @@ export function FeedbackInbox() {
             </ul>
           ) : (
             <div className="p-4">
-              <CardHeader title="No enquiries yet" description="Messages from the Contact sales form on the pricing page appear here." />
+              <CardHeader title={tr("No enquiries yet")} description={tr("Messages from the Contact sales form on the pricing page appear here.")} />
             </div>
           )}
         </Card>

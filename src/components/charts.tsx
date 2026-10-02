@@ -64,7 +64,7 @@ export function BarTable({
         {rows.map((r, row) => (
           <tr key={r.id}>
             <th scope="row" className="w-36 py-2 pe-3 text-start align-middle font-regular text-fg-muted">
-              {r.label}
+              {typeof r.label === 'string' ? tr(r.label) : r.label}
             </th>
             <td className="py-2 align-middle" aria-hidden>
               <Tooltip content={r.detail ?? r.display} side="top">
@@ -104,6 +104,7 @@ export function BarTable({
 
 /** Legend row: a swatch and a text label per series (text stays in ink). */
 export function Legend({ items }: { items: { label: string; color?: string; marker?: 'target' }[] }) {
+  const { t: tr } = useLocale();
   return (
     <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-fg-muted">
       {items.map((i) => (
@@ -113,7 +114,7 @@ export function Legend({ items }: { items: { label: string; color?: string; mark
           ) : (
             <span aria-hidden className="size-2.5 rounded-sm" style={{ background: i.color }} />
           )}
-          {i.label}
+          {tr(i.label)}
         </li>
       ))}
     </ul>
@@ -122,6 +123,7 @@ export function Legend({ items }: { items: { label: string; color?: string; mark
 
 /** Vertical columns over time. Labels only the latest and the highest column. */
 export function ColumnChart({ caption, points }: { caption: string; points: { label: string; value: number; detail: string }[] }) {
+  const { t: tr } = useLocale();
   const max = Math.max(1, ...points.map((p) => p.value));
   // Round the top up to a multiple of 4 with headroom, so ticks are whole numbers.
   const nice = Math.ceil((max * 1.1) / 4) * 4;
@@ -163,7 +165,7 @@ export function ColumnChart({ caption, points }: { caption: string; points: { la
       <div aria-hidden className="flex gap-3 ps-8">
         {points.map((p) => (
           <span key={p.label} className="flex min-w-0 flex-1 justify-center whitespace-nowrap text-xs text-fg-subtle">
-            {p.label}
+            {tr(p.label)}
           </span>
         ))}
       </div>
@@ -172,7 +174,7 @@ export function ColumnChart({ caption, points }: { caption: string; points: { la
         <tbody>
           {points.map((p) => (
             <tr key={p.label}>
-              <th scope="row">{p.label}</th>
+              <th scope="row">{tr(p.label)}</th>
               <td>{p.value}</td>
             </tr>
           ))}

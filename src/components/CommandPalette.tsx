@@ -136,7 +136,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
         <ul id="command-list" role="listbox" aria-label={tr('Results')} ref={listRef} className="max-h-[min(24rem,60vh)] overflow-y-auto py-2">
           {results.length === 0 ? (
             <li className="px-3 py-6 text-center text-md text-fg-muted" role="presentation">
-              Nothing matches “{query}”.
+              {tr("Nothing matches “")}{query}”.
             </li>
           ) : null}
           {results.map((item, i) => {
@@ -164,7 +164,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
                   <span aria-hidden className="text-fg-muted [&_svg]:size-4">
                     {item.icon}
                   </span>
-                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                  <span className="min-w-0 flex-1 truncate">{tr(item.label)}</span>
                   {item.hint ? <span className="shrink-0 font-mono text-xs text-fg-subtle">{item.hint}</span> : null}
                   {i === active ? <CornerDownLeft aria-hidden className="size-3.5 shrink-0 text-fg-subtle" /> : null}
                 </div>
@@ -181,7 +181,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             <Kbd size="sm">↵</Kbd> {tr('open')}{' '}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Kbd size="sm">Esc</Kbd> {tr('close')}{' '}
+            <Kbd size="sm">{tr("Esc")}</Kbd> {tr('close')}{' '}
           </span>
         </div>
       </div>

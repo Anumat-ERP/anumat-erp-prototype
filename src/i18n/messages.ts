@@ -1,3 +1,4 @@
+import { extraKm } from './messages.extra';
 export const km: Record<string, string> = {
   "Welcome back!": "សូមស្វាគមន៍មកវិញ!",
   "Don't have an account yet?": "មិនទាន់មានគណនីមែនទេ?",
@@ -998,4 +999,5 @@ export const km: Record<string, string> = {
   'Legal review': 'ការពិនិត្យផ្នែកច្បាប់',
   'Final approval': 'ការអនុម័តចុងក្រោយ',
   'A request of this type is submitted': 'សំណើប្រភេទនេះត្រូវបានដាក់ស្នើ',
+  ...extraKm,
 };

@@ -212,7 +212,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
   return (
     <>
       <PageHeader
-        title={existing ? `Edit ${existing.id}` : tr('New request')}
+        title={existing ? tr("Edit {value0}", { value0: existing.id }) : tr('New request')}
         subtitle={existing?.status === 'changes' ? tr('Make the changes, then resubmit. It starts the approval route again.') : undefined}
         backAction={existing ? { content: existing.title, href: `/requests/${existing.id}` } : { content: tr('Requests'), href: '/requests' }}
         renderLink={headerLink}
@@ -226,7 +226,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
               </Banner>
             ) : null}
             {Object.keys(errors).length > 1 ? (
-              <Banner tone="critical" title={`Fix ${Object.keys(errors).length} fields to submit`}>
+              <Banner tone="critical" title={tr("Fix {value0} fields to submit", { value0: Object.keys(errors).length })}>
                 {' '}
                 {tr('Each problem is described next to its field.')}{' '}
               </Banner>
@@ -301,9 +301,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
                   setAttachments((list) => [...list, ...accepted.map((f) => ({ name: f.name, size: f.size }))]);
                   setFileError(rejected[0]?.message);
                 }}
-              >
-                {tr('Choose files or drag them here')}
-              </DropZone>
+              />
               {attachments.length ? (
                 <DropZoneFileList
                   files={attachments.map((a) => ({
@@ -344,7 +342,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
                   }))}
                 />
               ) : (
-                <Text tone="muted">No active process for {tr(typeName(type, state.processes)).toLowerCase()} requests.</Text>
+                <Text tone="muted">{tr("No active process for")}{' '}{tr(typeName(type, state.processes)).toLowerCase()} {tr("requests.")}</Text>
               )}
             </div>
           </Card>

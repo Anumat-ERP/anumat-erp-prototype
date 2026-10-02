@@ -41,14 +41,14 @@ export function PeoplePicker({
             onRemove={disabled ? undefined : () => onChange(value.filter((v) => v !== pid))}
             accessibilityLabel={`Remove ${person(pid).name} from ${label.toLowerCase()}`}
           >
-            {person(pid).name}
+            {tr(person(pid).name)}
           </Tag>
         ))}
       </div>
       {!disabled && available.length ? (
         <Select
           size="sm"
-          aria-label={`Add someone to ${label.toLowerCase()}`}
+          aria-label={tr("Add someone to {value0}", { value0: label.toLowerCase() })}
           value=""
           onChange={(e) => e.target.value && onChange([...value, e.target.value])}
           options={[

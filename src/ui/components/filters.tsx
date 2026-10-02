@@ -2,6 +2,7 @@ import type { ComponentPropsWithRef, ReactNode } from 'react';
 import { Button } from './button';
 import { Input } from './input';
 import { Popover, PopoverTrigger, PopoverContent } from './popover';
+import { useLocale } from '../../i18n/LocaleProvider';
 export interface FilterDefinition {
   key: string;
   label: string;
@@ -47,6 +48,7 @@ export function Filters({
   className,
   ...props
 }: FiltersProps) {
+  const { t: tr } = useLocale();
   return (
     <div className={className} data-slot="filters" {...props}>
       <div className="flex flex-wrap items-center gap-2">
@@ -68,7 +70,7 @@ export function Filters({
       <div
         className="mt-2 flex flex-wrap gap-2"
         role="group"
-        aria-label="Filters"
+        aria-label={tr('Filters')}
       >
         {filters.map((filter) => {
           const applied = appliedFilters.find((a) => a.key === filter.key);
@@ -91,9 +93,9 @@ export function Filters({
                   variant="plain"
                   size="sm"
                   onClick={applied.onRemove}
-                  aria-label={`Remove ${filter.label} filter`}
+                  aria-label={tr('Remove {name} filter', { name: filter.label })}
                 >
-                  Clear
+                  {tr('Clear')}
                 </Button>
               ) : null}
             </div>
@@ -106,12 +108,12 @@ export function Filters({
             disabled={disabled}
             onClick={onClearAll}
           >
-            Clear all
+            {tr('Clear all')}
           </Button>
         ) : null}
       </div>
       <span className="sr-only" aria-live="polite">
-        {appliedFilters.length} filters applied
+        {tr('{count} filters applied', { count: appliedFilters.length })}
       </span>
     </div>
   );

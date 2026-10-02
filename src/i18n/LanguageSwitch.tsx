@@ -12,7 +12,7 @@ export function LanguageSwitch() {
       onChange={(event) => {
         if (isLocale(event.target.value)) setLocale(event.target.value);
       }}
-      className="max-w-24 shrink-0"
+      className="an-language-switch"
     >
       <option value="en" lang="en">
         English

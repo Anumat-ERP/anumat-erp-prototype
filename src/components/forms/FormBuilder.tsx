@@ -53,7 +53,7 @@ function OptionsEditor({ field, onChange }: { field: FormField; onChange: (optio
               ref={(el) => {
                 refs.current[i] = el;
               }}
-              aria-label={`Choice ${i + 1}`}
+              aria-label={tr("Choice {value0}", { value0: i + 1 })}
               value={o}
               onChange={(e) =>
                 onChange(
@@ -73,7 +73,7 @@ function OptionsEditor({ field, onChange }: { field: FormField; onChange: (optio
             <IconButton
               size="sm"
               icon={<X />}
-              label={`Remove choice “${o || i + 1}”`}
+              label={tr("Remove choice “{value0}”", { value0: o || i + 1 })}
               disabled={options.length <= 1}
               onClick={() => {
                 onChange(options.filter((_, j) => j !== i));
@@ -129,7 +129,7 @@ export function ConditionPicker({
           }}
           options={sources.map((s) => ({
             value: s.id,
-            label: `${numberOf ? numberOf(s) : ''}${s.label || 'Untitled'}`,
+            label: `${numberOf ? numberOf(s) : ''}${tr(s.label || 'Untitled')}`,
           }))}
         />
       </Field>
@@ -153,7 +153,7 @@ export function ConditionPicker({
           value={stale ? '' : value.equals}
           placeholder={stale ? tr('Choose an answer') : undefined}
           onChange={(e) => onChange({ ...value, equals: e.target.value })}
-          options={choices.map((o) => ({ value: o, label: o }))}
+          options={choices.map((o) => ({ value: o, label: tr(o) }))}
         />
       </Field>
     </div>
@@ -267,8 +267,7 @@ export function FormBuilder({
       {fields.length === 0 ? (
         <Text variant="bodySm" tone="muted">
           {' '}
-          {tr('No')} {noun}s yet.
-        </Text>
+          {noun === tr('field') ? tr('No fields yet.') : tr('No questions yet.')}</Text>
       ) : null}
       <ol className="flex flex-col gap-3">
         {fields.map((f, i) => {
@@ -283,43 +282,43 @@ export function FormBuilder({
                 </Badge>
                 <Select
                   size="sm"
-                  aria-label={`Answer type for “${name}”`}
+                  aria-label={tr("Answer type for “{value0}”", { value0: name })}
                   value={f.kind}
                   onChange={(e) => setKind(i, e.target.value as FieldKind)}
-                  options={FIELD_KINDS.filter((k) => offered(k.value) || k.value === f.kind).map((k) => ({ value: k.value, label: k.label }))}
+                  options={FIELD_KINDS.filter((k) => offered(k.value) || k.value === f.kind).map((k) => ({ value: k.value, label: tr(k.label) }))}
                   className="w-40"
                 />
                 {section ? null : <Checkbox label={tr('Required')} checked={f.required} onCheckedChange={(c) => update(i, { required: c === true })} />}
                 <span className="ms-auto flex items-center gap-0.5">
-                  <IconButton size="sm" icon={<ArrowUp />} label={`Move “${name}” up`} disabled={i === 0} onClick={() => move(i, -1)} />
-                  <IconButton size="sm" icon={<ArrowDown />} label={`Move “${name}” down`} disabled={i === fields.length - 1} onClick={() => move(i, 1)} />
-                  <IconButton size="sm" icon={<Copy />} label={`Duplicate “${name}”`} onClick={() => duplicate(i)} />
-                  <IconButton size="sm" icon={<Trash2 />} label={`Delete “${name}”`} onClick={() => remove(i)} />
+                  <IconButton size="sm" icon={<ArrowUp />} label={tr("Move “{value0}” up", { value0: name })} disabled={i === 0} onClick={() => move(i, -1)} />
+                  <IconButton size="sm" icon={<ArrowDown />} label={tr("Move “{value0}” down", { value0: name })} disabled={i === fields.length - 1} onClick={() => move(i, 1)} />
+                  <IconButton size="sm" icon={<Copy />} label={tr("Duplicate “{value0}”", { value0: name })} onClick={() => duplicate(i)} />
+                  <IconButton size="sm" icon={<Trash2 />} label={tr("Delete “{value0}”", { value0: name })} onClick={() => remove(i)} />
                 </span>
               </div>
               <Field label={section ? tr('Heading') : tr('Question')} id={`question-${f.id}`}>
                 <Input
-                  value={f.label}
+                  value={tr(f.label)}
                   placeholder={section ? tr('e.g. Travel details') : tr('What would you like to ask?')}
                   onChange={(e) => update(i, { label: e.target.value })}
                 />
               </Field>
               <Field label={section ? tr('Text under the heading') : tr('Help text')} optional>
                 <Input
-                  value={f.help ?? ''}
+                  value={tr(f.help ?? '')}
                   placeholder={section ? tr('What this part of the form is about') : tr('Shown under the question')}
                   onChange={(e) => update(i, { help: e.target.value || undefined })}
                 />
               </Field>
               {hasPlaceholder(f.kind) ? (
                 <Field label={tr('Placeholder')} optional helpText={tr('Example text shown in the empty box.')}>
-                  <Input value={f.placeholder ?? ''} onChange={(e) => update(i, { placeholder: e.target.value || undefined })} />
+                  <Input value={tr(f.placeholder ?? '')} onChange={(e) => update(i, { placeholder: e.target.value || undefined })} />
                 </Field>
               ) : null}
               {hasOptions(f.kind) ? <OptionsEditor field={f} onChange={(options, renamed) => setOptions(i, options, renamed)} /> : null}
               {!hasOptions(f.kind) && !section && !hasPlaceholder(f.kind) ? (
                 <Text variant="caption" tone="subtle">
-                  {kindLabel(f.kind)}
+                  {tr(kindLabel(f.kind))}
                   {f.kind === 'department'
                     ? tr(': people pick one of the workspace’s departments.')
                     : f.kind === 'person'
@@ -332,7 +331,7 @@ export function FormBuilder({
                   <Checkbox
                     label={
                       <span className="inline-flex items-center gap-1.5">
-                        <GitBranch aria-hidden className="size-4 text-fg-muted" /> {tr('Only')} {section ? 'show' : 'ask'}{' '}
+                        <GitBranch aria-hidden className="size-4 text-fg-muted" /> {tr('Only')} {section ? tr("show") : tr("ask")}{' '}
                         {tr('when an earlier answer matches')}{' '}
                       </span>
                     }

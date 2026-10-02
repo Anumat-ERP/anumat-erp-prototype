@@ -45,7 +45,7 @@ export function Checkbox({
     <MuiCheckbox
       size="small"
       checked={checked === undefined ? undefined : checked === true}
-      defaultChecked={defaultChecked === true}
+      defaultChecked={checked === undefined ? defaultChecked === true : undefined}
       indeterminate={checked === 'indeterminate'}
       disabled={control.disabled}
       required={control.required}

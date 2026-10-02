@@ -53,7 +53,7 @@ export function ContactChannels({ compact = false }: { compact?: boolean }) {
               {c.icon}
             </span>
             <span className="flex min-w-0 flex-col">
-              <span className="font-medium text-fg">{c.label}</span>
+              <span className="font-medium text-fg">{tr(c.label)}</span>
               {set ? (
                 <a
                   href={c.href(c.value)}

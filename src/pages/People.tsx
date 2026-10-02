@@ -36,7 +36,11 @@ export function People() {
       .flatMap((p) =>
         p.steps
           .filter((s) => s.approverId === personId)
-          .map((s) => `${s.name} in ${p.name}${s.minAmount !== undefined ? ` (over ${formatMoney(s.minAmount).replace('.00', '')})` : ''}`),
+          .map((s) =>
+            s.minAmount !== undefined
+              ? tr('{step} in {process} (over {amount})', { step: tr(s.name), process: tr(p.name), amount: formatMoney(s.minAmount).replace('.00', '') })
+              : tr('{step} in {process}', { step: tr(s.name), process: tr(p.name) }),
+          ),
       );
 
   return (
@@ -50,8 +54,7 @@ export function People() {
 
       {!admin ? (
         <Banner tone="info" title={tr('Only admins can change roles')}>
-          You’re a member. Ask an admin, like {state.people.find((p) => p.access === 'owner')?.name}, if someone needs a different role.
-        </Banner>
+          {tr("You’re a member. Ask an admin, like")}{' '}{tr(state.people.find((p) => p.access === 'owner')?.name ?? '')}{tr(", if someone needs a different role.")}</Banner>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -76,9 +79,7 @@ export function People() {
             description={
               <>
                 {' '}
-                {tr('Approving isn’t a role: it comes from the steps in')} <AppLink to="/processes">{tr('Process Builder')}</AppLink>, so it follows your org
-                chart.
-              </>
+                {tr('Approving isn’t a role: it comes from the steps in')} <AppLink to="/processes">{tr('Process Builder')}</AppLink>{tr(", so it follows your org chart.")}</>
             }
           />
         </div>
@@ -91,22 +92,22 @@ export function People() {
                   <Avatar name={p.name} size="md" decorative />
                   <span className="flex min-w-0 flex-col">
                     <span className="font-medium">
-                      {p.name}
+                      {tr(p.name)}
                       {p.id === me.id ? <span className="font-regular text-fg-muted"> {tr('(you)')}</span> : null}
                     </span>
                     <Text as="span" variant="bodySm" tone="muted">
-                      {p.role} · {p.department}
+                      {tr(p.role)} · {tr(p.department)}
                     </Text>
                   </span>
                 </span>
                 <span className="min-w-56 flex-1 text-sm text-fg-muted">
                   {where.length ? (
                     <>
-                      <span className="font-medium text-fg">Approves: </span>
+                      <span className="font-medium text-fg">{tr("Approves:")}</span>
                       {where.join('; ')}
                     </>
                   ) : (
-                    'No approval steps'
+                    tr('No approval steps')
                   )}
                 </span>
                 <Checkbox
@@ -132,7 +133,7 @@ export function People() {
                 ) : (
                   <Select
                     size="sm"
-                    aria-label={`Role for ${p.name}`}
+                    aria-label={tr("Role for {value0}", { value0: p.name })}
                     value={p.access}
                     disabled={!admin || p.id === me.id}
                     onChange={(e) => {

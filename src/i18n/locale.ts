@@ -66,3 +66,4 @@ export function translate(locale: Locale, message: string, variables: Variables 
 }
 
 export const createTranslator = (locale: Locale) => (message: string, variables?: Variables) => translate(locale, message, variables);
+export type Translate = ReturnType<typeof createTranslator>;

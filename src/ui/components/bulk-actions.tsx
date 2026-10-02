@@ -12,6 +12,10 @@ import { cn } from '../lib/cn';
 import { formatCount } from '../lib/format';
 import { Button } from './button';
 import type { SelectionState } from './selection-checkbox';
+import { useLocale } from '../../i18n/LocaleProvider';
+import type { createTranslator } from '../../i18n/locale';
+
+type Translator = ReturnType<typeof createTranslator>;
 
 /** How a record type is named in counts: `{ singular: 'order', plural: 'orders' }`. */
 export interface ResourceName {
@@ -62,8 +66,12 @@ function nounFor(n: number, name: ResourceName) {
 export function scopeLabel(
   scope: Pick<SelectionScope, 'all' | 'count'>,
   name: ResourceName,
+  tr?: Translator,
 ) {
-  const phrase = `${formatCount(scope.count)} ${nounFor(scope.count, name)}`;
+  const count = formatCount(scope.count);
+  const resource = tr ? tr(nounFor(scope.count, name)) : nounFor(scope.count, name);
+  if (tr) return tr(scope.all ? 'all {count} {resource}' : '{count} {resource}', { count, resource });
+  const phrase = `${count} ${resource}`;
   return scope.all ? `all ${phrase}` : phrase;
 }
 
@@ -72,10 +80,12 @@ export function bulkActionLabel(
   action: BulkAction,
   scope: Pick<SelectionScope, 'all' | 'count'>,
   name: ResourceName,
+  tr?: Translator,
 ) {
+  const content = tr ? tr(action.content) : action.content;
   return action.destructive
-    ? `${action.content} ${scopeLabel(scope, name)}`
-    : action.content;
+    ? tr ? tr('{action} {scope}', { action: content, scope: scopeLabel(scope, name, tr) }) : `${content} ${scopeLabel(scope, name)}`
+    : content;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -231,17 +241,15 @@ export function SelectAllActions({
   className,
   ...props
 }: SelectAllActionsProps) {
+  const { t: tr } = useLocale();
   const pageFull =
     !allSelected && pageItemCount > 0 && selectedCount >= pageItemCount;
   const canEscalate = pageFull && totalCount > pageItemCount && onSelectAll;
   const text = allSelected
-    ? `All ${formatCount(totalCount)} ${nounFor(
-        totalCount,
-        resourceName,
-      )} selected`
+    ? tr('All {count} {resource} selected', { count: formatCount(totalCount), resource: tr(nounFor(totalCount, resourceName)) })
     : canEscalate
-    ? `${formatCount(selectedCount)} selected on this page`
-    : `${formatCount(selectedCount)} selected`;
+    ? tr('{count} selected on this page', { count: formatCount(selectedCount) })
+    : tr('{count} selected', { count: formatCount(selectedCount) });
 
   return (
     <div
@@ -256,18 +264,17 @@ export function SelectAllActions({
       </span>
       {canEscalate ? (
         <Button variant="plain" size="sm" onClick={onSelectAll}>
-          Select all {formatCount(totalCount)}{' '}
-          {nounFor(totalCount, resourceName)}
+          {tr('Select all {count} {resource}', { count: formatCount(totalCount), resource: tr(nounFor(totalCount, resourceName)) })}
         </Button>
       ) : null}
       {allSelected && onUndoSelectAll ? (
         <Button variant="plain" size="sm" onClick={onUndoSelectAll}>
-          Undo
+          {tr('Undo')}
         </Button>
       ) : null}
       {onClearSelection ? (
         <Button variant="plain" size="sm" onClick={onClearSelection}>
-          Clear selection
+          {tr('Clear selection')}
         </Button>
       ) : null}
     </div>
@@ -335,6 +342,7 @@ export function BulkActions({
   className,
   ...props
 }: BulkActionsProps) {
+  const { t: tr } = useLocale();
   const total = totalCount ?? pageItemCount;
   const count = allSelected ? total : selectedCount;
   const active = allSelected || selectedCount > 0;
@@ -347,11 +355,8 @@ export function BulkActions({
   const announcement = !active
     ? ''
     : allSelected
-    ? `All ${formatCount(total)} ${nounFor(total, resourceName)} selected`
-    : `${formatCount(selectedCount)} ${nounFor(
-        selectedCount,
-        resourceName,
-      )} selected`;
+    ? tr('All {count} {resource} selected', { count: formatCount(total), resource: tr(nounFor(total, resourceName)) })
+    : tr('{count} {resource} selected', { count: formatCount(selectedCount), resource: tr(nounFor(selectedCount, resourceName)) });
 
   // Always mounted, so changes (including the first selection) are announced.
   const live = (
@@ -386,13 +391,13 @@ export function BulkActions({
         <div
           className="flex flex-wrap items-center gap-2"
           role="group"
-          aria-label="Bulk actions"
+          aria-label={tr('Bulk actions')}
         >
           {disabled && disabledReason ? (
             <span className="text-sm text-fg-muted">{disabledReason}</span>
           ) : null}
           {promotedActions.map((action) => {
-            const label = bulkActionLabel(action, scope, resourceName);
+            const label = bulkActionLabel(action, scope, resourceName, tr);
             const isDisabled = disabled || action.disabled;
             return (
               <Button
@@ -420,11 +425,11 @@ export function BulkActions({
                   trailingIcon={<ChevronDown />}
                   disabled={disabled}
                 >
-                  More actions
+                  {tr('More actions')}
                 </Button>
               }
               items={actions.map((action) => ({
-                content: bulkActionLabel(action, scope, resourceName),
+                content: bulkActionLabel(action, scope, resourceName, tr),
                 icon: action.icon,
                 destructive: action.destructive,
                 disabled: action.disabled || disabled,

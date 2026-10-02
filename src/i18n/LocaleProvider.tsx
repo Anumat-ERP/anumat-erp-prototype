@@ -1,4 +1,4 @@
-import { createContext, useContext, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { createTranslator, isLocale, type Locale } from './locale';
 
 const Context = createContext({
@@ -8,7 +8,7 @@ const Context = createContext({
 });
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>(() => {
+  const [locale, setLocaleState] = useState<Locale>(() => {
     try {
       const saved = localStorage.getItem('anumat-locale');
       return isLocale(saved) ? saved : 'en';
@@ -16,6 +16,11 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       return 'en';
     }
   });
+  const setLocale = useCallback((next: Locale) => {
+    document.documentElement.lang = next;
+    try { localStorage.setItem('anumat-locale', next); } catch { /* Preference still applies for this visit. */ }
+    setLocaleState(next);
+  }, []);
   useLayoutEffect(() => {
     document.documentElement.lang = locale;
     try {

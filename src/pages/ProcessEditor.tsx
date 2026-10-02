@@ -130,8 +130,8 @@ export function ProcessEditor() {
   return (
     <>
       <PageHeader
-        title={draft.name}
-        subtitle={`Runs when ${draft.trigger.toLowerCase()}.`}
+        title={tr(draft.name)}
+        subtitle={tr("Runs when {value0}.", { value0: tr(draft.trigger).toLowerCase() })}
         backAction={{ content: tr('Process Builder'), href: '/processes' }}
         renderLink={headerLink}
         primaryAction={{
@@ -151,7 +151,7 @@ export function ProcessEditor() {
         }
       />
       {showProblems && problems.length ? (
-        <Banner tone="critical" title={`Fix ${problems.length === 1 ? 'this' : 'these'} to save`}>
+        <Banner tone="critical" title={tr("Fix {value0} to save", { value0: problems.length === 1 ? 'this' : 'these' })}>
           <ul className="list-disc ps-5">
             {problems.map((p) => (
               <li key={p}>{p}</li>
@@ -186,18 +186,18 @@ export function ProcessEditor() {
                           {tr('Step')} {i + 1}: {s.name || 'Untitled step'}
                         </Text>
                         <div className="flex shrink-0 gap-1">
-                          <IconButton size="sm" icon={<ArrowUp />} label={`Move step ${i + 1} up`} disabled={i === 0} onClick={() => move(i, -1)} />
+                          <IconButton size="sm" icon={<ArrowUp />} label={tr("Move step {value0} up", { value0: i + 1 })} disabled={i === 0} onClick={() => move(i, -1)} />
                           <IconButton
                             size="sm"
                             icon={<ArrowDown />}
-                            label={`Move step ${i + 1} down`}
+                            label={tr("Move step {value0} down", { value0: i + 1 })}
                             disabled={i === draft.steps.length - 1}
                             onClick={() => move(i, 1)}
                           />
                           <IconButton
                             size="sm"
                             icon={<Trash2 />}
-                            label={`Remove step ${i + 1}`}
+                            label={tr("Remove step {value0}", { value0: i + 1 })}
                             disabled={draft.steps.length === 1}
                             onClick={() =>
                               setDraft({
@@ -210,7 +210,7 @@ export function ProcessEditor() {
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <Field label={tr('Step name')}>
-                          <Input value={s.name} onChange={(e) => setStep(i, { name: e.target.value })} />
+                          <Input value={tr(s.name)} onChange={(e) => setStep(i, { name: e.target.value })} />
                         </Field>
                         <Field label={tr('Approver')}>
                           <Select
@@ -294,7 +294,7 @@ export function ProcessEditor() {
                         ) : null}
                         <Field label={tr('Respond within')} helpText={tr('Approvers get a reminder after this.')}>
                           <Input
-                            suffix="hours"
+                            suffix={tr('hours')}
                             inputMode="numeric"
                             value={String(s.slaHours)}
                             onChange={(e) =>
@@ -315,17 +315,15 @@ export function ProcessEditor() {
                           <ChevronRight aria-hidden className={cn('size-4 transition-transform', openForms.includes(s.id) && 'rotate-90')} />{' '}
                           {tr('Approver fills in')}{' '}
                           <Badge size="sm" tone={s.fields?.length ? 'primary' : 'neutral'}>
-                            {s.fields?.length ? `${questionsOf(s.fields).length} fields` : tr('Nothing')}
+                            {s.fields?.length ? tr("{value0} fields", { value0: questionsOf(s.fields).length }) : tr('Nothing')}
                           </Badge>
                         </ButtonBase>
                         {openForms.includes(s.id) ? (
                           <>
                             <Text variant="bodySm" tone="muted">
                               {' '}
-                              {tr('Details')} {person(s.approverId).name.split(' ')[0]} adds when approving, like a budget code or PO number. Required ones must
-                              be filled in to approve, so this step can’t be approved in bulk.
-                            </Text>
-                            <FormBuilder noun="field" fields={s.fields ?? []} onChange={(fields) => setStep(i, { fields })} />
+                              {tr('Details')} {person(s.approverId).name.split(' ')[0]} {tr("adds when approving, like a budget code or PO number. Required ones must be filled in to approve, so this step can’t be approved in bulk.")}</Text>
+                            <FormBuilder noun={tr('field')} fields={s.fields ?? []} onChange={(fields) => setStep(i, { fields })} />
                           </>
                         ) : null}
                       </div>
@@ -362,13 +360,13 @@ export function ProcessEditor() {
           <div className="flex min-w-0 flex-col gap-6">
             {!isBuiltInType(draft.requestType) ? (
               <Card className="flex flex-col gap-4">
-                <CardHeader title={tr('Request type')} description="A request type you created. People pick it on the New request form." />
+                <CardHeader title={tr('Request type')} description={tr("A request type you created. People pick it on the New request form.")} />
                 <Field label={tr('Request type name')}>
-                  <Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                  <Input value={tr(draft.name)} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                 </Field>
                 <Field
                   label={tr('ID prefix')}
-                  helpText={`Requests are numbered ${(draft.prefix || 'XX').toUpperCase()}-0001, ${(draft.prefix || 'XX').toUpperCase()}-0002…`}
+                  helpText={tr('Requests are numbered {first}, {second}…', { first: `${(draft.prefix || 'XX').toUpperCase()}-0001`, second: `${(draft.prefix || 'XX').toUpperCase()}-0002` })}
                 >
                   <Input
                     value={draft.prefix ?? ''}
@@ -383,7 +381,7 @@ export function ProcessEditor() {
                 </Field>
                 <Switch
                   label={tr('Has an amount')}
-                  helpText="Adds an amount field, so steps can run only above a threshold."
+                  helpText={tr('Adds an amount field, so steps can run only above a threshold.')}
                   checked={Boolean(draft.hasAmount)}
                   onCheckedChange={(on) =>
                     setDraft({
@@ -409,7 +407,7 @@ export function ProcessEditor() {
               />
               {draft.submitters?.length ? (
                 <CheckGroup
-                  legend="Departments that can submit"
+                  legend={tr("Departments that can submit")}
                   options={DEPARTMENTS.map((d) => ({ value: d, label: d }))}
                   value={draft.submitters}
                   onChange={(v) =>
@@ -424,9 +422,9 @@ export function ProcessEditor() {
             <Card className="flex flex-col gap-3">
               <CardHeader
                 title={tr('Form fields')}
-                description="Extra questions on the request form, after title and description. Choices, yes/no, ratings, and questions that only appear for certain answers."
+                description={tr("Extra questions on the request form, after title and description. Choices, yes/no, ratings, and questions that only appear for certain answers.")}
               />
-              <FormBuilder noun="field" fields={draft.fields ?? []} onChange={(fields) => setDraft({ ...draft, fields })} />
+              <FormBuilder noun={tr('field')} fields={draft.fields ?? []} onChange={(fields) => setDraft({ ...draft, fields })} />
               {formProblems(draft.fields ?? []).length ? (
                 <Banner tone="warning" inline title={tr('Fix these before saving')}>
                   <ul className="list-disc ps-5">
@@ -440,7 +438,7 @@ export function ProcessEditor() {
             <Card className="lg:sticky lg:top-20">
               <CardHeader
                 title={tr('Try it')}
-                description={`Which steps a ${typeName(draft.requestType, state.processes).toLowerCase()} request would go through.`}
+                description={tr("Which steps a {value0} request would go through.", { value0: tr(typeName(draft.requestType, state.processes)).toLowerCase() })}
               />
               {hasAmount ? (
                 <Field label={tr('Request amount')} className="mt-4">
@@ -466,8 +464,8 @@ export function ProcessEditor() {
                 />
               </div>
               <Text variant="bodySm" tone="muted" className="mt-4">
-                {preview.length} of {draft.steps.length} {tr('steps run')}
-                {hasAmount ? ` for ${formatMoney(amount)}` : ''}.
+                {preview.length} {tr("of")}{' '}{draft.steps.length} {tr('steps run')}
+                {hasAmount ? ` ${tr("for {value0}", { value0: formatMoney(amount) })}` : ''}.
               </Text>
             </Card>
           </div>

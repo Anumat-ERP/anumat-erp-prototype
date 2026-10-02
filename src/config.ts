@@ -4,16 +4,16 @@
  */
 export const CONFIG = {
   support: {
-    /** Telegram username or group link, e.g. "https://t.me/anumat_support". */
-    telegram: '',
-    /** Facebook page or Messenger link, e.g. "https://m.me/anumat". */
-    facebook: '',
-    /** Support email address. */
-    email: '',
+    /** Telegram username or group link. Example default; replace with your real channel. */
+    telegram: 'https://t.me/anumat',
+    /** Facebook page or Messenger link. Example default; replace with your real page. */
+    facebook: 'https://facebook.com/anumat',
+    /** Support email address. Example default; replace with your real inbox. */
+    email: 'support@anumat.com',
   },
   sales: {
-    /** Where sales enquiries should go. */
-    email: '',
+    /** Where sales enquiries should go. Example default; replace with your real inbox. */
+    email: 'sales@anumat.com',
   },
   telegram: {
     /** Your notification bot's username, without the @, e.g. "AnumatBot". */

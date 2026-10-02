@@ -6,28 +6,33 @@ import { FeedbackInbox } from '../components/FeedbackInbox';
 import { canManageSurveys, hasAnswered, isOpen, surveyAudience, surveyResponsesFor, surveysToAnswer, useStore } from '../data/store';
 import type { DataState, Survey } from '../data/types';
 import { daysUntil, formatDate } from '../lib/format';
+import { useLocale } from '../i18n/LocaleProvider';
+import type { createTranslator } from '../i18n/locale';
 
-export function surveyStatus(survey: Survey): { label: string; tone: BadgeTone } {
-  if (survey.status === 'draft') return { label: 'Draft', tone: 'neutral' };
-  return isOpen(survey) ? { label: 'Open', tone: 'success' } : { label: 'Closed', tone: 'info' };
+type Translator = ReturnType<typeof createTranslator>;
+
+export function surveyStatus(survey: Survey, tr: Translator): { label: string; tone: BadgeTone } {
+  if (survey.status === 'draft') return { label: tr('Draft'), tone: 'neutral' };
+  return isOpen(survey) ? { label: tr('Open'), tone: 'success' } : { label: tr('Closed'), tone: 'info' };
 }
 
-export function audienceLabel(survey: Survey) {
-  return survey.audience.length ? survey.audience.join(', ') : 'Everyone';
+export function audienceLabel(survey: Survey, tr: Translator) {
+  return survey.audience.length ? survey.audience.map((department) => tr(department)).join(', ') : tr('Everyone');
 }
 
-export function closesLabel(survey: Survey) {
-  if (survey.status === 'draft') return 'Not sent yet';
-  if (!isOpen(survey)) return `Closed ${survey.closesAt ? formatDate(survey.closesAt) : ''}`.trim();
-  if (!survey.closesAt) return 'No closing date';
+export function closesLabel(survey: Survey, tr: Translator) {
+  if (survey.status === 'draft') return tr('Not sent yet');
+  if (!isOpen(survey)) return survey.closesAt ? tr('Closed {date}', { date: formatDate(survey.closesAt) }) : tr('Closed');
+  if (!survey.closesAt) return tr('No closing date');
   const d = daysUntil(survey.closesAt);
-  return d <= 0 ? 'Closes today' : d === 1 ? 'Closes tomorrow' : `Closes in ${d} days`;
+  return d <= 0 ? tr('Closes today') : d === 1 ? tr('Closes tomorrow') : tr('Closes in {count} days', { count: d });
 }
 
 const minutes = (s: Survey) => Math.max(1, Math.round(questionsOf(s.fields).length * 0.4));
 
 function SurveyRow({ state, survey, manage }: { state: DataState; survey: Survey; manage: boolean }) {
-  const status = surveyStatus(survey);
+  const { t: tr } = useLocale();
+  const status = surveyStatus(survey, tr);
   const audience = surveyAudience(state, survey);
   const answered = surveyResponsesFor(state, survey.id).length;
   const mine = hasAnswered(state, survey.id);
@@ -40,28 +45,26 @@ function SurveyRow({ state, survey, manage }: { state: DataState; survey: Survey
             to={survey.status === 'draft' ? `/surveys/${survey.id}/edit` : `/surveys/${survey.id}`}
             className="font-semibold text-fg underline-offset-2 hover:underline"
           >
-            {survey.title}
+            {tr(survey.title)}
           </Link>
           <Badge size="sm" tone={status.tone}>
-            {status.label}
+            {tr(status.label)}
           </Badge>
           {mine ? (
             <Badge size="sm" tone="success">
-              You answered
-            </Badge>
+              {tr("You answered")}</Badge>
           ) : null}
         </span>
         <Text variant="bodySm" tone="muted" className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="inline-flex items-center gap-1">
-            <Users aria-hidden className="size-3.5" /> {audienceLabel(survey)}
+            <Users aria-hidden className="size-3.5" /> {audienceLabel(survey, tr)}
           </span>
           {survey.anonymous ? (
             <span className="inline-flex items-center gap-1">
-              <EyeOff aria-hidden className="size-3.5" /> Anonymous
-            </span>
+              <EyeOff aria-hidden className="size-3.5" /> {tr("Anonymous")}</span>
           ) : null}
           <span>
-            {questionsOf(survey.fields).length} questions · {closesLabel(survey)}
+            {tr('{count} questions', { count: questionsOf(survey.fields).length })} · {closesLabel(survey, tr)}
           </span>
         </Text>
       </div>
@@ -69,7 +72,7 @@ function SurveyRow({ state, survey, manage }: { state: DataState; survey: Survey
         <div className="w-full sm:w-44">
           <ProgressBar
             size="sm"
-            label={`${answered} of ${audience.length} answered`}
+            label={tr('{answered} of {count} answered', { answered, count: audience.length })}
             value={answered}
             max={Math.max(1, audience.length)}
             tone={isOpen(survey) ? 'primary' : 'success'}
@@ -78,12 +81,12 @@ function SurveyRow({ state, survey, manage }: { state: DataState; survey: Survey
       ) : null}
       {asked && isOpen(survey) && !mine ? (
         <Button asChild variant="primary" size="sm">
-          <Link to={`/surveys/${survey.id}`}>Answer</Link>
+          <Link to={`/surveys/${survey.id}`}>{tr("Answer")}</Link>
         </Button>
       ) : manage ? (
         <Button asChild size="sm">
           <Link to={survey.status === 'draft' ? `/surveys/${survey.id}/edit` : `/surveys/${survey.id}`}>
-            {survey.status === 'draft' ? 'Edit draft' : 'See results'}
+            {survey.status === 'draft' ? tr('Edit draft') : tr('See results')}
           </Link>
         </Button>
       ) : null}
@@ -92,6 +95,7 @@ function SurveyRow({ state, survey, manage }: { state: DataState; survey: Survey
 }
 
 function SurveyList({ surveys, manage }: { surveys: Survey[]; manage: boolean }) {
+  const { t: tr } = useLocale();
   const { state } = useStore();
   const navigate = useNavigate();
   if (!surveys.length) {
@@ -100,10 +104,10 @@ function SurveyList({ surveys, manage }: { surveys: Survey[]; manage: boolean })
         <EmptyState
           size="card"
           headingAs="h3"
-          heading={manage ? 'No surveys yet' : 'No surveys for you'}
-          action={manage ? <Button onClick={() => navigate('/surveys/new')}>New survey</Button> : undefined}
+          heading={manage ? tr('No surveys yet') : tr('No surveys for you')}
+          action={manage ? <Button onClick={() => navigate('/surveys/new')}>{tr("New survey")}</Button> : undefined}
         >
-          {manage ? 'Ask the whole team or a few departments, and see the answers as they come in.' : 'When someone asks you for your view, it shows up here.'}
+          {manage ? tr('Ask the whole team or a few departments, and see the answers as they come in.') : tr('When someone asks you for your view, it shows up here.')}
         </EmptyState>
       </Card>
     );
@@ -120,6 +124,7 @@ function SurveyList({ surveys, manage }: { surveys: Survey[]; manage: boolean })
 }
 
 export function Surveys() {
+  const { t: tr } = useLocale();
   const { state } = useStore();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -136,24 +141,22 @@ export function Surveys() {
   const waiting = toAnswer.length ? (
     <section aria-labelledby="to-answer" className="flex flex-col gap-3">
       <Text as="h2" id="to-answer" variant="title">
-        Waiting for your answer
-      </Text>
+        {tr("Waiting for your answer")}</Text>
       <div className="grid gap-3 md:grid-cols-2">
         {toAnswer.map((s) => (
           <Card key={s.id} className="flex flex-col gap-3 border-primary/40">
             <div className="flex flex-col gap-1">
               <Text as="h3" variant="subtitle">
-                {s.title}
+                {tr(s.title)}
               </Text>
               <Text variant="bodySm" tone="muted">
-                {questionsOf(s.fields).length} questions · about {minutes(s)} min · {closesLabel(s)}
-                {s.anonymous ? ' · Anonymous' : ''}
+                {tr('{count} questions', { count: questionsOf(s.fields).length })} · {tr('about {count} min', { count: minutes(s) })} · {closesLabel(s, tr)}
+                {s.anonymous ? ` · ${tr('Anonymous')}` : ''}
               </Text>
             </div>
-            {s.description ? <Text variant="bodySm">{s.description}</Text> : null}
+            {s.description ? <Text variant="bodySm">{tr(s.description)}</Text> : null}
             <Button variant="primary" className="self-start" onClick={() => navigate(`/surveys/${s.id}`)}>
-              Answer now
-            </Button>
+              {tr("Answer now")}</Button>
           </Card>
         ))}
       </div>
@@ -163,19 +166,17 @@ export function Surveys() {
   return (
     <>
       <PageHeader
-        title="Surveys"
-        subtitle={manage ? 'Ask your team with your own questions, and see the answers as they come in.' : 'Share your view when your team asks.'}
-        primaryAction={manage ? { content: 'New survey', onAction: () => navigate('/surveys/new') } : undefined}
+        title={tr("Surveys")}
+        subtitle={manage ? tr('Ask your team with your own questions, and see the answers as they come in.') : tr('Share your view when your team asks.')}
+        primaryAction={manage ? { content: tr("New survey"), onAction: () => navigate('/surveys/new') } : undefined}
       />
       {manage ? (
         <Tabs value={params.get('tab') === 'feedback' ? 'feedback' : 'surveys'} onValueChange={(v) => setParams(v === 'feedback' ? { tab: 'feedback' } : {}, { replace: true })}>
-          <TabsList aria-label="Surveys and feedback">
+          <TabsList aria-label={tr("Surveys and feedback")}>
             <TabsTrigger value="surveys" badge={visible.length || undefined}>
-              Team surveys
-            </TabsTrigger>
+              {tr("Team surveys")}</TabsTrigger>
             <TabsTrigger value="feedback" badge={state.feedback.length + state.leads.length || undefined}>
-              Feedback &amp; enquiries
-            </TabsTrigger>
+              {tr("Feedback & enquiries")}</TabsTrigger>
           </TabsList>
           <TabsContent value="surveys" className="flex flex-col gap-6 pt-4">
             {waiting}
@@ -192,12 +193,10 @@ export function Surveys() {
             <section aria-labelledby="earlier" className="flex flex-col gap-3">
               {toAnswer.length ? (
                 <Text as="h2" id="earlier" variant="title">
-                  Other surveys
-                </Text>
+                  {tr("Other surveys")}</Text>
               ) : (
                 <h2 id="earlier" className="sr-only">
-                  Your surveys
-                </h2>
+                  {tr("Your surveys")}</h2>
               )}
               <SurveyList surveys={visible.filter((s) => !toAnswer.includes(s))} manage={false} />
             </section>

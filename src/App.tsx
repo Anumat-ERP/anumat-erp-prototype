@@ -1,4 +1,5 @@
-import { Fragment, useEffect, type ReactNode } from 'react';
+import { Fragment, useEffect, useRef, type ReactNode } from 'react';
+import { prefersReducedMotion } from './lib/motion';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router';
 import { TourPanel } from './components/DemoTour';
 import { Shell } from './layout/Shell';
@@ -28,14 +29,33 @@ import { Requests } from './pages/Requests';
 import { Tasks } from './pages/Tasks';
 import { Welcome } from './pages/Welcome';
 
-/** Scroll to the top and move focus to <main> when the page changes. */
+/** Scroll to the top and move focus to <main> when the page changes. In-page #links glide to their section. */
 function RouteFocus() {
-  const { pathname, hash } = useLocation();
+  const { pathname, hash, key } = useLocation();
+  const first = useRef(true);
   useEffect(() => {
-    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
-    else window.scrollTo(0, 0);
+    const initial = first.current;
+    first.current = false;
+    if (hash) {
+      const target = () => document.getElementById(hash.slice(1));
+      // Smooth only when you click a link on a page that is already showing; a fresh load jumps straight there.
+      const smooth = !initial && !prefersReducedMotion();
+      target()?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+      const el = target();
+      if (el && smooth) {
+        el.classList.remove('an-arrive');
+        void el.offsetWidth;
+        el.classList.add('an-arrive');
+      }
+      if (initial) {
+        // Fonts and images above the target can still shift layout; re-align once they settle.
+        const realign = () => target()?.scrollIntoView();
+        document.fonts.ready.then(realign);
+        if (document.readyState !== 'complete') window.addEventListener('load', realign, { once: true });
+      }
+    } else window.scrollTo(0, 0);
     document.getElementById('main-content')?.focus({ preventScroll: true });
-  }, [pathname, hash]);
+  }, [pathname, hash, key]);
   return null;
 }
 

@@ -9,6 +9,7 @@ import {
 ('use client');
 
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { useLocale } from '../../i18n/LocaleProvider';
 import {
   useMemo,
   useState,
@@ -213,6 +214,7 @@ export function DataTable<T>({
   style,
   ...props
 }: DataTableProps<T>) {
+  const { t: tr } = useLocale();
   const controlled = sortProp !== undefined;
   const [innerSort, setInnerSort] = useState<DataTableSort | null>(defaultSort);
   const sort = controlled ? sortProp : innerSort;
@@ -429,7 +431,7 @@ export function DataTable<T>({
                     <SelectionCheckbox
                       checked={selection.pageState}
                       onCheckedChange={selection.togglePage}
-                      label={`Select all ${rows.length} ${resourceName.plural} on this page`}
+                      label={tr('Select all {count} {resource} on this page', { count: rows.length, resource: tr(resourceName.plural) })}
                       disabled={rows.length === 0 || loading}
                     />
                   </span>
@@ -557,9 +559,7 @@ export function DataTable<T>({
                               onCheckedChange={(next) =>
                                 selection.toggle(id, next)
                               }
-                              label={`Select ${
-                                getRowLabel ? getRowLabel(row) : id
-                              }`}
+                              label={tr('Select {name}', { name: getRowLabel ? getRowLabel(row) : id })}
                             />
                           </span>
                         </TableCell>
@@ -623,7 +623,7 @@ export function DataTable<T>({
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <span className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm text-fg-muted shadow-sm">
             <Spinner size="sm" label={null} />
-            Loading {resourceName.plural}…
+            {tr('Loading {resource}…', { resource: tr(resourceName.plural) })}
           </span>
         </div>
       ) : null}

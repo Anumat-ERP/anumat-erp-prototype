@@ -12,6 +12,7 @@ import {
 import { cn } from '../lib/cn';
 import { formatCount } from '../lib/format';
 import { Label, LabelContent, labelClasses } from './label';
+import { useLocale } from '../../i18n/LocaleProvider';
 
 /** What a Field tells the control inside it. */
 export interface FieldContextValue {
@@ -249,6 +250,7 @@ export interface FieldErrorProps extends ComponentPropsWithRef<'p'> {
  * directly only for errors that belong to a whole form section.
  */
 export function FieldError({ className, children, ...props }: FieldErrorProps) {
+  const { t: tr } = useLocale();
   return (
     <p
       className={cn(
@@ -259,7 +261,7 @@ export function FieldError({ className, children, ...props }: FieldErrorProps) {
     >
       <CircleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
       <span className="min-w-0 break-words">
-        <span className="sr-only">Error: </span>
+        <span className="sr-only">{tr('Error:')} </span>
         {children}
       </span>
     </p>
@@ -281,6 +283,7 @@ export function CharacterCount({
   className,
   ...props
 }: CharacterCountProps) {
+  const { t: tr } = useLocale();
   return (
     <span
       className={cn(
@@ -294,7 +297,7 @@ export function CharacterCount({
         {formatCount(count)}/{formatCount(max)}
       </span>
       <span className="sr-only">
-        {formatCount(count)} of {formatCount(max)} characters
+        {tr('{count} of {max} characters', { count: formatCount(count), max: formatCount(max) })}
       </span>
     </span>
   );

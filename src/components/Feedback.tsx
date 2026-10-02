@@ -11,9 +11,10 @@ type Kind = 'survey' | 'feedback' | 'problem';
 
 /** 0–10 "how likely to recommend", as a row of radio buttons. */
 function ScoreScale({ value, onChange }: { value: number | null; onChange: (n: number) => void }) {
+  const { t: tr } = useLocale();
   return (
     <div className="flex flex-col gap-1.5">
-      <div role="radiogroup" aria-label="How likely are you to recommend Anumat, from 0 (not at all) to 10 (extremely)" className="flex flex-wrap gap-1">
+      <div role="radiogroup" aria-label={tr("How likely are you to recommend Anumat, from 0 (not at all) to 10 (extremely)")} className="flex flex-wrap gap-1">
         {Array.from({ length: 11 }, (_, n) => (
           <ButtonBase
             key={n}
@@ -32,8 +33,8 @@ function ScoreScale({ value, onChange }: { value: number | null; onChange: (n: n
         ))}
       </div>
       <div className="flex justify-between text-xs text-fg-muted" aria-hidden>
-        <span>Not at all likely</span>
-        <span>Extremely likely</span>
+        <span>{tr("Not at all likely")}</span>
+        <span>{tr("Extremely likely")}</span>
       </div>
     </div>
   );
@@ -98,7 +99,7 @@ export function FeedbackDialog({ kind, onClose }: { kind: Kind | null; onClose: 
     <Modal
       open={kind !== null}
       onOpenChange={(o) => (o ? undefined : onClose())}
-      title={copy.title}
+      title={tr(copy.title)}
       primaryAction={{ content: tr('Send'), onAction: submit }}
       secondaryActions={[{ content: tr('Cancel'), onAction: onClose }]}
     >
@@ -109,16 +110,15 @@ export function FeedbackDialog({ kind, onClose }: { kind: Kind | null; onClose: 
             <ScoreScale value={score} onChange={(n) => (setScore(n), setError(undefined))} />
           </fieldset>
         ) : null}
-        <Field label={copy.label} helpText={copy.help} error={error} optional={kind === 'survey'}>
+        <Field label={tr(copy.label)} helpText={copy.help} error={error} optional={kind === 'survey'}>
           <Textarea rows={3} autoGrow value={text} placeholder={copy.placeholder} onChange={(e) => (setText(e.target.value), setError(undefined))} />
         </Field>
         <Text variant="caption" tone="muted">
           {isSet(CONFIG.forms.feedbackUrl) ? (
             <>
-              Prefer a longer survey?{' '}
+              {tr("Prefer a longer survey?")}{' '}
               <a href={CONFIG.forms.feedbackUrl} target="_blank" rel="noopener noreferrer" className="text-fg-link underline">
-                Open the full form
-              </a>
+                {tr("Open the full form")}</a>
               .
             </>
           ) : (
@@ -161,20 +161,19 @@ export function SurveyPrompt() {
   };
   return (
     <aside
-      aria-label="Quick survey"
+      aria-label={tr("Quick survey")}
       className="fixed start-4 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] z-(--a-z-index-overlay) flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-3 rounded-lg border border-border bg-surface p-4 shadow-lg"
     >
       <div className="flex items-start justify-between gap-2">
         <Text as="h2" variant="label">
-          Quick question
-        </Text>
+          {tr("Quick question")}</Text>
         <IconButton size="sm" icon={<X />} label={tr('Not now')} onClick={() => close(true)} />
       </div>
       <Text>{tr('How likely are you to recommend Anumat to a colleague?')}</Text>
       <ScoreScale value={score} onChange={setScore} />
       {score !== null ? (
         <>
-          <Field label={score >= 9 ? 'What do you like most?' : 'What would make it a 10?'} optional>
+          <Field label={score >= 9 ? tr("What do you like most?") : tr("What would make it a 10?")} optional>
             <Textarea rows={2} autoGrow value={text} onChange={(e) => setText(e.target.value)} />
           </Field>
           <Button

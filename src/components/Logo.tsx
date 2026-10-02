@@ -1,10 +1,12 @@
+import { useLocale } from '../i18n/LocaleProvider';
 /**
  * The Anumat logo: Anumat Blue tile with the letter mark, plus wordmark. The wordmark follows the text colour.
  * The mark is redrawn from the hackathon logo image; swap in the designer's original paths when available.
  */
 export function Logo({ className }: { className?: string }) {
+  const { t: tr } = useLocale();
   return (
-    <svg viewBox="0 0 289.9 64" className={className} role="img" aria-label="Anumat">
+    <svg viewBox="0 0 289.9 64" className={className} role="img" aria-label={tr("Anumat")}>
       <rect width="64" height="64" rx="15" fill="#003D96" />
       <g fill="none" stroke="#FFFFFF" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M29.5 17 C26 12 20 13.5 21.5 20 L21.5 43 C21.5 49 17.5 51.5 13.5 49.5" />

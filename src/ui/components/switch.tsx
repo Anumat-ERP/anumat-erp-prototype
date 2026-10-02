@@ -25,6 +25,8 @@ export function Switch({
 }: SwitchProps) {
   const generated = useId();
   const id = props.id ?? generated;
+  // checked/defaultChecked belong to MuiSwitch; on the input too they trip React's controlled check.
+  const { checked: _checked, defaultChecked: _defaultChecked, ...inputProps } = props;
   const control = (
     <MuiSwitch
       size="small"
@@ -37,7 +39,7 @@ export function Switch({
       }}
       slotProps={{
         input: {
-          ...props,
+          ...inputProps,
           ref,
           id,
           role: 'switch',

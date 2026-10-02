@@ -1,5 +1,5 @@
 import { Button, IconButton, Text } from '@app/ui';
-import { ChevronDown, Eye, EyeOff, Presentation, X } from 'lucide-react';
+import { ChevronDown, Eye, EyeOff, Presentation, RotateCcw, X } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { useStore } from '../data/store';
@@ -178,7 +178,7 @@ export function TourPanel() {
         onClick={() => setMinimized(false)}
         className="fixed end-4 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] z-(--a-z-index-overlay) shadow-md"
       >
-        Tour {step + 1}/{TOUR.length}: {s.title}
+        {tr("Tour")}{' '}{step + 1}/{TOUR.length}: {tr(s.title)}
       </Button>
     );
   }
@@ -190,31 +190,32 @@ export function TourPanel() {
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col">
           <Text as="span" variant="caption" tone="muted" numeric>
-            Demo tour · {step + 1} of {TOUR.length} · as {person(s.as).name}
-            <span className="sr-only">. Page Down for the next step, Page Up to go back.</span>
+            <span className="whitespace-nowrap">{tr("Demo tour ·")}{' '}{step + 1} {tr("of")}{' '}{TOUR.length}</span>{' '}
+            <span className="whitespace-nowrap">{tr("· as")}{' '}{tr(person(s.as).name)}</span>
+            <span className="sr-only">{tr(". Page Down for the next step, Page Up to go back.")}</span>
           </Text>
           <Text as="h2" variant="subtitle">
-            {s.title}
+            {tr(s.title)}
           </Text>
         </div>
         <div className="flex shrink-0">
           <IconButton
             size="sm"
             icon={showScript ? <EyeOff /> : <Eye />}
-            label={showScript ? 'Hide the script' : 'Show the script'}
+            label={showScript ? tr("Hide the script") : tr("Show the script")}
             aria-pressed={showScript}
             onClick={toggleScript}
           />
-          <IconButton size="sm" icon={<ChevronDown />} label="Minimize demo tour" onClick={() => setMinimized(true)} />
-          <IconButton size="sm" icon={<X />} label="End demo tour" onClick={end} />
+          <IconButton size="sm" icon={<ChevronDown />} label={tr("Minimize demo tour")} onClick={() => setMinimized(true)} />
+          <IconButton size="sm" icon={<X />} label={tr("End demo tour")} onClick={end} />
         </div>
       </div>
       {showScript ? (
         <>
-          <p className="border-s-2 border-primary ps-3 text-md text-fg">“{s.say}”</p>
+          <p className="border-s-2 border-primary ps-3 text-md text-fg">“{tr(s.say)}”</p>
           <Text variant="bodySm" tone="muted">
-            <span className="font-semibold text-fg">Do: </span>
-            {s.doThis}
+            <span className="font-semibold text-fg">{tr("Do:")}</span>
+            {tr(s.doThis)}
           </Text>
         </>
       ) : null}
@@ -224,22 +225,20 @@ export function TourPanel() {
         ))}
       </ol>
       <div className="flex items-center justify-between gap-2">
-        <Button size="sm" variant="tertiary" disabled={step === 0} onClick={() => go(step - 1)}>
+        <Button size="sm" variant="tertiary" className="whitespace-nowrap" disabled={step === 0} onClick={() => go(step - 1)}>
           {' '}
           {tr('Back')}{' '}
         </Button>
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => go(step)}>
-            Redo step
-          </Button>
+        <div className="flex items-center gap-2">
+          <IconButton size="sm" icon={<RotateCcw />} label={tr("Redo step")} onClick={() => go(step)} />
           {last ? (
             <Button size="sm" variant="primary" onClick={end}>
               {' '}
               {tr('Finish')}{' '}
             </Button>
           ) : (
-            <Button size="sm" variant="primary" onClick={() => go(step + 1)}>
-              Next: {TOUR[step + 1]?.title}
+            <Button size="sm" variant="primary" className="whitespace-nowrap" onClick={() => go(step + 1)}>
+              {tr("Next:")}{' '}{tr(TOUR[step + 1]?.title ?? '')}
             </Button>
           )}
         </div>

@@ -49,8 +49,7 @@ export function RequestDetail() {
   if (!r) {
     return (
       <EmptyState heading={tr('This request doesn’t exist')} action={<Button onClick={() => navigate('/requests')}>{tr('Back to requests')}</Button>}>
-        It may have been removed, or the link is wrong.
-      </EmptyState>
+        {tr("It may have been removed, or the link is wrong.")}</EmptyState>
     );
   }
 
@@ -94,7 +93,7 @@ export function RequestDetail() {
             size="sm"
             variant="tertiary"
             icon={<Copy />}
-            label={`Copy ${r.id}`}
+            label={tr("Copy {value0}", { value0: r.id })}
             onClick={() => {
               navigator.clipboard?.writeText(r.id).then(
                 () => toast({ title: `Copied ${r.id}` }),
@@ -102,7 +101,7 @@ export function RequestDetail() {
                   toast({
                     tone: 'critical',
                     title: tr('Couldn’t copy'),
-                    description: 'Select the ID and copy it instead.',
+                    description: tr("Select the ID and copy it instead."),
                   }),
               );
             }}
@@ -149,13 +148,13 @@ export function RequestDetail() {
   return (
     <>
       <PageHeader
-        title={r.title}
+        title={tr(r.title)}
         titleMetadata={
           <Changed value={r.status} className="-mx-1 px-1">
             <StatusBadge status={r.status} />
           </Changed>
         }
-        subtitle={`${tr(typeName(r.type, state.processes))} request from ${person(r.requesterId).name} · updated ${formatRelative(r.updatedAt)}`}
+        subtitle={tr("{value0} request from {value1} · updated {value2}", { value0: tr(typeName(r.type, state.processes)), value1: person(r.requesterId).name, value2: formatRelative(r.updatedAt) })}
         backAction={{ content: tr('Requests'), href: '/requests' }}
         renderLink={headerLink}
         primaryAction={
@@ -166,7 +165,7 @@ export function RequestDetail() {
                   content: tr('Submit for approval'),
                   onAction: () => {
                     dispatch({ type: 'submit', requestId: r.id });
-                    toast({ tone: 'success', title: `Submitted ${r.id}` });
+                    toast({ tone: 'success', title: tr("Submitted {value0}", { value0: r.id }) });
                   },
                 }
               : requester && r.status === 'changes'
@@ -213,19 +212,15 @@ export function RequestDetail() {
 
       {mine ? (
         <Banner tone="warning" title={tr('Waiting on your decision')}>
-          You are the approver for <strong>{current?.name}</strong>.
-          {next ? ` After you, it goes to ${person(next.approverId).name} for ${next.name.toLowerCase()}.` : tr('Yours is the final step.')}
+          {tr("You are the approver for")}{' '}<strong>{tr(current?.name)}</strong>.
+          {next ? tr(" After you, it goes to {value0} for {value1}.", { value0: person(next.approverId).name, value1: next.name.toLowerCase() }) : tr('Yours is the final step.')}
           <span aria-hidden className="mt-2 hidden items-center gap-3 text-sm text-fg-muted md:flex">
-            Shortcuts:
+            {tr("Shortcuts:")}{' '}<span className="inline-flex items-center gap-1">
+              <Kbd size="sm">{tr("A")}</Kbd> {tr("approve")}</span>
             <span className="inline-flex items-center gap-1">
-              <Kbd size="sm">A</Kbd> approve
-            </span>
+              <Kbd size="sm">{tr("R")}</Kbd> {tr("request changes")}</span>
             <span className="inline-flex items-center gap-1">
-              <Kbd size="sm">R</Kbd> request changes
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <Kbd size="sm">D</Kbd> decline
-            </span>
+              <Kbd size="sm">{tr("D")}</Kbd> {tr("decline")}</span>
           </span>
         </Banner>
       ) : r.status === 'changes' ? (
@@ -244,11 +239,11 @@ export function RequestDetail() {
           {r.steps.find((s) => s.status === 'returned')?.comment ?? 'The approver asked for changes.'}
         </Banner>
       ) : r.status === 'withdrawn' ? (
-        <Banner tone="info">{requester ? tr('You') : person(r.requesterId).name} withdrew this request. Nobody needs to act on it.</Banner>
+        <Banner tone="info">{requester ? tr('You') : person(r.requesterId).name} {tr("withdrew this request. Nobody needs to act on it.")}</Banner>
       ) : r.status === 'pending' && current ? (
         <Banner tone="info">
           {' '}
-          {tr('Waiting on')} {person(current.approverId).name} for {current.name.toLowerCase()}.
+          {tr('Waiting on')} {tr(person(current.approverId).name)} {tr("for")}{' '}{current.name.toLowerCase()}.
         </Banner>
       ) : null}
 
@@ -262,7 +257,7 @@ export function RequestDetail() {
                 {' '}
                 {tr('Description')}{' '}
               </Text>
-              <Text className="max-w-prose">{r.description}</Text>
+              <Text className="max-w-prose">{tr(r.description)}</Text>
             </div>
           </Card>
 
@@ -273,7 +268,7 @@ export function RequestDetail() {
                 {r.attachments.map((a) => (
                   <li key={a.name} className="flex items-center gap-3 rounded-md border border-border px-3 py-2">
                     <Paperclip aria-hidden className="size-4 text-fg-subtle" />
-                    <span className="min-w-0 flex-1 truncate font-medium">{a.name}</span>
+                    <span className="min-w-0 flex-1 truncate font-medium">{tr(a.name)}</span>
                     <Text as="span" variant="bodySm" tone="muted" numeric>
                       {formatBytesShort(a.size)}
                     </Text>
@@ -295,7 +290,7 @@ export function RequestDetail() {
                     </Text>
                   </div>
                   <div className="min-w-0 ps-7">
-                    {a.kind === 'comment' ? <p className="rounded-md bg-surface-sunken px-3 py-2 break-words">{a.text}</p> : <Text tone="muted">{a.text}</Text>}
+                    {a.kind === 'comment' ? <p className="rounded-md bg-surface-sunken px-3 py-2 break-words">{a.text}</p> : <Text tone="muted">{tr(a.text)}</Text>}
                   </div>
                 </li>
               ))}
@@ -328,7 +323,7 @@ export function RequestDetail() {
 
         <div className="flex min-w-0 flex-col gap-6">
           <Card>
-            <CardHeader title="RACI" description="Worked out from the approval route and the linked meeting." />
+            <CardHeader title={tr("RACI")} description={tr("Worked out from the approval route and the linked meeting.")} />
             {(() => {
               const approvers = [...new Set(r.steps.map((s) => s.approverId))];
               const accountable = r.steps[r.steps.length - 1]?.approverId;
@@ -344,14 +339,14 @@ export function RequestDetail() {
                 <dl className="mt-3 grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-3 gap-y-2.5 text-md">
                   {rows.map(([letter, word, ids, hint]) => (
                     <div key={letter} className="contents">
-                      <dt className="pt-0.5 font-mono text-sm font-semibold text-fg-muted" title={word}>
-                        {letter}
-                        <span className="sr-only">{word.slice(1)}</span>
+                      <dt className="pt-0.5 font-mono text-sm font-semibold text-fg-muted" title={tr(word)}>
+                        <span aria-hidden="true">{letter}</span>
+                        <span className="sr-only">{tr(word)}</span>
                       </dt>
                       <dd className="flex flex-col">
                         <span>{ids.length ? ids.map((id) => (id === me.id ? tr('You') : person(id).name)).join(', ') : '—'}</span>
                         <Text as="span" variant="caption" tone="muted">
-                          {ids.length ? hint : r.status === 'draft' ? tr('Set when submitted') : tr('Nobody')}
+                          {ids.length ? tr(hint) : r.status === 'draft' ? tr('Set when submitted') : tr('Nobody')}
                         </Text>
                       </dd>
                     </div>
@@ -405,10 +400,10 @@ export function RequestDetail() {
           onAction: () => {
             dispatch({ type: 'withdraw', requestId: r.id });
             setConfirmWithdraw(false);
-            toast({ title: `Withdrew ${r.id}` });
+            toast({ title: tr("Withdrew {value0}", { value0: r.id }) });
           },
         }}
-        secondaryActions={[{ content: 'Keep it', onAction: () => setConfirmWithdraw(false) }]}
+        secondaryActions={[{ content: tr("Keep it"), onAction: () => setConfirmWithdraw(false) }]}
       >
         <Text>{tr('Approvers stop seeing it in their queue. To ask again, create a new request.')}</Text>
       </Modal>

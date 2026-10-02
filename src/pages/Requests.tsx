@@ -65,7 +65,7 @@ export function Requests() {
           <RequestIcon type={r.type} className="size-8" />
           <span className="flex min-w-0 flex-col">
             <Link to={`/requests/${r.id}`} className="truncate font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-ring">
-              {r.title}
+              {tr(r.title)}
             </Link>
             <Text as="span" variant="caption" tone="muted">
               {r.id} · {tr(typeName(r.type, state.processes))}
@@ -97,7 +97,7 @@ export function Requests() {
     },
     {
       id: 'updated',
-      header: 'Updated',
+      header: tr("Updated"),
       sortable: true,
       sortValue: (r) => r.updatedAt,
       cell: (r) => (
@@ -125,10 +125,10 @@ export function Requests() {
         </TabsList>
       </Tabs>
       <IndexTable<Request>
-        caption="Requests"
+        caption={tr("Requests")}
         captionHidden
         selectable={false}
-        resourceName={{ singular: 'request', plural: 'requests' }}
+        resourceName={{ singular: tr("request"), plural: tr("requests") }}
         columns={columns}
         rows={rows}
         getRowLabel={(r) => r.title}
@@ -137,21 +137,21 @@ export function Requests() {
           queryValue: query,
           onQueryChange: (v) => set('q', v),
           onQueryClear: () => set('q', ''),
-          queryPlaceholder: 'Search by title or ID',
-          queryLabel: 'Search requests',
+          queryPlaceholder: tr("Search by title or ID"),
+          queryLabel: tr("Search requests"),
           onClearAll: clearAll,
           filters: [
             {
               key: 'status',
               label: tr('Status'),
               pinned: true,
-              filter: <CheckGroup legend="Status" options={STATUS_OPTIONS} value={statuses} onChange={(v) => set('status', v.join(','))} />,
+              filter: <CheckGroup legend={tr("Status")} options={STATUS_OPTIONS} value={statuses} onChange={(v) => set('status', v.join(','))} />,
             },
             {
               key: 'type',
               label: tr('Type'),
               pinned: true,
-              filter: <CheckGroup legend="Type" options={TYPE_OPTIONS} value={types} onChange={(v) => set('type', v.join(','))} />,
+              filter: <CheckGroup legend={tr("Type")} options={TYPE_OPTIONS} value={types} onChange={(v) => set('type', v.join(','))} />,
             },
           ],
           appliedFilters: [
@@ -159,7 +159,7 @@ export function Requests() {
               ? [
                   {
                     key: 'status',
-                    label: `Status: ${statuses.map((s) => requestStatus[s].label).join(', ')}`,
+                    label: tr("Status: {value0}", { value0: statuses.map((s) => requestStatus[s].label).join(', ') }),
                     onRemove: () => set('status', ''),
                   },
                 ]
@@ -168,7 +168,7 @@ export function Requests() {
               ? [
                   {
                     key: 'type',
-                    label: `Type: ${types.map((t) => tr(typeName(t, state.processes))).join(', ')}`,
+                    label: tr("Type: {value0}", { value0: types.map((t) => tr(typeName(t, state.processes))).join(', ') }),
                     onRemove: () => set('type', ''),
                   },
                 ]
@@ -192,8 +192,7 @@ export function Requests() {
                 </Button>
               }
             >
-              Purchases, leave, expenses and contracts all start here.
-            </EmptyState>
+              {tr("Purchases, leave, expenses and contracts all start here.")}</EmptyState>
           )
         }
       />

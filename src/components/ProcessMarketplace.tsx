@@ -225,12 +225,11 @@ export function ProcessMarketplace() {
                           ),
                         )
                       }
-                      className="h-10 w-full rounded-md border border-border-input bg-surface px-3 text-fg focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-60"
+                      placeholder={tr('Choose an approver…')}
                     >
-                      <option value="">{tr('Choose an approver…')}</option>
                       {state.people.map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.name} · {p.role}
+                          {`${p.name} · ${tr(p.role)}`}
                         </option>
                       ))}
                     </Select>

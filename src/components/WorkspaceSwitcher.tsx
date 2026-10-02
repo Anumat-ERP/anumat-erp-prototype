@@ -29,14 +29,14 @@ export function WorkspaceSwitcher() {
         trigger={
           <ButtonBase
             type="button"
-            aria-label={`Workspace: ${state.org.name}. Switch workspace`}
+            aria-label={tr("Workspace: {value0}. Switch workspace", { value0: state.org.name })}
             className="flex w-full items-center gap-2.5 rounded-xl bg-surface-muted p-3 text-start hover:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
           >
             <span aria-hidden className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-subtle text-sm font-semibold text-primary-subtle-fg">
               {initials(state.org.name)}
             </span>
             <span className="flex min-w-0 flex-1 flex-col leading-tight">
-              <span className="truncate text-md font-semibold text-fg">{state.org.name}</span>
+              <span className="truncate text-md font-semibold text-fg">{tr(state.org.name)}</span>
               <span className="truncate text-xs text-fg-muted">{current?.access ? ACCESS[current.access] : ''}</span>
             </span>
             <ChevronsUpDown aria-hidden className="size-4 shrink-0 text-fg-subtle" />

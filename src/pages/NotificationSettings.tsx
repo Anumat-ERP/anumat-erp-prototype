@@ -50,7 +50,7 @@ export function NotificationSettings() {
     setConnecting(false);
     toast({
       tone: 'success',
-      title: 'Telegram connected',
+      title: tr("Telegram connected"),
       description: tr('Approval notifications now come to Telegram too.'),
     });
   };
@@ -66,13 +66,13 @@ export function NotificationSettings() {
               <Send aria-hidden className="size-5 text-info" /> {tr('Telegram')}{' '}
             </span>
           }
-          description="Get approvals and reminders where you already chat, and approve with one tap."
+          description={tr("Get approvals and reminders where you already chat, and approve with one tap.")}
           actions={connected ? <Badge tone="success">{tr('Connected')}</Badge> : null}
         />
         {connected ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-surface-sunken p-3">
             <Text>
-              Connected as <span className="font-mono font-medium">@{connected.username}</span> since {formatDate(connected.connectedAt)}.
+              {tr("Connected as")}{' '}<span className="font-mono font-medium">@{connected.username}</span> {tr("since")}{' '}{formatDate(connected.connectedAt)}.
             </Text>
             <div className="flex gap-2">
               <Button variant="primary" onClick={() => navigate('/telegram')}>
@@ -82,7 +82,7 @@ export function NotificationSettings() {
               <Button
                 onClick={() => {
                   dispatch({ type: 'disconnectTelegram' });
-                  toast({ title: 'Telegram disconnected' });
+                  toast({ title: tr("Telegram disconnected") });
                 }}
               >
                 {' '}
@@ -92,7 +92,7 @@ export function NotificationSettings() {
           </div>
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <Text tone="muted">Not connected. It takes about 20 seconds.</Text>
+            <Text tone="muted">{tr("Not connected. It takes about 20 seconds.")}</Text>
             <Button
               variant="primary"
               onClick={() => {
@@ -127,7 +127,7 @@ export function NotificationSettings() {
                 </th>
                 {CHANNELS.map((c) => (
                   <th key={c.id} scope="col" className="px-4 py-2 text-start text-sm font-medium text-fg-muted">
-                    {c.name}
+                    {tr(c.name)}
                   </th>
                 ))}
               </tr>
@@ -140,12 +140,12 @@ export function NotificationSettings() {
                     <span className="block text-sm text-fg-muted">{tr(e.help)}</span>
                   </th>
                   <td className="px-4 py-3">
-                    <Checkbox label={`${tr(e.name)} in app`} labelHidden checked disabled />
+                    <Checkbox label={tr("{value0} in app", { value0: tr(e.name) })} labelHidden checked disabled />
                   </td>
                   {CHANNELS.map((c) => (
                     <td key={c.id} className="px-4 py-3">
                       <Checkbox
-                        label={`${tr(e.name)} by ${c.name}`}
+                        label={tr("{value0} by {value1}", { value0: tr(e.name), value1: c.name })}
                         labelHidden
                         checked={prefs.events[e.id].includes(c.id)}
                         disabled={c.id === 'telegram' && !connected}
@@ -177,30 +177,29 @@ export function NotificationSettings() {
         open={connecting}
         onOpenChange={setConnecting}
         title={tr('Connect Telegram')}
-        primaryAction={{ content: 'I’ve sent the code', onAction: connect }}
+        primaryAction={{ content: tr("I’ve sent the code"), onAction: connect }}
         secondaryActions={[{ content: tr('Cancel'), onAction: () => setConnecting(false) }]}
       >
         <div className="flex flex-col gap-4">
           <ol className="flex list-decimal flex-col gap-3 ps-5 text-md">
             <li>
-              Open the Anumat bot in Telegram:{' '}
+              {tr("Open the Anumat bot in Telegram:")}{' '}
               {isSet(bot) ? (
                 <a href={`https://t.me/${bot}?start=${code}`} target="_blank" rel="noopener noreferrer" className="font-medium text-fg-link underline">
                   @{bot}
                 </a>
               ) : (
-                <span className="text-fg-muted">(the bot isn’t set up yet: add its username in src/config.ts)</span>
+                <span className="text-fg-muted">{tr("(the bot isn’t set up yet: add its username in src/config.ts)")}</span>
               )}
             </li>
             <li>
-              Send it this code: <span className="rounded-md bg-surface-sunken px-2 py-0.5 font-mono font-semibold tracking-wide select-all">{code}</span>
+              {tr("Send it this code:")}{' '}<span className="rounded-md bg-surface-sunken px-2 py-0.5 font-mono font-semibold tracking-wide select-all">{code}</span>
             </li>
-            <li>Come back here and confirm.</li>
+            <li>{tr("Come back here and confirm.")}</li>
           </ol>
           <Banner tone="info" inline>
-            Prototype: nothing is sent to Telegram. Enter your username to see how it works.
-          </Banner>
-          <Field label="Your Telegram username" error={error}>
+            {tr("Prototype: nothing is sent to Telegram. Enter your username to see how it works.")}</Banner>
+          <Field label={tr("Your Telegram username")} error={error}>
             <Input prefix="@" value={username} onChange={(e) => (setUsername(e.target.value), setError(undefined))} />
           </Field>
         </div>

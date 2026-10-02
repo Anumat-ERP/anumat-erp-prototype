@@ -12,8 +12,10 @@ import { downloadIcs, googleCalendarUrl } from '../lib/calendar';
 import { CalendarPlus, Download } from 'lucide-react';
 import { daysUntil, formatShortDate, formatTime, formatWeekday } from '../lib/format';
 import { useFresh } from '../lib/motion';
+import { useLocale } from '../i18n/LocaleProvider';
 
 export function MeetingDetail() {
+  const { t: tr } = useLocale();
   const { id } = useParams();
   const { state, person, dispatch } = useStore();
   const navigate = useNavigate();
@@ -29,9 +31,8 @@ export function MeetingDetail() {
   const freshItem = useFresh(state.tasks.filter((t) => m && t.source?.href === `/meetings/${m.id}`).map((t) => t.id));
   if (!m) {
     return (
-      <EmptyState heading="This meeting doesn’t exist" action={<Button onClick={() => navigate('/meetings')}>Back to meetings</Button>}>
-        It may have been cancelled, or the link is wrong.
-      </EmptyState>
+      <EmptyState heading={tr("This meeting doesn’t exist")} action={<Button onClick={() => navigate('/meetings')}>{tr("Back to meetings")}</Button>}>
+        {tr("It may have been cancelled, or the link is wrong.")}</EmptyState>
     );
   }
   const href = `/meetings/${m.id}`;
@@ -42,15 +43,15 @@ export function MeetingDetail() {
   return (
     <>
       <PageHeader
-        title={m.title}
-        subtitle={`${formatWeekday(m.start)}, ${formatTime(m.start)} · ${m.durationMin} min · ${m.location}`}
-        backAction={{ content: 'Meetings', href: '/meetings' }}
+        title={tr(m.title)}
+        subtitle={tr("{value0}, {value1} · {value2} min · {value3}", { value0: formatWeekday(m.start), value1: formatTime(m.start), value2: m.durationMin, value3: m.location })}
+        backAction={{ content: tr("Meetings"), href: '/meetings' }}
         renderLink={headerLink}
       />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-6">
           <Card>
-            <CardHeader title="Agenda" />
+            <CardHeader title={tr("Agenda")} />
             <List type="number" className="mt-3">
               {m.agenda.map((item) => (
                 <li key={item}>{item}</li>
@@ -59,7 +60,7 @@ export function MeetingDetail() {
           </Card>
 
           <Card>
-            <CardHeader title="Decisions" description="What was agreed. Everyone in the meeting can see these." />
+            <CardHeader title={tr("Decisions")} description={tr("What was agreed. Everyone in the meeting can see these.")} />
             {m.decisions.length ? (
               <ul className="mt-4 flex flex-col gap-3">
                 {m.decisions.map((d) => (
@@ -78,8 +79,7 @@ export function MeetingDetail() {
               </ul>
             ) : (
               <Text tone="muted" className="mt-3">
-                No decisions recorded yet.
-              </Text>
+                {tr("No decisions recorded yet.")}</Text>
             )}
             <form
               className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end"
@@ -88,20 +88,19 @@ export function MeetingDetail() {
                 if (!decision.trim()) return;
                 dispatch({ type: 'addDecision', meetingId: m.id, text: decision.trim() });
                 setDecision('');
-                toast({ tone: 'success', title: 'Decision recorded' });
+                toast({ tone: 'success', title: tr("Decision recorded") });
               }}
             >
-              <Field label="Record a decision" className="flex-1">
-                <Input value={decision} onChange={(e) => setDecision(e.target.value)} placeholder="We agreed to…" />
+              <Field label={tr("Record a decision")} className="flex-1">
+                <Input value={decision} onChange={(e) => setDecision(e.target.value)} placeholder={tr("We agreed to…")} />
               </Field>
               <Button type="submit" disabled={!decision.trim()}>
-                Record
-              </Button>
+                {tr("Record")}</Button>
             </form>
           </Card>
 
           <Card>
-            <CardHeader title="Action items" description="Each one becomes a task with an owner and a due date." />
+            <CardHeader title={tr("Action items")} description={tr("Each one becomes a task with an owner and a due date.")} />
             {actionItems.length ? (
               <ul className="mt-4 flex flex-col gap-3">
                 {actionItems.map((t) => {
@@ -112,13 +111,12 @@ export function MeetingDetail() {
                         checked={isDone(state, t)}
                         disabled={!canEditTask(state, t)}
                         onCheckedChange={(c) => move(t, firstStatus(state, c === true ? 'done' : 'todo'))}
-                        label={t.title}
+                        label={tr(t.title)}
                         helpText={`${person(t.ownerId).name} · due ${formatShortDate(t.due)}`}
                       />
                       {!isDone(state, t) && d < 0 ? (
                         <Badge tone="critical" size="sm">
-                          Overdue
-                        </Badge>
+                          {tr("Overdue")}</Badge>
                       ) : null}
                     </li>
                   );
@@ -126,8 +124,7 @@ export function MeetingDetail() {
               </ul>
             ) : (
               <Text tone="muted" className="mt-3">
-                No action items yet.
-              </Text>
+                {tr("No action items yet.")}</Text>
             )}
             <form
               className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_12rem_auto] sm:items-end"
@@ -143,44 +140,41 @@ export function MeetingDetail() {
                 });
                 setTask('');
                 setTaskError(undefined);
-                toast({ tone: 'success', title: `Task assigned to ${person(ownerId).name}`, description: 'Due in 7 days.' });
+                toast({ tone: 'success', title: `Task assigned to ${person(ownerId).name}`, description: tr("Due in 7 days.") });
               }}
             >
-              <Field label="New action item" error={taskError}>
-                <Input value={task} onChange={(e) => setTask(e.target.value)} placeholder="Send the updated quote" />
+              <Field label={tr("New action item")} error={taskError}>
+                <Input value={task} onChange={(e) => setTask(e.target.value)} placeholder={tr("Send the updated quote")} />
               </Field>
-              <Field label="Owner">
+              <Field label={tr("Owner")}>
                 <Select value={ownerId} onChange={(e) => setOwner(e.target.value)} options={m.attendeeIds.map((pid) => ({ value: pid, label: person(pid).name }))} />
               </Field>
-              <Button type="submit">Add</Button>
+              <Button type="submit">{tr("Add")}</Button>
             </form>
           </Card>
         </div>
 
         <div className="flex min-w-0 flex-col gap-6">
           <Card className="flex flex-col gap-3">
-            <CardHeader title="Add to your calendar" description="Anumat keeps the agenda and decisions; your calendar keeps the time." />
+            <CardHeader title={tr("Add to your calendar")} description={tr("Anumat keeps the agenda and decisions; your calendar keeps the time.")} />
             <div className="flex flex-wrap gap-2">
               <Button icon={<CalendarPlus />} asChild>
                 <a href={googleCalendarUrl(m)} target="_blank" rel="noopener noreferrer">
-                  Google Calendar
-                </a>
+                  {tr("Google Calendar")}</a>
               </Button>
               <Button icon={<Download />} onClick={() => downloadIcs(m)}>
-                Outlook or Apple (.ics)
-              </Button>
+                {tr("Outlook or Apple (.ics)")}</Button>
             </div>
           </Card>
           <Card>
-            <CardHeader title="People" />
+            <CardHeader title={tr("People")} />
             <ul className="mt-3 flex flex-col gap-3">
               {m.attendeeIds.map((pid) => (
                 <li key={pid} className="flex items-center justify-between gap-2">
                   <Person id={pid} showRole />
                   {pid === m.organizerId ? (
                     <Badge size="sm" tone="primary">
-                      Organiser
-                    </Badge>
+                      {tr("Organiser")}</Badge>
                   ) : null}
                 </li>
               ))}
@@ -188,11 +182,11 @@ export function MeetingDetail() {
           </Card>
           {requests.length ? (
             <Card>
-              <CardHeader title="Requests discussed" />
+              <CardHeader title={tr("Requests discussed")} />
               <ul className="mt-3 flex flex-col gap-3">
                 {requests.map((r) => (
                   <li key={r.id} className="flex flex-col items-start gap-1">
-                    <AppLink to={`/requests/${r.id}`}>{r.title}</AppLink>
+                    <AppLink to={`/requests/${r.id}`}>{tr(r.title)}</AppLink>
                     <StatusBadge status={r.status} size="sm" />
                   </li>
                 ))}
