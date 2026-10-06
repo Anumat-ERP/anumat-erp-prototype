@@ -1,3 +1,5 @@
+import { appPeople } from '../lib/appAccess';
+import type { WorkspaceApp } from '../lib/moduleEntry';
 import { Select, Tag, Text } from '@app/ui';
 import { useId } from 'react';
 import { useStore } from '../data/store';
@@ -5,6 +7,7 @@ import { useLocale } from '../i18n/LocaleProvider';
 
 /** Pick several people: removable tags plus an "Add person" menu. */
 export function PeoplePicker({
+  app,
   label,
   value,
   onChange,
@@ -12,6 +15,7 @@ export function PeoplePicker({
   disabled = false,
   emptyText = 'Nobody',
 }: {
+  app?: WorkspaceApp;
   label: string;
   value: string[];
   onChange: (ids: string[]) => void;
@@ -22,7 +26,7 @@ export function PeoplePicker({
   const { t: tr } = useLocale();
   const { state, person } = useStore();
   const id = useId();
-  const available = state.people.filter((p) => !value.includes(p.id) && !exclude.includes(p.id));
+  const available = (app ? appPeople(state, app) : state.people).filter((p) => !value.includes(p.id) && !exclude.includes(p.id));
   return (
     <div role="group" aria-labelledby={id} className="flex flex-col gap-2">
       <span id={id} className="sr-only">

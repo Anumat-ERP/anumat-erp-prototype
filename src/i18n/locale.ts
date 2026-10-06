@@ -7,6 +7,10 @@ export const intlLocale = (locale: Locale) => (locale === 'km' ? 'km-KH' : 'en-G
 export type Variables = Record<string, string | number>;
 
 const englishSingular: Record<string, string> = {
+  'Fix {count} problems to save': 'Fix {count} problem to save',
+  '{count} unfinished tasks will move.': '{count} unfinished task will move.',
+  '{count} unfinished tasks moved when this sprint closed.': '{count} unfinished task moved when this sprint closed.',
+  '{count} days': '{count} day',
   'Showing {count} requests on page {page}': 'Showing {count} request on page {page}',
   'Showing {count} matching requests on page {page}': 'Showing {count} matching request on page {page}',
   'Approved {count} requests': 'Approved {count} request',

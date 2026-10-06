@@ -1,0 +1,13 @@
+.an-workflow-guidance { border-block: 1px solid var(--border); }
+.an-workflow-trigger { min-height: 44px; padding: .75rem 0; font-size: .875rem; }
+.an-workflow-summary { margin: .25rem 0 1rem; line-height: 1.65; }
+.an-workflow-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; list-style: none; margin: 0; padding: 0; }
+.an-workflow-steps li { display: flex; align-items: flex-start; gap: .75rem; min-width: 0; }
+.an-workflow-number { display: grid; place-items: center; width: 1.5rem; height: 1.5rem; flex: none; border: 1px solid var(--border); border-radius: var(--a-radius-sm); color: var(--foreground); font-size: .75rem; }
+.an-workflow-steps h3 { color: var(--foreground); font-size: .875rem; font-weight: 600; line-height: 1.6; margin: 0; }
+.an-workflow-steps p { margin: .375rem 0; line-height: 1.65; overflow-wrap: anywhere; }
+.an-workflow-steps a, .an-workflow-docs { display: inline-flex; align-items: center; gap: .375rem; color: var(--a-color-fg-link); min-height: 36px; font-weight: 500; }
+.an-workflow-steps a:focus-visible, .an-workflow-docs:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.an-workflow-docs { margin-top: 1rem; }
+.an-workflow-access { display: inline-flex; align-items: center; gap: .375rem; margin-top: .5rem; }
+@media (max-width: 700px) { .an-workflow-steps { grid-template-columns: minmax(0, 1fr); gap: 1rem; } .an-workflow-steps a, .an-workflow-docs { min-height: 44px; } }

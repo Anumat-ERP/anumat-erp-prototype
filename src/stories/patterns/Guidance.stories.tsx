@@ -1,0 +1,11 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { WorkspaceGuide } from '../../components/WorkspaceGuide';
+import { AppContextBar } from '../../components/AppContext';
+import '../../styles/module-catalog.css';
+import '../../styles/app-context.css';
+export default {title:'Patterns/App identity and governance'} satisfies Meta;
+export const SOPRACIPrivacyAndHistory:StoryObj={render:()=> <WorkspaceGuide />};
+export const Tasks:StoryObj={render:()=> <AppContextBar app="tasks" />};
+export const Approvals:StoryObj={render:()=> <AppContextBar app="approvals" />};
+export const Meetings:StoryObj={render:()=> <AppContextBar app="meetings" />};
+export const Surveys:StoryObj={render:()=> <AppContextBar app="surveys" />};

@@ -135,7 +135,7 @@ export function Select({
       <SelectPrimitive.ItemText>{o.label}</SelectPrimitive.ItemText>
       <span className="absolute end-2 flex size-4 items-center justify-center">
         <SelectPrimitive.ItemIndicator>
-          <Check aria-hidden className="size-4 text-primary" />
+          <Check aria-hidden className="size-4 text-fg-link" />
         </SelectPrimitive.ItemIndicator>
       </span>
     </SelectPrimitive.Item>

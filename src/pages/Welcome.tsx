@@ -1,376 +1,90 @@
-import { Avatar, Banner, Button, Checkbox, cn, Field, IconButton, Input, Select, Text, useToast } from '@app/ui';
-import { Check, Copy, X } from 'lucide-react';
+import { Button, cn, Field, Input, RadioGroup, RadioGroupItem, Select, Text, useToast } from '@app/ui';
+import { ArrowRight, Check, FileCheck2 } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { PublicHeader } from '../components/PublicHeader';
-import { RequestIcon } from '../components/RequestIcon';
-import onboardingArt from '../assets/illustrations/workspace-folder.webp';
+import { WorkflowIllustration } from '../components/WorkflowIllustration';
 import { useStore } from '../data/store';
 import { useLocale } from '../i18n/LocaleProvider';
-import { formatMoney } from '../lib/format';
+import { BUSINESS_STARTERS, businessStarter, isBusinessStarter, type BusinessStarter } from '../lib/businessStarter';
+import { APP_CATALOG } from '../lib/appCatalog';
 import { prefersReducedMotion } from '../lib/motion';
+import '../styles/sme-experience.css';
 
-const SIZES = [
-  { value: '1–49', label: '1–49 people' },
-  { value: '50–199', label: '50–199 people' },
-  { value: '200–499', label: '200–499 people' },
-  { value: '500+', label: '500 or more' },
-];
-
-const ROLES = [
-  {
-    value: 'admin',
-    label: 'Admin',
-    help: 'Manages people, processes and statuses',
-  },
-  { value: 'member', label: 'Member', help: 'Raises requests, works on tasks' },
-];
-
-/** Suggested role for each demo person, based on their job. */
-const DEFAULT_ROLE: Record<string, string> = { sokha: 'admin' };
-
-const STEPS = ['Your company', 'Invite your team', 'Approval processes'];
-
-const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '') || 'yourcompany';
-
-interface Invite {
-  email: string;
-  name?: string;
-  role: string;
+const SIZES = ['1–9', '10–49', '50–199', '200–499', '500+'];
+const STEPS = ['Your company', 'Your starting point', 'Review & create'];
+const DRAFT_KEY = 'anumat-workspace-setup-v1';
+function loadDraft() {
+  try { const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}'); return { name: typeof draft.name === 'string' ? draft.name : '', size: SIZES.includes(draft.size) ? draft.size : '10–49', starter: isBusinessStarter(draft.starter) ? draft.starter : 'work' as BusinessStarter, step: draft.name?.trim() && [0, 1, 2].includes(draft.step) ? draft.step as number : 0 }; }
+  catch { return { name: '', size: '10–49', starter: 'work' as BusinessStarter, step: 0 }; }
 }
 
-/**
- * Sign-up for a new workspace: the organisation is the account. A mock for
- * the demo; nothing leaves the browser and no email is sent.
- */
 export function Welcome() {
   const { t: tr } = useLocale();
   const { state, me, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [params] = useSearchParams();
-  const [step, setStepState] = useState(0);
-  // Which way the last move went, so the next step slides in from that side.
+  const demo = params.get('demo') === '1';
+  const [draft] = useState(loadDraft);
+  const [step, setStepState] = useState(demo ? 0 : draft.step);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
-  const setStep = (next: number) => {
-    setDirection(next > step ? 'forward' : 'back');
-    setStepState(next);
-  };
+  const setStep = (next: number) => { setDirection(next > step ? 'forward' : 'back'); setStepState(next); };
+  const [name, setName] = useState(demo ? state.org.name : draft.name);
+  const [size, setSize] = useState(demo && SIZES.includes(state.org.size) ? state.org.size : draft.size);
+  const [starter, setStarter] = useState<BusinessStarter>(isBusinessStarter(params.get('starter')) ? params.get('starter') as BusinessStarter : draft.starter);
+  const [nameError, setNameError] = useState<string>();
+  const [draftSaved, setDraftSaved] = useState(false);
+  const submitting = useRef(false);
   const firstRender = useRef(true);
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
-    // Land on the new step: back to the top on small screens, focus on its heading for screen readers.
+    if (firstRender.current) { firstRender.current = false; return; }
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     document.querySelector<HTMLElement>('.an-step-panel h1')?.focus({ preventScroll: true });
   }, [step]);
-  // The demo tour opens sign-up with the company already named, to save time on stage.
-  const [name, setName] = useState(params.get('demo') ? 'Lotus Logistics' : '');
-  const [size, setSize] = useState('50–199');
-  const [nameError, setNameError] = useState<string>();
-  const [invites, setInvites] = useState<Invite[]>([]);
-  const [newEmail, setNewEmail] = useState('');
-  const [emailError, setEmailError] = useState<string>();
-  const [copied, setCopied] = useState(false);
-  const [processIds, setProcessIds] = useState<string[]>(state.processes.map((p) => p.id));
-  const [processError, setProcessError] = useState<string>();
-
-  const domain = `${slug(name)}.com`;
-  const code = `${slug(name).slice(0, 5).toUpperCase()}-7F2K`;
-
-  const next = (e: FormEvent) => {
-    e.preventDefault();
-    if (step === 0) {
-      if (!name.trim()) {
-        setNameError(tr('Enter your company’s name. You can change it later.'));
-        return;
-      }
-      if (invites.length === 0) {
-        // Suggest the rest of the demo team, with addresses on the company’s domain.
-        setInvites(
-          state.people
-            .filter((p) => p.id !== me.id)
-            .map((p) => ({
-              email: `${p.name.split(' ')[0]?.toLowerCase()}@${domain}`,
-              name: p.name,
-              role: DEFAULT_ROLE[p.id] ?? 'member',
-            })),
-        );
-      }
-      setStep(1);
-      return;
-    }
-    if (step === 1) {
-      setStep(2);
-      return;
-    }
-    const access = Object.fromEntries(
-      invites.flatMap((i) => {
-        const p = state.people.find((x) => x.name === i.name);
-        return p ? [[p.id, i.role as 'admin' | 'member']] : [];
-      }),
-    );
-    // The demo tour renames the current workspace; everyone else gets a new one.
-    if (params.get('demo'))
-      dispatch({
-        type: 'setupOrg',
-        name: name.trim(),
-        size,
-        activeProcessIds: processIds,
-        access,
-      });
-    else
-      dispatch({
-        type: 'createWorkspace',
-        name: name.trim(),
-        size,
-        activeProcessIds: processIds,
-        access,
-      });
-    toast({
-      tone: 'success',
-      title: `Welcome to ${name.trim()}`,
-      description: `${invites.length} teammates invited · ${processIds.length} approval processes on.`,
-    });
-    navigate('/discover');
+  useEffect(() => {
+    if (demo || submitting.current) return;
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ name, size, starter, step })); setDraftSaved(!!name.trim()); }
+    catch { setDraftSaved(false); }
+  }, [name, size, starter, step, demo]);
+  const selected = businessStarter(starter);
+  const next = (event: FormEvent) => {
+    event.preventDefault();
+    if (!name.trim()) { setNameError(tr('Enter your company’s name. You can change it later.')); setStep(0); return; }
+    if (step < 2) { setStep(step + 1); return; }
+    submitting.current = true;
+    if (demo) dispatch({ type: 'setupOrg', name: name.trim(), size, starter, activeProcessIds: state.processes.filter(process => process.active).map(process => process.id) });
+    else dispatch({ type: 'createWorkspace', name: name.trim(), size, starter, activeProcessIds: [] });
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* Creation works when draft storage is unavailable. */ }
+    toast({ tone: 'success', title: tr('Workspace created'), description: tr('Start with one workflow. Add your team when you are ready.') });
+    navigate(starter === 'all' ? '/discover' : `/home?app=${selected.app}`);
   };
-
-  const addInvite = () => {
-    const email = newEmail.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError(tr('Enter an email address, like name@company.com.'));
-      return;
-    }
-    if (invites.some((i) => i.email === email)) {
-      setEmailError('That person is already on the list.');
-      return;
-    }
-    setInvites([...invites, { email, role: 'member' }]);
-    setNewEmail('');
-    setEmailError(undefined);
-  };
-
-  const copyCode = () => {
-    const done = () => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    };
-    try {
-      navigator.clipboard.writeText(code).then(done, done);
-    } catch {
-      done();
-    }
-  };
-
-  return (
-    <div className="an-setup min-h-dvh bg-bg text-fg">
-      <PublicHeader setup={tr('Set up account')} progress={(step + 1) / 3 * 100} onBack={() => step ? setStep(step - 1) : navigate('/')} />
-      <main id="main-content" tabIndex={-1} className={cn('an-setup-main outline-none', step === 2 && 'an-setup-main-wide')}>
-        <div className="an-setup-copy">
-        <ol className="flex flex-wrap gap-x-6 gap-y-2" aria-label={tr("Sign-up steps")}>
-          {STEPS.map((label, i) => (
-            <li key={label} aria-current={i === step ? 'step' : undefined} className="flex items-center gap-2 text-sm">
-              <span
-                aria-hidden
-                className={cn(
-                  'an-step-dot flex size-6 items-center justify-center rounded-full text-xs font-semibold',
-                  i < step && 'bg-success text-success-fg',
-                  i === step && 'bg-primary text-primary-fg',
-                  i > step && 'border border-border-strong text-fg-muted',
-                )}
-              >
-                {i < step ? <Check className="an-step-check size-3.5" /> : i + 1}
-              </span>
-              <span className={i === step ? 'font-semibold text-fg' : 'text-fg-muted'}>
-                {tr(label)}
-                {i < step ? <span className="sr-only"> {tr('(done)')}</span> : null}
-              </span>
-            </li>
-          ))}
-        </ol>
-
-        <form noValidate onSubmit={next}>
-          <div className="an-setup-form flex flex-col gap-7">
-            <div key={step} className="an-step-panel flex flex-col gap-7" data-direction={direction}>
-            {step === 0 ? (
-              <>
-                <div className="flex flex-col gap-1">
-                  <Text as="h1" variant="heading" className="an-setup-title outline-none" tabIndex={-1}>
-                    {' '}
-                    {tr('Create your workspace')}{' '}
-                  </Text>
-                  <Text tone="muted">{tr('One workspace for your whole company. You’ll be its owner.')}</Text>
-                </div>
-                <Field label={tr('Company name')} required error={nameError}>
-                  <Input
-                    autoFocus
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      if (nameError) setNameError(undefined);
-                    }}
-                    placeholder={tr("Lotus Logistics")}
-                  />
-                </Field>
-                <Field label={tr('Company size')} required>
-                  <Select value={size} onChange={(e) => setSize(e.target.value)} options={SIZES.map((s) => ({ value: s.value, label: tr(s.label) }))} />
-                </Field>
-                <div className="flex items-center gap-3 rounded-md bg-surface-sunken p-3">
-                  <Avatar name={me.name} size="sm" decorative />
-                  <Text variant="bodySm" tone="muted">
-                    {tr("Signed up as")}{' '}<span className="font-medium text-fg">{tr(me.name)}</span>, {tr(me.role)}
-                  </Text>
-                </div>
-              </>
-            ) : null}
-
-            {step === 1 ? (
-              <>
-                <div className="flex flex-col gap-1">
-                  <Text as="h1" variant="heading" className="an-setup-title outline-none" tabIndex={-1}>
-                    {' '}
-                    {tr('Invite your team')}{' '}
-                  </Text>
-                  <Text tone="muted">
-                    {tr("They join")}{' '}{name.trim()} {tr("when they accept. Admins manage the workspace; who approves what comes from your approval processes, next.")}</Text>
-                </div>
-                <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
-                  {invites.map((inv) => (
-                    <li key={inv.email} className="flex flex-wrap items-center gap-3 px-3 py-2">
-                      <Avatar name={inv.name ?? inv.email} size="sm" decorative />
-                      <span className="flex min-w-40 flex-1 flex-col">
-                        <span className="truncate text-md">{inv.name ?? inv.email}</span>
-                        {inv.name ? <span className="truncate text-sm text-fg-muted">{inv.email}</span> : null}
-                      </span>
-                      <Select
-                        size="sm"
-                        aria-label={tr("Role for {value0}", { value0: inv.name ?? inv.email })}
-                        value={inv.role}
-                        onChange={(e) => setInvites(invites.map((i) => (i.email === inv.email ? { ...i, role: e.target.value } : i)))}
-                        options={ROLES.map((r) => ({
-                          value: r.value,
-                          label: r.label,
-                        }))}
-                        className="w-32"
-                      />
-                      <IconButton
-                        size="sm"
-                        icon={<X />}
-                        label={tr("Remove {value0}", { value0: inv.name ?? inv.email })}
-                        onClick={() => setInvites(invites.filter((i) => i.email !== inv.email))}
-                      />
-                    </li>
-                  ))}
-                  {invites.length === 0 ? <li className="px-3 py-4 text-md text-fg-muted">{tr("No one yet. Add people below, or share the invite code.")}</li> : null}
-                </ul>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                  <Field label={tr('Add by email')} error={emailError} className="flex-1">
-                    <Input
-                      type="email"
-                      value={newEmail}
-                      placeholder={`name@${domain}`}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addInvite();
-                        }
-                      }}
-                    />
-                  </Field>
-                  <Button className="sm:mt-6" onClick={addInvite}>
-                    {' '}
-                    {tr('Add')}{' '}
-                  </Button>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-surface-muted p-3">
-                  <div className="flex flex-col">
-                    <Text variant="label">{tr("Or share an invite code")}</Text>
-                    <Text variant="bodySm" tone="muted">
-                      {tr("Anyone with it can ask to join. You approve them.")}</Text>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-md bg-surface px-2 py-1 font-mono text-md tracking-wide select-all">{code}</span>
-                    <Button size="sm" icon={copied ? <Check /> : <Copy />} onClick={copyCode}>
-                      {copied ? tr('Copied') : tr('Copy')}
-                    </Button>
-                  </div>
-                </div>
-                <Text variant="caption" tone="subtle">
-                  {tr("Roles:")}{' '}{ROLES.map((r) => `${r.label}, ${r.help.toLowerCase()}`).join(' · ')}.
-                </Text>
-              </>
-            ) : null}
-
-            {step === 2 ? (
-              <>
-                <div className="flex flex-col gap-1">
-                  <Text as="h1" variant="heading" className="an-setup-title outline-none" tabIndex={-1}>
-                    {' '}
-                    {tr('Choose how things get approved')}{' '}
-                  </Text>
-                  <Text tone="muted">{state.processes.length
-                    ? tr("Choose the processes to enable. You can change them later in Process Builder.")
-                    : tr("No approval processes yet. Create this workspace, then add a process before submitting requests.")}</Text>
-                </div>
-                {processError ? <Banner tone="critical">{processError}</Banner> : null}
-                <fieldset className="an-process-choices grid gap-5 sm:grid-cols-2">
-                  <legend className="sr-only">{tr('Approval processes to turn on')}</legend>
-                  {state.processes.map((p) => (
-                    <label htmlFor={`setup-${p.id}`} key={p.id} className={cn('an-process-choice flex cursor-pointer flex-col bg-card', processIds.includes(p.id) && 'an-process-choice-selected')}>
-                      <span className="flex items-start justify-between gap-4">
-                        <RequestIcon type={p.requestType} className="size-12" />
-                        <Checkbox id={`setup-${p.id}`} label={tr(p.name)} labelHidden aria-describedby={`setup-${p.id}-description`}
-                          checked={processIds.includes(p.id)}
-                          onCheckedChange={(c) => {
-                            setProcessIds(c === true ? [...processIds, p.id] : processIds.filter((id) => id !== p.id));
-                            setProcessError(undefined);
-                          }} />
-                      </span>
-                      <span className="mt-7 block text-xl font-semibold">{tr(p.name)}</span>
-                      <span id={`setup-${p.id}-description`} className="mt-3 block text-sm leading-relaxed text-fg-muted">{p.steps.map((s) => s.minAmount === undefined ? s.name : tr("{value0} over {value1}", { value0: s.name, value1: formatMoney(s.minAmount).replace('.00', '') })).join(' → ')}</span>
-                    </label>
-                  ))}
-                </fieldset>
-              </>
-            ) : null}
-
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
-              {step > 0 ? (
-                <Button variant="tertiary" onClick={() => setStep(step - 1)}>
-                  {' '}
-                  {tr('Back')}{' '}
-                </Button>
-              ) : (
-                <Button variant="tertiary" onClick={() => navigate('/')}>
-                  {' '}
-                  {tr('Cancel')}{' '}
-                </Button>
-              )}
-              <div className="flex gap-2">
-                {step === 1 ? (
-                  <Button variant="tertiary" onClick={() => setStep(2)}>
-                    {' '}
-                    {tr('Skip for now')}{' '}
-                  </Button>
-                ) : null}
-                <Button type="submit" variant="primary">
-                  {step === 2 ? tr('Create workspace') : tr('Continue')}
-                </Button>
-              </div>
-            </div>
+  return <div className="an-setup min-h-dvh bg-bg text-fg">
+    <PublicHeader setup={tr('Set up account')} progress={(step + 1) / 3 * 100} onBack={() => step ? setStep(step - 1) : navigate('/')} />
+    <main id="main-content" tabIndex={-1} className="an-setup-main an-sme-setup outline-none">
+      <div className="an-setup-copy">
+        <ol className="an-sme-setup-progress" aria-label={tr('Sign-up steps')}>{STEPS.map((label, index) => <li key={label} aria-current={index === step ? 'step' : undefined}><span aria-hidden className={cn('an-step-dot', index <= step && 'an-step-dot-active')}>{index < step ? <Check size={14} /> : index + 1}</span><span>{tr(label)}</span></li>)}</ol>
+        <form noValidate onSubmit={next} className="an-setup-form">
+          <div key={step} data-direction={direction} className="an-step-panel an-sme-setup-panel">
+            {step === 0 && <><h1 tabIndex={-1} className="an-setup-title outline-none">{tr('Create your workspace')}</h1><p>{tr('Tell us about your company. Start with one workflow and grow from there.')}</p>
+              <Field label={tr('Company name')} required error={nameError}><Input autoFocus value={name} maxLength={120} onChange={event => { setName(event.target.value); setNameError(undefined); }} placeholder={tr('Your company name')} autoComplete="organization" /></Field>
+              <Field label={tr('Company size')}><Select value={size} onChange={event => setSize(event.target.value)} options={SIZES.map(value => ({ value, label: tr('{size} people', { size: value }) }))} /></Field>
+              <p className="an-sme-setup-note">{tr('Workspace owner: {name}', { name: me.name })}</p></>}
+            {step === 1 && <><h1 tabIndex={-1} className="an-setup-title outline-none">{tr('What would you like to improve first?')}</h1><p>{tr('Choose a starting point. All twelve apps remain available; this does not change permissions.')}</p>
+              <RadioGroup legend={tr('Your starting point')} legendHidden value={starter} onValueChange={value => { if (isBusinessStarter(value)) setStarter(value); }} className="an-starter-choices">{BUSINESS_STARTERS.map(option => <RadioGroupItem key={option.id} value={option.id} label={tr(option.title)} helpText={tr(option.description)} className="an-starter-choice" />)}</RadioGroup>
+              <p className="an-sme-setup-note">{tr('Invite teammates from People & roles inside an app after setup.')}</p></>}
+            {step === 2 && <><h1 tabIndex={-1} className="an-setup-title outline-none">{tr('Ready for your first workflow')}</h1><p>{tr('Check your choices, then open your workspace.')}</p>
+              <dl className="an-sme-review">{[{ label: 'Company', value: name.trim(), edit: 0 }, { label: 'Company size', value: tr('{size} people', { size }), edit: 0 }, { label: 'Your starting point', value: tr(selected.title), edit: 1 }].map(row => <div key={row.label}><dt>{tr(row.label)}</dt><dd>{row.value}</dd><Button variant="tertiary" size="sm" aria-label={tr('Edit {field}', { field: tr(row.label) })} onClick={() => setStep(row.edit)}>{tr('Edit')}</Button></div>)}</dl>
+              <div className="an-sme-first-step"><FileCheck2 size={20} aria-hidden /><div><strong>{tr('Your first step')}</strong><p>{tr(starter === 'people' ? 'Add your first employee record, then invite an HR teammate.' : starter === 'all' ? 'Explore the app groups and choose one workflow to try.' : 'Create an approval process, then submit your first request.')}</p></div></div>
+              {!demo && <p className="an-sme-setup-note">{tr('A new workspace starts empty. No teammates are invited during setup.')}</p>}
+            </>}
           </div>
+          <div className="an-sme-setup-actions"><Button variant="tertiary" onClick={() => step ? setStep(step - 1) : navigate('/')}>{tr(step ? 'Back' : 'Cancel')}</Button><Button type="submit" variant="primary" trailingIcon={<ArrowRight size={16} />}>{tr(step === 2 ? 'Create workspace' : 'Continue')}</Button></div>
         </form>
-        <Text variant="caption" tone="subtle" align="center">
-          {tr('Prototype: nothing leaves your browser and no emails are sent.')}
-        </Text>
-        </div>
-        {step < 2 ? <aside className="an-setup-art" aria-hidden="true"><img src={onboardingArt} alt="" width="1024" height="1024" /></aside> : null}
-      </main>
-    </div>
-  );
+        {draftSaved && <Text variant="caption" tone="muted">{tr('Your progress is saved on this device.')}</Text>}
+        <p className="an-sme-setup-note">{tr('Browser-only prototype. Changes stay on this device.')}</p>
+      </div>
+      <aside className="an-sme-setup-aside"><WorkflowIllustration starter={starter} loading="eager" /><h2>{tr('Small start. Room to grow.')}</h2><p>{tr('Keep decisions, responsibilities, and next steps together. Add more apps as your team needs them.')}</p><ul>{selected.apps.map(app => { const Icon = APP_CATALOG[app].icon; return <li key={app}><Icon size={18} aria-hidden />{tr(APP_CATALOG[app].title)}</li>; })}</ul></aside>
+    </main>
+  </div>;
 }

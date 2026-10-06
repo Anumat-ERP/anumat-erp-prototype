@@ -62,6 +62,7 @@ export interface PageHeaderProps
   /** How many secondary actions stay visible before overflowing into the menu. */
   maxVisibleSecondaryActions?: number;
   /** A Pagination for moving between records (previous/next order). */
+  moreActionsLabel?: string;
   pagination?: ReactNode;
   /** Render the back link with your router. */
   renderLink?: (props: PageHeaderRenderLinkProps) => ReactNode;
@@ -84,6 +85,7 @@ export function PageHeader({
   primaryAction,
   secondaryActions,
   maxVisibleSecondaryActions = 2,
+  moreActionsLabel,
   pagination,
   renderLink,
   className,
@@ -179,6 +181,7 @@ export function PageHeader({
               <PageActions
                 actions={secondaryActions}
                 maxVisible={maxVisibleSecondaryActions}
+                moreLabel={moreActionsLabel}
                 className="contents"
               />
             ) : null}

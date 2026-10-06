@@ -1,3 +1,5 @@
+import {SurveyFollowUp} from '../components/SurveyFollowUp';
+import { ANONYMOUS_SURVEY_MIN_RESPONSES } from '../lib/surveys';
 import {
   Avatar,
   Badge,
@@ -32,7 +34,7 @@ import { audienceLabel, closesLabel, surveyStatus } from './Surveys';
 import { useLocale } from '../i18n/LocaleProvider';
 
 /** Results stay hidden below this many answers on anonymous surveys, so nobody can be picked out. */
-const ANON_MIN = 3;
+const ANON_MIN = ANONYMOUS_SURVEY_MIN_RESPONSES;
 
 function Answers({ survey, response }: { survey: Survey; response: SurveyResponse }) {
   const { person } = useStore();
@@ -95,7 +97,7 @@ function AnswerPanel({ survey }: { survey: Survey }) {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const found = validateForm(survey.fields, values);
+    const found = validateForm(survey.fields, values, tr);
     setErrors(found);
     if (Object.keys(found).length) {
       requestAnimationFrame(() => focusFirstError(survey.fields, found, 'answer'));
@@ -124,7 +126,7 @@ function AnswerPanel({ survey }: { survey: Survey }) {
           values={values}
           onChange={(v) => {
             setValues(v);
-            if (count) setErrors(validateForm(survey.fields, v));
+            if (count) setErrors(validateForm(survey.fields, v, tr));
           }}
           errors={errors}
           idPrefix="answer"
@@ -390,6 +392,7 @@ export function SurveyDetail() {
           </TabsList>
           <TabsContent value="results" className="pt-4">
             <ResultsPanel survey={survey} responses={responses} />
+            <SurveyFollowUp key={survey.id} survey={survey} />
           </TabsContent>
           <TabsContent value="responses" className="pt-4">
             <ResponsesPanel survey={survey} responses={responses} />

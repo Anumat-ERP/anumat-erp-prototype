@@ -1,0 +1,29 @@
+.an-date-popover { padding: .75rem; min-width: 0; }
+.an-calendar {
+  --rdp-accent-color: var(--foreground);
+  --rdp-accent-background-color: var(--sidebar-accent);
+  --rdp-day-height: 2.25rem;
+  --rdp-day-width: 2.25rem;
+  --rdp-day_button-height: 2.25rem;
+  --rdp-day_button-width: 2.25rem;
+  --rdp-day_button-border-radius: var(--a-radius-md);
+  --rdp-day_button-border: 1px solid transparent;
+  --rdp-selected-border: 1px solid transparent;
+  --rdp-today-color: var(--foreground);
+  --rdp-weekday-opacity: 1;
+  font-size: .875rem;
+}
+.an-calendar .rdp-dropdowns { flex: 1; gap: .5rem; }
+.an-calendar .rdp-month_caption { gap: .5rem; }
+.an-calendar .rdp-weekday { color: var(--muted-foreground); font-weight: 500; }
+.an-calendar .rdp-day_button:hover { background: var(--muted); }
+.an-calendar .rdp-selected .rdp-day_button { background: var(--primary); color: var(--primary-foreground); font-weight: 600; }
+.an-calendar .rdp-today:not(.rdp-selected) .rdp-day_button { border-color: var(--border); font-weight: 600; }
+.an-calendar .rdp-day_button:focus-visible,
+.an-calendar .rdp-button_next:focus-visible,
+.an-calendar .rdp-button_previous:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.an-calendar .rdp-day_button:disabled { cursor: not-allowed; }
+.an-calendar .rdp-button_next,
+.an-calendar .rdp-button_previous { border-radius: var(--a-radius-md); }
+.an-calendar .rdp-button_next:hover,
+.an-calendar .rdp-button_previous:hover { background: var(--muted); }

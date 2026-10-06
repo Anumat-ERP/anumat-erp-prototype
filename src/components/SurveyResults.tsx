@@ -132,7 +132,9 @@ function QuestionResult({
   const tooFew = anonymous && answers.length > 0 && answers.length < minAnswers;
 
   let body;
-  if (tooFew) {
+  if (anonymous && ['text','longtext','email','phone','url','person','department'].includes(field.kind)) {
+    body = <Text tone="muted">{tr('Individual text and identifying answers are withheld from anonymous results.')}</Text>;
+  } else if (tooFew) {
     body = (
       <Text tone="muted" variant="bodySm">
         {tr("Hidden until")}{' '}{minAnswers} {tr("people answer this question, so nobody can be picked out.")}{' '}{answers.length} {tr("so far.")}</Text>

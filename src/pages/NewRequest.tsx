@@ -1,3 +1,4 @@
+import { canContributeToApp } from '../lib/appAccess';
 import {
   Banner,
   Button,
@@ -112,7 +113,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
     else if (route.length === 0) e.type = 'Nobody approves this type yet: its approval process is off. Ask an admin to turn it on.';
     if (!title.trim()) e.title = 'Give the request a short title, like “Laptops for new hires”.';
     if (hasAmount && type !== 'contract' && !(amountNumber > 0)) e.amount = 'Enter the amount in US dollars, for example 1250.';
-    for (const [id, message] of Object.entries(validateForm(customFields, answers))) e[`field-${id}`] = message;
+    for (const [id, message] of Object.entries(validateForm(customFields, answers, tr))) e[`field-${id}`] = message;
     if (type === 'leave') {
       if (!startDate) e.startDate = 'Choose the first day of leave.';
       if (!endDate) e.endDate = 'Choose the last day of leave.';
@@ -123,6 +124,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
   };
 
   const save = (submit: boolean) => (event?: FormEvent) => {
+    if (!canContributeToApp(state, 'approvals')) { event?.preventDefault(); return; }
     event?.preventDefault();
     if (uploadingFiles) return;
     const e = submit ? validate() : title.trim() ? {} : { title: tr('A draft needs at least a title.') };
@@ -250,12 +252,14 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
               <div className="grid gap-4 sm:grid-cols-2">
                 <DatePicker
                   label={tr('First day')}
+                  required
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   error={errors.startDate ? tr(errors.startDate!) : undefined}
                 />
                 <DatePicker
                   label={tr('Last day')}
+                  required
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   error={errors.endDate ? tr(errors.endDate!) : undefined}
@@ -290,7 +294,7 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
                 maxSize={20_000_000}
                 hint={tr('Quotes, receipts or contracts. PDF, images or spreadsheets, up to 20 MB each.')}
                 error={fileError}
-                disabled={uploadingFiles}
+                disabled={uploadingFiles || !canContributeToApp(state, 'approvals')}
                 size="sm"
                 onDrop={async (accepted, rejected) => {
                   setFileError(rejected[0]?.message);
@@ -321,12 +325,12 @@ function RequestForm({ existing: saved }: { existing?: Request }) {
             </div>
             <div className="flex flex-wrap justify-end gap-2">
               {existing?.status !== 'changes' ? (
-                <Button type="button" disabled={uploadingFiles} onClick={save(false)}>
+                <Button type="button" disabled={uploadingFiles || !canContributeToApp(state, 'approvals')} onClick={save(false)}>
                   {' '}
                   {tr('Save draft')}{' '}
                 </Button>
               ) : null}
-              <Button type="submit" variant="primary" disabled={uploadingFiles}>
+              <Button type="submit" variant="primary" disabled={uploadingFiles || !canContributeToApp(state, 'approvals')}>
                 {existing?.status === 'changes' ? tr('Resubmit') : tr('Submit for approval')}
               </Button>
             </div>

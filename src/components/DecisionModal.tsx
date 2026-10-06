@@ -75,7 +75,7 @@ export function DecisionModal({
   const confirm = () => {
     if (!decision) return;
     if (asking) {
-      const found = validateForm(fields, answers);
+      const found = validateForm(fields, answers, tr);
       setFieldErrors(found);
       if (Object.keys(found).length) {
         requestAnimationFrame(() => focusFirstError(fields, found, 'step'));
@@ -118,7 +118,7 @@ export function DecisionModal({
               values={answers}
               onChange={(v) => {
                 setAnswers(v);
-                if (Object.keys(fieldErrors).length) setFieldErrors(validateForm(fields, v));
+                if (Object.keys(fieldErrors).length) setFieldErrors(validateForm(fields, v, tr));
               }}
               errors={fieldErrors}
               idPrefix="step"

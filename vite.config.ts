@@ -24,8 +24,12 @@ export default defineConfig(({ mode }) => ({
           rollupOptions: {
             output: {
               // Keep third-party code in its own long-cached chunk.
-              manualChunks: (id) =>
-                id.includes('node_modules') ? 'vendor' : undefined,
+              manualChunks: (id) => {
+                if (id.includes('/node_modules/lottie-web/')) return 'lottie-vendor';
+                if (/node_modules\/(?:@xyflow)/.test(id)) return 'flow-vendor';
+                if (/node_modules\/(?:@tiptap|prosemirror-|orderedmap|rope-sequence|w3c-keyname)/.test(id)) return 'editor-vendor';
+                return id.includes('node_modules') ? 'vendor' : undefined;
+              },
             },
           },
         },

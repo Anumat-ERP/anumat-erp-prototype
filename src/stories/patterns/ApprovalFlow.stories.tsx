@@ -1,0 +1,10 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import ProcessSimulation from '../../components/ProcessSimulation';
+import { routeFor } from '../../data/store';
+import { demoProcess } from '../fixtures';
+const meta={title:'Patterns/Approval simulation',component:ProcessSimulation,args:{steps:routeFor([demoProcess],'purchase',1500),allSteps:demoProcess.steps},parameters:{docs:{description:{component:'React Flow diagram and accessible list use the actual computed route. Start, approve, return, decline, and reset change preview state only. Finance review requires an amount above 1,000.'}}}} satisfies Meta<typeof ProcessSimulation>;
+export default meta;
+type Story=StoryObj<typeof meta>;
+export const FullRoute:Story={};
+export const ConditionalStepSkipped:Story={args:{steps:routeFor([demoProcess],'purchase',500)}};
+export const NoMatchingReviewers:Story={args:{steps:[]}};

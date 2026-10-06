@@ -1,11 +1,15 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button } from '@app/ui';
-import { ArrowRight, ArrowUp, Calendar, Check, CheckSquare, FileText, History, Inbox, ShieldCheck, Workflow } from 'lucide-react';
+import { APP_CATALOG, APP_GROUPS } from '../lib/appCatalog';
+import { BUSINESS_STARTERS } from '../lib/businessStarter';
+import '../styles/sme-experience.css';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Tabs, TabsList, TabsTrigger, TabsContent } from '@app/ui';
+import { ArrowRight, ArrowUp, Check, History, ShieldCheck } from 'lucide-react';
 import { useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ContactChannels } from '../components/ContactChannels';
 import { useTour } from '../components/DemoTour';
 import { Logo } from '../components/Logo';
 import { PublicHeader } from '../components/PublicHeader';
+import { WorkflowIllustration } from '../components/WorkflowIllustration';
 import { useLocale } from '../i18n/LocaleProvider';
 import { useStore } from '../data/store';
 import { workspaceEntryPath } from '../lib/moduleEntry';
@@ -13,14 +17,6 @@ import { useReveal } from '../lib/motion';
 import workspaceArt from '../assets/illustrations/workspace-folder.webp';
 import dashboardPreview from '../assets/illustrations/dashboard-preview.webp';
 
-const MODULES = [
-  { icon: FileText, title: 'Requests', text: 'Purchases, leave, expenses and contracts. Raise a request with the details your approvers need.', to: '/requests', tone: 'blue' },
-  { icon: Inbox, title: 'Approvals', text: 'A focused queue for each approver. Review the context, make a decision and keep work moving.', to: '/approvals', tone: 'purple' },
-  { icon: Workflow, title: 'Approval processes', text: 'Choose who approves what. Route requests by type and amount, with rules you can change.', to: '/processes', tone: 'green' },
-  { icon: Calendar, title: 'Meetings', text: 'Agendas, recorded decisions and action items.', to: '/meetings', tone: 'blue' },
-  { icon: FileText, title: 'Documents', text: 'Files linked to the decision they support, with versions.', to: '/documents', tone: 'purple' },
-  { icon: CheckSquare, title: 'Tasks', text: 'Follow-ups with an owner, a deadline and a source.', to: '/tasks', tone: 'green' },
-];
 const FLOW = [
   { title: 'Raise a request', text: 'Add the context, amount and supporting files in one place.' },
   { title: 'Send it to the right people', text: 'Your approval process decides the route, so ownership is clear.' },
@@ -30,9 +26,9 @@ const FLOW = [
 ];
 const FAQ = [
   { q: 'What is Anumat?', a: 'A decision and operations workspace. Requests, approvals, meetings, documents and tasks live in one place, linked to each other, so every request ends in a clear decision and the work that follows it.' },
-  { q: 'Who is it for?', a: 'Operations, finance and people teams at companies of roughly 20 to 500 people who approve spend, leave and contracts over email today.' },
+  { q: 'Who is it for?', a: 'Small and medium businesses that need clearer approvals, task ownership, and people operations. Start with the workflow that causes the most chasing today.' },
   { q: 'What can I try in the prototype?', a: 'Submit requests, review approvals, build approval processes and switch between demo people. Changes are saved in your browser. Reset the demo from the account menu whenever you want.' },
-  { q: 'How does pricing work?', a: 'It’s free during the pilot, with fair-use limits. Pricing will be agreed with pilot companies before the pilot ends. Cloud, private cloud and on-premise deployment options are described on the pricing page.' },
+  { q: 'How does pricing work?', a: 'The browser prototype is free to explore. A live pilot, pricing, support, and deployment need an agreed scope before a customer rollout.' },
   { q: 'Does this prototype send real messages?', a: 'No. This prototype keeps demo data in your browser. Email, Telegram and sign-in interactions are demonstrations.' },
 ];
 
@@ -51,14 +47,14 @@ export function Landing() {
     <main ref={mainRef} id="main-content" tabIndex={-1} className="outline-none">
       <section className="an-marketing-hero" aria-labelledby="hero-title">
         <div className="an-hero-copy an-stagger">
-          <span className="an-eyebrow">{tr('Decision & operations ERP')}</span>
-          <h1 id="hero-title">{tr('Every request becomes a clear decision.')}</h1>
-          <p>{tr('Requests, approvals, meetings, documents and tasks in one workspace. Everyone knows who decides, what was decided, and what happens next.')}</p>
+
+          <h1 id="hero-title">{tr('Your team’s work, with a clear next step.')}</h1>
+          <p>{tr('For small and medium businesses: keep approvals, tasks, and people operations together. Know who owns the work, what needs a decision, and what happens next.')}</p>
           <div className="flex flex-wrap gap-4">
-            <Button variant="primary" size="lg" trailingIcon={<ArrowRight />} onClick={startFree}>{tr('Start free')}</Button>
-            <Button size="lg" onClick={tour.start}>{tr('See how it works')}</Button>
+            <Button variant="primary" size="lg" trailingIcon={<ArrowRight />} onClick={() => navigate(entryPath)}>{tr('Explore the demo')}</Button>
+            <Button size="lg" asChild><Link to="/pricing#contact-sales">{tr('Plan your rollout')}</Link></Button>
           </div>
-          <p className="an-hero-note">{tr('Free during the pilot. Set up your company in about a minute.')}</p>
+          <p className="an-hero-note">{tr('Explore in English or Khmer. This browser prototype saves changes on your device.')}</p>
         </div>
         <div className="an-hero-preview">
           <span className="an-preview-tag"><Check aria-hidden className="size-4" />{tr('Clear decisions')}</span>
@@ -70,7 +66,7 @@ export function Landing() {
         {['Purchase requests', 'Leave and time off', 'Expense claims', 'Contract review', 'Policies and documents', 'Meeting decisions'].map((label) => <span key={label}><Check aria-hidden className="size-4" />{tr(label)}</span>)}
       </div>
       <section data-reveal className="an-public-section" aria-labelledby="problem-title">
-        <div className="an-section-intro"><span className="an-eyebrow">{tr('The problem')}</span><h2 id="problem-title">{tr('Work slows down when decisions are scattered.')}</h2></div>
+        <div className="an-section-intro"><h2 id="problem-title">{tr('Work slows down when decisions are scattered.')}</h2></div>
         <div className="an-problem-grid">{[
           { title: 'Lost requests', text: 'Important requests get buried in email and chat threads.' },
           { title: 'Unclear ownership', text: 'Nobody is sure who decides, or what happens next.' },
@@ -88,21 +84,21 @@ export function Landing() {
         </div>
       </section>
       <section data-reveal id="product" className="an-public-section" aria-labelledby="product-title">
-        <div className="an-section-intro"><h2 id="product-title">{tr('One workspace. Less back and forth.')}</h2><p>{tr('Keep the request, the people and the decision connected.')}</p></div>
-        <div className="an-module-grid an-stagger">{MODULES.map(({ icon: Icon, title, text, to, tone }) => <Link className="an-module-card" to={to} key={title}>
-          <span className={`an-module-icon an-module-${tone}`} aria-hidden><Icon className="size-6" /></span><h3>{tr(title)}</h3><p>{tr(text)}</p><span className="an-module-link">{tr('Explore')}<ArrowRight aria-hidden className="size-4" /></span>
-        </Link>)}</div>
+        <div className="an-section-intro"><h2 id="product-title">{tr('Start with the work that matters most.')}</h2><p>{tr('Choose a starting point, then add more apps as your team grows.')}</p></div>
+        <Tabs defaultValue="work"><TabsList aria-label={tr('Choose a business starting point')} className="an-business-tabs">{BUSINESS_STARTERS.map(option => <TabsTrigger key={option.id} value={option.id}>{tr(option.title)}</TabsTrigger>)}</TabsList>
+          {BUSINESS_STARTERS.map(option => <TabsContent key={option.id} value={option.id}><div className="an-business-overview"><div><div className="an-business-intro"><div><h3>{tr(option.title)}</h3><p>{tr(option.description)}</p></div><WorkflowIllustration starter={option.id} className="an-business-illustration" /></div><ol className="an-business-steps">{APP_CATALOG[option.app].steps.map((step, index) => <li key={step.title}><span>{index + 1}</span><div><strong>{tr(step.title)}</strong><p>{tr(step.text)}</p></div></li>)}</ol><Button asChild variant="primary"><Link to={`/welcome?starter=${option.id}`}>{tr('Set up this workflow')}<ArrowRight size={16} aria-hidden /></Link></Button></div><ul className="an-business-apps">{(option.id === 'all' ? APP_GROUPS.flatMap(group => [...group.apps]) : option.apps).map(app => { const guide = APP_CATALOG[app]; const Icon = guide.icon; return <li key={app}><Link to={`/docs/${app === 'approvals' ? 'workflow-approvals' : app}`}><Icon size={20} aria-hidden /><span><strong>{tr(guide.title)}</strong><span>{tr(guide.description)}</span></span><ArrowRight size={16} aria-hidden /></Link></li>; })}</ul></div></TabsContent>)}
+        </Tabs>
       </section>
       <section data-reveal id="trust" className="an-public-section an-trust-section" aria-labelledby="trust-title">
         <div><h2 id="trust-title">{tr('Know who decides. Know what happened.')}</h2><p>{tr('Approvers are assigned by your process. Decisions and comments stay with the request, so the history is easy to follow.')}</p></div>
         <div className="an-trust-list"><div><ShieldCheck aria-hidden /><h3>{tr('People and roles')}</h3><p>{tr('Choose who manages your workspace and who reviews each request.')}</p></div><div><History aria-hidden /><h3>{tr('A history you can follow')}</h3><p>{tr('See every submission, decision and comment, with who and when.')}</p></div></div>
       </section>
       <section data-reveal id="faq" className="an-public-section an-faq-section" aria-labelledby="faq-title"><h2 id="faq-title">{tr('A few things to know')}</h2><Accordion type="single" collapsible>{FAQ.map(({q,a},i) => <AccordionItem value={`faq-${i}`} key={q}><AccordionTrigger>{tr(q)}</AccordionTrigger><AccordionContent>{tr(a)}</AccordionContent></AccordionItem>)}</Accordion></section>
-      <section data-reveal className="an-public-section an-public-close"><h2>{tr('Bring clarity to every decision.')}</h2><p>{tr('Join the pilot and shape what we build.')}</p><div className="an-pilot-grid">{[
-        { title: 'Free while it lasts', text: 'No fee during the pilot, with fair-use limits.' },
-        { title: 'Live in a minute', text: 'Starter processes for purchases, expenses, leave and contracts.' },
-        { title: 'Direct line to us', text: 'Your feedback goes straight into the roadmap.' },
-      ].map(({ title, text }) => <div key={title}><h3>{tr(title)}</h3><p>{tr(text)}</p></div>)}</div><Button size="lg" trailingIcon={<ArrowRight />} variant="primary" onClick={startFree}>{tr('Start free')}</Button></section>
+      <section data-reveal className="an-public-section an-public-close"><h2>{tr('Start small. Build a workflow your team can follow.')}</h2><p>{tr('Explore the prototype, choose one real business problem, and plan a pilot around it.')}</p><div className="an-pilot-grid">{[
+        { title: 'Try the workflow', text: 'Explore the browser prototype before deciding on a rollout.' },
+        { title: 'Agree the pilot scope', text: 'Choose the people, workflow, and outcome you want to test.' },
+        { title: 'Plan the next step', text: 'Discuss pricing, support, and hosting before a live deployment.' },
+      ].map(({ title, text }) => <div key={title}><h3>{tr(title)}</h3><p>{tr(text)}</p></div>)}</div><Button size="lg" trailingIcon={<ArrowRight />} variant="primary" onClick={startFree}>{tr('Create a workspace')}</Button></section>
     </main>
     <footer className="an-public-footer">
       <div className="an-footer-grid">

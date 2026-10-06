@@ -1,3 +1,5 @@
+import { IconButton } from './button';
+import { useLocale } from '../../i18n/LocaleProvider';
 import { Search, X } from 'lucide-react';
 import {
   useRef,
@@ -46,7 +48,7 @@ export function Input({
   suffix,
   clearable,
   onClear,
-  clearLabel = 'Clear',
+  clearLabel,
   invalid: invalidProp,
   showCharacterCount,
   inputClassName,
@@ -61,6 +63,7 @@ export function Input({
   placeholder,
   ...props
 }: InputProps) {
+  const { t: tr } = useLocale();
   const field = useField();
   const { invalid: _invalid, ...control } = useFieldControl({
     ...props,
@@ -139,14 +142,7 @@ export function Input({
         {canClear || suffix ? (
           <span className="absolute end-1.5 flex items-center gap-1">
             {canClear ? (
-              <button
-                type="button"
-                aria-label={clearLabel}
-                onClick={clear}
-                className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-              >
-                <X aria-hidden className="size-4" />
-              </button>
+              <IconButton label={clearLabel ?? tr('Clear')} size="sm" icon={<X aria-hidden className="size-4" />} onClick={clear} className="size-7 text-muted-foreground" />
             ) : null}
             {suffix}
           </span>

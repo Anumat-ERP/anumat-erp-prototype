@@ -1,3 +1,4 @@
+import { canContributeToApp } from '../lib/appAccess';
 import { Card, PageHeader, Text } from '@app/ui';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -31,20 +32,24 @@ export function Home() {
       <PageHeader
         title={`${tr(greeting())}, ${me.name.split(' ')[0]}`}
         subtitle={tr("Here's what's happening in your workspace.")}
-        primaryAction={{ content: tr('New request'), icon: <Plus />, onAction: () => navigate('/requests/new') }}
+        primaryAction={canContributeToApp(state, 'approvals') ? { content: tr('New request'), icon: <Plus />, onAction: () => navigate('/requests/new') } : undefined}
       />
       <FlowStrip counts={homeCounts(state)} />
       <div className="grid items-start gap-6 lg:grid-cols-3">
         <div className="min-w-0 lg:col-span-2">
           <WaitingList />
         </div>
-        <DecisionTimeCard />
+        <DecisionTimeCard section="requests" />
       </div>
+      <details className="an-workspace-disclosure">
+        <summary>{tr('Reports & recent activity')}</summary>
+        <div className="pt-6">
       <div className="grid items-start gap-6 lg:grid-cols-3">
         <div className="min-w-0 lg:col-span-2">
           <RequestsChart />
         </div>
-        <Card flush>
+        <DecisionTimeCard section="timing" />
+        <Card flush className="lg:col-span-3">
           <h2 className="border-b border-border px-5 py-4 text-md font-semibold sm:px-6">{tr('Recent activity')}</h2>
           {activity.length ? (
             <ol className="flex flex-col">
@@ -67,6 +72,8 @@ export function Home() {
           )}
         </Card>
       </div>
+        </div>
+      </details>
       <AppLink to="/processes" className="self-start text-sm">{tr('Manage approval processes')}</AppLink>
     </>
   );

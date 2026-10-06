@@ -22,7 +22,7 @@ export const TOUR: Step[] = [
     as: 'dara',
     to: '/welcome?demo=1',
     say: 'Dara runs operations at a logistics company where approvals live in email. She sets up Anumat for the whole company in under a minute.',
-    doThis: 'Name the workspace, review the team roles, then create it without starter approval processes.',
+    doThis: 'Name the workspace, choose Approvals & tasks, review the setup, and create it.',
   },
   {
     title: 'The problem',
@@ -198,16 +198,16 @@ export function TourPanel() {
       <ol className="flex gap-1" aria-label={tr('Demo tour')}>
         {TOUR.map((t, i) => (
           <li key={t.title} className="min-w-0 flex-1">
-            <button
+            <Button variant="tertiary"
               type="button"
               onClick={() => go(i)}
               aria-label={`${i + 1}. ${tr(t.title)}`}
               aria-current={i === step ? 'step' : undefined}
               title={`${i + 1}. ${tr(t.title)}`}
-              className="flex h-6 w-full items-center rounded focus-visible:outline-2 focus-visible:outline-ring"
+              className="h-auto p-0 justify-start whitespace-normal flex h-6 w-full items-center rounded focus-visible:outline-2 focus-visible:outline-ring"
             >
               <span className={i <= step ? 'h-1 w-full rounded-full bg-primary' : 'h-1 w-full rounded-full bg-border'} />
-            </button>
+            </Button>
           </li>
         ))}
       </ol>

@@ -1,9 +1,15 @@
+import type { WorkspaceApp } from '../lib/moduleEntry';
+import type { JSONContent } from '@tiptap/core';
 export type PersonId = string;
 
 /** What someone may do in the workspace. Approving comes from approval processes, not from this. */
 export type Access = 'owner' | 'admin' | 'member';
 
+export type AppRole = 'admin' | 'member' | 'viewer';
+export interface AppInvitation { id: string; app: WorkspaceApp; email: string; role: AppRole; invitedById: PersonId; createdAt: string; expiresAt: string; status: 'pending' | 'accepted' | 'revoked'; acceptedById?: PersonId }
+
 export interface Person {
+  email?: string;
   id: PersonId;
   name: string;
   /** Job title, e.g. "Finance Manager". */
@@ -22,6 +28,7 @@ export type RequestStatus = 'draft' | 'pending' | 'changes' | 'approved' | 'decl
 export type StepStatus = 'done' | 'current' | 'waiting' | 'returned' | 'declined';
 
 export interface ApprovalStep {
+  delegatedFromId?: PersonId;
   id: string;
   name: string;
   approverId: PersonId;
@@ -49,7 +56,15 @@ export interface Activity {
   kind: 'comment' | 'event';
 }
 
+export interface RequestRevision { revision: number; submittedAt: string; title: string; description: string; amount?: number; form: FormField[]; fields: FormValues; steps: ApprovalStep[]; status: RequestStatus; attachments: Attachment[] }
+
+export interface ExecutionAttempt { at: string; actorId: string; outcome: 'failed' | 'applied' | 'cancelled'; reason: string }
+export interface RequestExecution { revision: number; status: 'pending' | 'failed' | 'applied' | 'cancelled'; effectiveDate: string; attempts: ExecutionAttempt[] }
 export interface Request {
+  execution?: RequestExecution;
+  submittedAt?: string;
+  revision?: number;
+  revisions?: RequestRevision[];
   id: string;
   type: RequestType;
   title: string;
@@ -73,12 +88,18 @@ export interface Request {
 }
 
 export interface Decision {
+  audienceIds?: string[];
+  createdById?: PersonId;
+  at?: string;
+  kind?: 'decision' | 'minutes';
   id: string;
   text: string;
   requestId?: string;
 }
 
 export interface Meeting {
+  status?: 'scheduled' | 'cancelled';
+  history?: { at: string; personId: string; action: 'rescheduled' | 'cancelled'; reason: string; previousStart: string }[];
   id: string;
   title: string;
   start: string;
@@ -129,12 +150,47 @@ export interface TaskStatusDef {
   signOff?: boolean;
   /** Moving a task here asks for a reason, e.g. what is blocking it. */
   requireNote?: boolean;
+  requireReady?: boolean;
+  requireDone?: boolean;
+  allowedFrom?: string[];
+  moveRoles?: ('responsible' | 'accountable' | 'admin')[];
 }
 
 /** The id of a TaskStatusDef. */
 export type TaskStatus = string;
 
+export interface Sprint {
+  id: string;
+  name: string;
+  goal?: string;
+  /** Inclusive local calendar dates, independent of individual task due dates. */
+  startDate: string;
+  endDate: string;
+  status: 'planned' | 'active' | 'completed';
+  createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  /** Number of unfinished tasks transferred at completion, kept for the sprint summary. */
+  carriedTasks?: number;
+}
+
+export type TaskPriority = 'highest' | 'high' | 'medium' | 'low' | 'lowest';
+export type WorkItemType = 'epic' | 'story' | 'task' | 'bug' | 'subtask';
+export interface TaskCheck { id: string; text: string; done: boolean }
+export interface TaskDefaults { readiness: string[]; completion: string[] }
+
 export interface Task {
+  priority?: TaskPriority;
+  description?: JSONContent;
+  workType?: WorkItemType;
+  parentId?: string;
+  expectedOutcome?: string;
+  acceptanceCriteria?: TaskCheck[];
+  readiness?: TaskCheck[];
+  completion?: TaskCheck[];
+  evidence?: string;
+  /** Unassigned tasks belong to the backlog. */
+  sprintId?: string;
   id: string;
   title: string;
   ownerId: PersonId;
@@ -248,8 +304,18 @@ export interface Process {
   presetId?: string;
 }
 
+export interface WorkCalendar { workWeek: number[]; holidays: { date: string; name: string }[] }
+export interface CompanyConfiguration { revision: number; legalName: string; branches: string[]; departments: string[] }
+export interface WorkspaceEvent { at: string; actorId: string; text: string }
+export interface DeliveryAttempt { at: string; result: 'failed' | 'previewed' }
+export interface DeliveryPreview { id: string; personId: string; event: NotificationEvent; channel: Channel; destination: string; attempts: DeliveryAttempt[] }
+
 export interface Organization {
+  configuration?: CompanyConfiguration;
+  workCalendar?: WorkCalendar;
   name: string;
+  /** Optional first-workflow preference; never grants app access. */
+  starter?: import('../lib/businessStarter').BusinessStarter;
   /** Head-count band chosen at sign-up, e.g. "50–199". */
   size: string;
 }
@@ -264,7 +330,11 @@ export interface Feedback {
   text: string;
 }
 
+export interface SurveyFollowUp { taskId: string; interpretation: string; actorId: string; at: string; responseCount: number }
 export interface Survey {
+  followUps?: SurveyFollowUp[];
+  revision?: number;
+  publishedForm?: FormField[];
   id: string;
   title: string;
   description: string;
@@ -301,16 +371,24 @@ export interface Lead {
   message: string;
 }
 
-export type NotificationEvent = 'approvals' | 'requestUpdates' | 'tasks' | 'meetings';
+export type NotificationEvent = 'approvals' | 'requestUpdates' | 'tasks' | 'meetings' | 'surveys' | import('../hr/types').HRApp;
 export type Channel = 'email' | 'telegram';
 
 export interface NotificationPrefs {
-  /** Which extra channels each event goes to; in-app is always on. */
-  events: Record<NotificationEvent, Channel[]>;
+  /** Personal channel choices within this workspace. Missing in-app choices default to on. */
+  events: Partial<Record<NotificationEvent, Channel[]>>;
+  inApp?: Partial<Record<NotificationEvent, boolean>>;
+  email?: string;
   telegram?: { username: string; connectedAt: string };
 }
 
 export interface DataState {
+  commercial?: import('../lib/commercial').CommercialState;
+  workspaceHistory?: WorkspaceEvent[];
+  deliveryPreviews?: DeliveryPreview[];
+  hr?: import('../hr/types').HRState;
+  appMembers?: Partial<Record<WorkspaceApp, Record<PersonId, AppRole>>>;
+  appInvitations?: AppInvitation[];
   org: Organization;
   meId: PersonId;
   people: Person[];
@@ -319,6 +397,8 @@ export interface DataState {
   documents: Doc[];
   tasks: Task[];
   taskStatuses: TaskStatusDef[];
+  taskDefaults?: TaskDefaults;
+  sprints: Sprint[];
   processes: Process[];
   /** When each person last opened their notifications. */
   lastSeen: Record<PersonId, string>;

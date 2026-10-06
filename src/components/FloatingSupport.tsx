@@ -9,7 +9,7 @@ export function FloatingSupport() {
   const { step } = useTour();
   const { pathname } = useLocation();
 
-  if (step !== null || pathname === '/signin') return null;
+  if (step !== null || pathname === '/' || pathname === '/signin' || pathname === '/welcome' || pathname === '/pricing' || pathname === '/docs' || pathname.startsWith('/docs/')) return null;
 
   return (
     <a

@@ -1,8 +1,9 @@
-import { Badge, Banner, Button, Checkbox, IconButton, Input, Modal, Select, Text, useToast } from '@app/ui';
+import { Badge, Banner, Button, Checkbox, IconButton, Input, Modal, Select, Text, Textarea, Field, useToast } from '@app/ui';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { uid, useStore } from '../data/store';
 import type { StatusCategory, StatusTone, TaskStatusDef } from '../data/types';
+import { TASK_DEFAULTS } from '../lib/taskRequirements';
 import { useLocale } from '../i18n/LocaleProvider';
 
 
@@ -27,11 +28,13 @@ export function StatusManager({ open, onClose }: { open: boolean; onClose: () =>
   const { state, dispatch } = useStore();
   const { toast } = useToast();
   const [rows, setRows] = useState<TaskStatusDef[]>(state.taskStatuses);
+  const [defaults, setDefaults] = useState(state.taskDefaults ?? TASK_DEFAULTS);
   const [error, setError] = useState<string>();
 
   useEffect(() => {
     if (open) {
       setRows(state.taskStatuses);
+      setDefaults(state.taskDefaults ?? TASK_DEFAULTS);
       setError(undefined);
     }
   }, [open, state.taskStatuses]);
@@ -49,6 +52,9 @@ export function StatusManager({ open, onClose }: { open: boolean; onClose: () =>
     const names = rows.map((r) => r.name.trim().toLowerCase());
     if (names.some((n) => !n)) return setError('Every status needs a name.');
     if (new Set(names).size !== names.length) return setError('Two statuses have the same name. Give each a different one.');
+    if (!rows.some((row) => row.category === 'todo' && !row.requireReady && !row.requireDone && !row.signOff)) return setError(tr('Keep one backlog status without readiness, completion, or sign-off gates.'));
+    if (rows.some((row) => row.moveRoles?.length === 0)) return setError(tr('Choose at least one responsibility for every status.'));
+    dispatch({ type: 'saveTaskDefaults', defaults: { readiness: defaults.readiness.map((text) => text.trim()).filter(Boolean), completion: defaults.completion.map((text) => text.trim()).filter(Boolean) } });
     dispatch({ type: 'saveStatuses', statuses: rows.map((r) => ({ ...r, name: r.name.trim() })) });
     toast({ tone: 'success', title: tr("Statuses saved"), description: tr("The board and lists now use them.") });
     onClose();
@@ -76,6 +82,27 @@ export function StatusManager({ open, onClose }: { open: boolean; onClose: () =>
             <dd className="text-fg-muted">{tr("Moving a task here asks why, for example what is blocking it.")}</dd>
           </div>
         </dl>
+        <section className="flex flex-col gap-3 border-b border-border pb-4" aria-label={tr('Workspace task defaults')}>
+          <Text as="h3" variant="label">{tr('Workspace task defaults')}</Text>
+          <Text variant="caption" tone="muted">{tr('One requirement per line. Applied to new tasks; existing task checklists stay unchanged.')}</Text>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={tr('Default readiness requirements')}><Textarea rows={4} value={defaults.readiness.join('\n')} onChange={(event) => setDefaults({ ...defaults, readiness: event.target.value.split('\n') })} /></Field>
+            <Field label={tr('Default completion requirements')}><Textarea rows={4} value={defaults.completion.join('\n')} onChange={(event) => setDefaults({ ...defaults, completion: event.target.value.split('\n') })} /></Field>
+          </div>
+          <Button className="self-start" onClick={() => {
+            const backlog = rows.find((row) => row.category === 'todo' && row.locked) ?? rows.find((row) => row.category === 'todo')!;
+            const done = rows.find((row) => row.category === 'done')!;
+            setRows([
+              { ...backlog, name: 'Backlog' },
+              { id: 'ready', name: 'Ready', category: 'todo', tone: 'info', requireReady: true },
+              { id: 'doing', name: 'In progress', category: 'active', tone: 'info', requireReady: true },
+              { id: 'review', name: 'Review', category: 'active', tone: 'warning', requireDone: true },
+              { ...done, name: 'Done', requireDone: true, signOff: true },
+              ...rows.filter((row) => ![backlog.id, done.id, 'ready', 'doing', 'review'].includes(row.id)),
+            ]);
+          }}>{tr('Use recommended workflow')}</Button>
+          <Text variant="caption" tone="muted">{tr('Backlog → Ready → In progress → Review → Done. Readiness and completion checks apply when enabled below.')}</Text>
+        </section>
         <ol className="flex flex-col divide-y divide-border rounded-lg border border-border">
           {rows.map((r, i) => {
             const count = inUse(r.id);
@@ -114,12 +141,22 @@ export function StatusManager({ open, onClose }: { open: boolean; onClose: () =>
                     icon={<Trash2 />}
                     label={r.locked ? tr("{value0} can’t be removed", { value0: r.name }) : tr("Remove {value0}", { value0: r.name })}
                     disabled={r.locked}
-                    onClick={() => setRows(rows.filter((_, j) => j !== i))}
+                    onClick={() => setRows(rows.filter((_, j) => j !== i).map((row) => ({ ...row, allowedFrom: row.allowedFrom?.filter((id) => id !== r.id) })))}
                   />
                 </span>
                 <div className="flex basis-full flex-wrap gap-x-6 gap-y-1 ps-26">
                   <Checkbox label={tr("Needs sign-off")} checked={Boolean(r.signOff)} onCheckedChange={(c) => set(i, { signOff: c === true })} />
                   <Checkbox label={tr("Ask for a reason")} checked={Boolean(r.requireNote)} onCheckedChange={(c) => set(i, { requireNote: c === true })} />
+                </div>
+                <div className="flex basis-full flex-col gap-2 border-t border-border pt-2">
+                  <div className="flex flex-wrap gap-x-6 gap-y-2">
+                    <Checkbox label={tr('Require readiness checks')} checked={Boolean(r.requireReady)} onCheckedChange={(value) => set(i, { requireReady: value === true })} />
+                    <Checkbox label={tr('Require completion checks and evidence')} checked={Boolean(r.requireDone)} onCheckedChange={(value) => set(i, { requireDone: value === true })} />
+                  </div>
+                  <Text variant="caption" tone="muted">{tr('Who can move here')}</Text>
+                  <div className="flex flex-wrap gap-x-6 gap-y-2">{(['responsible', 'accountable', 'admin'] as const).map((role) => <Checkbox key={role} label={tr(role === 'responsible' ? 'Responsible (R)' : role === 'accountable' ? 'Accountable (A)' : 'App admin')} checked={(r.moveRoles ?? ['responsible', 'accountable', 'admin']).includes(role)} onCheckedChange={(checked) => { const roles = r.moveRoles ?? ['responsible', 'accountable', 'admin']; set(i, { moveRoles: checked === true ? [...roles, role] : roles.filter((item) => item !== role) }); }} />)}</div>
+                  <Checkbox label={tr('Allow from any status')} checked={!r.allowedFrom} onCheckedChange={(value) => set(i, { allowedFrom: value === true ? undefined : rows.filter((row) => row.id !== r.id).map((row) => row.id) })} />
+                  {r.allowedFrom && <div className="flex flex-wrap gap-x-4 gap-y-2" aria-label={tr('Allowed previous statuses')}>{rows.filter((row) => row.id !== r.id).map((row) => <Checkbox key={row.id} label={tr(row.name || 'Untitled')} checked={r.allowedFrom!.includes(row.id)} onCheckedChange={(value) => set(i, { allowedFrom: value === true ? [...r.allowedFrom!, row.id] : r.allowedFrom!.filter((id) => id !== row.id) })} />)}</div>}
                 </div>
                 {count && !r.locked ? (
                   <Text variant="caption" tone="muted" className="basis-full ps-26">

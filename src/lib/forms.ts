@@ -1,3 +1,4 @@
+import { createTranslator, type Translate } from '../i18n/locale';
 import type { Condition, FieldKind, FormField, FormValues } from '../data/types';
 import { DEPARTMENTS } from './org';
 
@@ -78,28 +79,28 @@ const NUMBER = /^-?\d+(\.\d+)?$/;
 export const parseNumber = (v: string) => (NUMBER.test(v.replace(/[,\s]/g, '')) ? Number(v.replace(/[,\s]/g, '')) : NaN);
 
 /** Error messages by field id, for visible questions only. */
-export function validateForm(fields: FormField[], values: FormValues): Record<string, string> {
+export function validateForm(fields: FormField[], values: FormValues, tr: Translate = createTranslator('en')): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const f of visibleFields(fields, values).filter(isQuestion)) {
     const v = values[f.id];
     const text = Array.isArray(v) ? '' : (v ?? '').trim();
     if (isEmpty(v)) {
-      if (f.required) errors[f.id] = f.kind === 'checkboxes' ? `Choose at least one answer for “${f.label}”.` : `Answer “${f.label}”.`;
+      if (f.required) errors[f.id] = f.kind === 'checkboxes' ? tr('Choose at least one answer for “{field}”.', { field: f.label }) : tr('Answer “{field}”.', { field: f.label });
       continue;
     }
     if ((f.kind === 'number' || f.kind === 'money') && Number.isNaN(parseNumber(text))) {
-      errors[f.id] = f.kind === 'money' ? `Enter an amount for “${f.label}”, like 1250 or 99.50.` : `Enter a number for “${f.label}”, like 12 or 1250.`;
+      errors[f.id] = f.kind === 'money' ? tr('Enter an amount for “{field}”, like 1250 or 99.50.', { field: f.label }) : tr('Enter a number for “{field}”, like 12 or 1250.', { field: f.label });
     } else if (f.kind === 'email' && !EMAIL.test(text)) {
-      errors[f.id] = `Enter an email address, like name@company.com.`;
+      errors[f.id] = tr('Enter an email address, like name@company.com.');
     } else if (f.kind === 'phone' && !PHONE.test(text)) {
-      errors[f.id] = `Enter a phone number, like +855 12 345 678.`;
+      errors[f.id] = tr('Enter a phone number, like +855 12 345 678.');
     } else if (f.kind === 'url' && !/^https?:\/\/\S+\.\S+/.test(text)) {
-      errors[f.id] = `Enter a full link starting with https://`;
+      errors[f.id] = tr('Enter a full link starting with https://');
     } else if (hasOptions(f.kind) || f.kind === 'yesno' || f.kind === 'department') {
       // An answer no longer on the list (the choice was renamed or removed) doesn't count.
       const choices = choicesFor(f);
       const stale = Array.isArray(v) ? v.some((x) => !choices.includes(x)) : !choices.includes(text);
-      if (stale) errors[f.id] = `Choose “${f.label}” again: the choices have changed.`;
+      if (stale) errors[f.id] = tr('Choose “{field}” again: the choices have changed.', { field: f.label });
     }
   }
   return errors;
@@ -152,21 +153,21 @@ export function formatAnswer(field: FormField, value: string | string[] | undefi
 }
 
 /** Problems that would stop a form from working, shown in the builder. */
-export function formProblems(fields: FormField[]): string[] {
+export function formProblems(fields: FormField[], tr: Translate = createTranslator('en')): string[] {
   const problems: string[] = [];
   fields.forEach((f, i) => {
-    const name = f.label.trim() || `Question ${i + 1}`;
-    if (!f.label.trim()) problems.push(f.kind === 'section' ? `Section ${i + 1} needs a heading.` : `Question ${i + 1} needs a question.`);
+    const name = f.label.trim() || tr('Question {count}', { count: i + 1 });
+    if (!f.label.trim()) problems.push(f.kind === 'section' ? tr('Section {count} needs a heading.', { count: i + 1 }) : tr('Question {count} needs a question.', { count: i + 1 }));
     if (hasOptions(f.kind)) {
       const opts = (f.options ?? []).map((o) => o.trim()).filter(Boolean);
-      if (opts.length < 2) problems.push(`“${name}” needs at least two choices.`);
-      else if (new Set(opts).size !== opts.length) problems.push(`“${name}” has the same choice twice.`);
+      if (opts.length < 2) problems.push(tr('“{field}” needs at least two choices.', { field: name }));
+      else if (new Set(opts).size !== opts.length) problems.push(tr('“{field}” has the same choice twice.', { field: name }));
     }
     if (f.showIf) {
       const src = fields.findIndex((x) => x.id === f.showIf!.fieldId);
       const equals = f.showIf.equals.trim();
-      if (src < 0 || src >= i) problems.push(`“${name}” depends on a question that isn’t above it.`);
-      else if (!equals || !choicesFor(fields[src]!).map((c) => c.trim()).includes(equals)) problems.push(`“${name}” depends on an answer that no longer exists.`);
+      if (src < 0 || src >= i) problems.push(tr('“{field}” depends on a question that isn’t above it.', { field: name }));
+      else if (!equals || !choicesFor(fields[src]!).map((c) => c.trim()).includes(equals)) problems.push(tr('“{field}” depends on an answer that no longer exists.', { field: name }));
     }
   });
   return problems;

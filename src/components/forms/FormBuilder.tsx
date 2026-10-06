@@ -1,4 +1,4 @@
-import { ActionMenu, Badge, Button, Checkbox, Field, IconButton, Input, Select, Text } from '@app/ui';
+import { ActionMenu, Badge, Button, Checkbox, Field, IconButton, Input, Modal, Select, Text, useToast } from '@app/ui';
 import { ArrowDown, ArrowUp, Copy, GitBranch, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { uid } from '../../data/store';
@@ -185,6 +185,21 @@ export function FormBuilder({
   kinds?: FieldKind[];
 }) {
   const { t: tr } = useLocale();
+  const { toast } = useToast();
+  const [expanded, setExpanded] = useState<string[]>(() => fields.filter((field) => field.help || field.placeholder || field.showIf).map((field) => field.id));
+  const [pending, setPending] = useState<FormField[] | null>(null);
+  const commit = (next: FormField[]) => {
+    const lost = fields.filter((field) => field.showIf && next.some((item) => item.id === field.id && !item.showIf));
+    if (lost.length) setPending(next);
+    else onChange(next);
+  };
+  const canMove = (i: number, by: number) => {
+    if (i + by < 0 || i + by >= fields.length) return false;
+    const next = [...fields];
+    const [item] = next.splice(i, 1);
+    next.splice(i + by, 0, item!);
+    return next.every((field, index) => !field.showIf || next.findIndex((source) => source.id === field.showIf!.fieldId) < index);
+  };
   // The question just added gets focus, so people can type its wording straight away.
   const [focusId, setFocusId] = useState<string>();
   useEffect(() => {
@@ -199,15 +214,18 @@ export function FormBuilder({
     const next = [...fields];
     const [item] = next.splice(i, 1);
     next.splice(i + by, 0, item!);
-    // A question can only depend on one above it; drop conditions that moving broke.
-    onChange(next.map((f, j) => (f.showIf && next.findIndex((x) => x.id === f.showIf!.fieldId) >= j ? { ...f, showIf: undefined } : f)));
+    if (!canMove(i, by)) {
+      toast({ title: tr('Keep conditional questions after the answer they depend on.') });
+      return;
+    }
+    onChange(next);
     // Keep focus with the moved question: its arrow button may have just become disabled at the top or bottom.
     requestAnimationFrame(() => document.getElementById(`question-${item!.id}`)?.focus());
   };
   const remove = (i: number) => {
     const gone = fields[i]!.id;
     const rest = fields.filter((_, j) => j !== i);
-    onChange(rest.map((f) => (f.showIf?.fieldId === gone ? { ...f, showIf: undefined } : f)));
+    commit(rest.map((f) => (f.showIf?.fieldId === gone ? { ...f, showIf: undefined } : f)));
     const neighbour = rest[i] ?? rest[i - 1];
     if (neighbour) setFocusId(`${neighbour.id}`);
     else requestAnimationFrame(() => document.getElementById(`add-${noun}`)?.focus());
@@ -232,7 +250,7 @@ export function FormBuilder({
       required: kind === 'section' ? false : f.required,
     };
     // Conditions on this question's answers may no longer make sense.
-    onChange(
+    commit(
       fields
         .map((x, j) => (j === i ? probe : x))
         .map((x) => (x.showIf?.fieldId === f.id && (!canBranchOn(kind) || !choicesFor(probe).includes(x.showIf.equals)) ? { ...x, showIf: undefined } : x)),
@@ -290,8 +308,8 @@ export function FormBuilder({
                 />
                 {section ? null : <Checkbox label={tr('Required')} checked={f.required} onCheckedChange={(c) => update(i, { required: c === true })} />}
                 <span className="ms-auto flex items-center gap-0.5">
-                  <IconButton size="sm" icon={<ArrowUp />} label={tr("Move “{value0}” up", { value0: name })} disabled={i === 0} onClick={() => move(i, -1)} />
-                  <IconButton size="sm" icon={<ArrowDown />} label={tr("Move “{value0}” down", { value0: name })} disabled={i === fields.length - 1} onClick={() => move(i, 1)} />
+                  <IconButton size="sm" icon={<ArrowUp />} label={tr("Move “{value0}” up", { value0: name })} disabled={!canMove(i, -1)} onClick={() => move(i, -1)} />
+                  <IconButton size="sm" icon={<ArrowDown />} label={tr("Move “{value0}” down", { value0: name })} disabled={!canMove(i, 1)} onClick={() => move(i, 1)} />
                   <IconButton size="sm" icon={<Copy />} label={tr("Duplicate “{value0}”", { value0: name })} onClick={() => duplicate(i)} />
                   <IconButton size="sm" icon={<Trash2 />} label={tr("Delete “{value0}”", { value0: name })} onClick={() => remove(i)} />
                 </span>
@@ -303,6 +321,21 @@ export function FormBuilder({
                   onChange={(e) => update(i, { label: e.target.value })}
                 />
               </Field>
+              {hasOptions(f.kind) ? <OptionsEditor field={f} onChange={(options, renamed) => setOptions(i, options, renamed)} /> : null}
+              {!hasOptions(f.kind) && !section && !hasPlaceholder(f.kind) ? (
+                <Text variant="caption" tone="subtle">
+                  {tr(kindLabel(f.kind))}
+                  {f.kind === 'department'
+                    ? tr(': people pick one of the workspace’s departments.')
+                    : f.kind === 'person'
+                      ? tr(': people pick someone in the workspace.')
+                      : '.'}
+                </Text>
+              ) : null}
+              <Button size="sm" variant="plain" className="self-start" aria-expanded={expanded.includes(f.id)} onClick={() => setExpanded(expanded.includes(f.id) ? expanded.filter((id) => id !== f.id) : [...expanded, f.id])}>
+                {tr('Help text & display rules')}
+              </Button>
+              {expanded.includes(f.id) && <div className="flex flex-col gap-3 border-t border-border pt-3">
               <Field label={section ? tr('Text under the heading') : tr('Help text')} optional>
                 <Input
                   value={tr(f.help ?? '')}
@@ -314,17 +347,6 @@ export function FormBuilder({
                 <Field label={tr('Placeholder')} optional helpText={tr('Example text shown in the empty box.')}>
                   <Input value={tr(f.placeholder ?? '')} onChange={(e) => update(i, { placeholder: e.target.value || undefined })} />
                 </Field>
-              ) : null}
-              {hasOptions(f.kind) ? <OptionsEditor field={f} onChange={(options, renamed) => setOptions(i, options, renamed)} /> : null}
-              {!hasOptions(f.kind) && !section && !hasPlaceholder(f.kind) ? (
-                <Text variant="caption" tone="subtle">
-                  {tr(kindLabel(f.kind))}
-                  {f.kind === 'department'
-                    ? tr(': people pick one of the workspace’s departments.')
-                    : f.kind === 'person'
-                      ? tr(': people pick someone in the workspace.')
-                      : '.'}
-                </Text>
               ) : null}
               {sources.length ? (
                 <div className="flex flex-col gap-2 rounded-md bg-surface-sunken p-3">
@@ -359,11 +381,14 @@ export function FormBuilder({
                     />
                   ) : null}
                 </div>
-              ) : null}
+              ) : null}              </div>}
+
             </li>
           );
         })}
       </ol>
+      <Modal open={Boolean(pending)} onOpenChange={(open) => { if (!open) setPending(null); }} title={tr('Remove dependent display rules?')} description={tr('This change removes rules from questions that depend on this answer. Those questions will be shown to everyone.')} primaryAction={{ content: tr('Apply change'), onAction: () => { if (pending) onChange(pending); setPending(null); } }} secondaryActions={[{ content: tr('Cancel'), onAction: () => setPending(null) }]} />
+
       <div>
         <ActionMenu
           align="start"
@@ -374,8 +399,8 @@ export function FormBuilder({
             </Button>
           }
           sections={MENU_SECTIONS.map((s) => ({
-            title: s.title,
-            items: s.kinds.filter((k) => offered(k.value)).map((k) => ({ content: k.label, onAction: () => add(k.value) })),
+            title: tr(s.title),
+            items: s.kinds.filter((k) => offered(k.value)).map((k) => ({ content: tr(k.label), onAction: () => add(k.value) })),
           })).filter((s) => s.items.length)}
         />
       </div>

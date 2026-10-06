@@ -858,7 +858,10 @@
       "src/ui/components/password-input.tsx",
       "src/ui/components/code-input.tsx",
       "src/components/AuthLayout.tsx",
-      "src/pages/SignIn.tsx"
+      "src/pages/SignIn.tsx",
+      "src/hr/RecruitmentWorkspace.tsx",
+      "src/hr/RecruitmentTools.tsx",
+      "src/styles/recruitment.css"
     ],
     "themeBehavior": "MUI palette reads computed semantic CSS tokens on theme creation and observes data-theme including portals. Primary contained hover/active explicitly use CSS tokens. Fixed bitmap colors and auth pattern brand colors remain unchanged.",
     "reducedMotion": "Application animations are disabled; MUI transition and animation durations clamp to 0.01ms.",
@@ -870,6 +873,21 @@
       "codeInput": "Six digits; numeric paste/autofill, typing advance, arrows, Backspace; named fieldset and digit inputs.",
       "passwordInput": "Local visibility toggle with changing label and aria-pressed.",
       "selectMenu": "MUI non-native Select replaces the browser option popup. The portal menu is anchored to the control, at most 420px or 60vh tall, with 44px rows, semantic selected/hover/focus colors, grouped choices, and keyboard navigation. Small selects use compact text and arrow spacing."
+    },
+    "recruitmentSurface": {
+      "world": "Existing compact admin workspace: Public Sans headings, shared Radix-based UI controls, semantic light/dark tokens and cyan primary actions.",
+      "navigation": "Wrapping section links with muted default text, semantic accent hover/current fill, semibold current label, aria-current and visible ring focus.",
+      "dashboard": "Six linked stage counts with tabular figures, paired approval-queue/interview panels, and a hiring-plan action card; role-dependent content and explicit empty states.",
+      "pipeline": "Six muted stage columns with bordered 8px candidate links containing name, job opening and source. Search, job-opening filter and Add candidate action precede the board. Rejected, withdrawn and declined totals appear as text badges below.",
+      "responsive": {
+        "board": "Six columns by default; three at max-width 1100px; one at max-width 640px.",
+        "dashboardAndFilters": "One column at max-width 640px.",
+        "funnel": "Six columns by default; three at max-width 640px.",
+        "candidateText": "Wraps anywhere within available card width."
+      },
+      "forms": "Shared searchable DataTable records open extra-large Modal editors. Position metadata uses a responsive two-column grid and RichTextEditor; interviews use DatePicker and TimePicker. Shared Field, Input, Textarea, Select, Button, Badge and Banner carry states, revision context, decision reasons and history.",
+      "localeAndTheme": "English/Khmer labels and semantic light/dark surface, foreground, muted, border, accent and ring tokens inherit from the workspace.",
+      "prototypeDisclosure": "Job publishing, candidate applications and offer responses are explicitly simulated locally; this documentation records the built surface and does not imply production acceptance."
     }
   },
   "components": [

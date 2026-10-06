@@ -1,4 +1,4 @@
-import { Checkbox, Field, Input, RadioGroup, RadioGroupItem, Select, Text, Textarea, cn, useField } from '@app/ui';
+import { Button, Checkbox, DatePicker, Field, Input, RadioGroup, RadioGroupItem, Select, Text, Textarea, cn, useField } from '@app/ui';
 import { useRef, type KeyboardEvent } from 'react';
 import { useStore } from '../../data/store';
 import type { FormField, FormValues } from '../../data/types';
@@ -62,7 +62,7 @@ export function ChoiceScale({
         }}
       >
         {choices.map((c, i) => (
-          <button
+          <Button variant="tertiary"
             key={c}
             ref={(el) => {
               refs.current[i] = el;
@@ -77,7 +77,7 @@ export function ChoiceScale({
             onClick={() => onChange(c)}
             onKeyDown={(e) => onKey(e, i)}
             className={cn(
-              'flex h-10 min-w-0 items-center justify-center rounded-md border text-sm font-medium tabular-nums transition-colors',
+              'flex h-10 min-w-0 items-center justify-center p-0 rounded-md border text-sm font-medium tabular-nums transition-colors',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60',
               value === c
                 ? 'border-primary bg-primary text-primary-fg'
@@ -85,7 +85,7 @@ export function ChoiceScale({
             )}
           >
             {c}
-          </button>
+          </Button>
         ))}
       </div>
       <div className="flex justify-between text-xs text-fg-muted" aria-hidden>
@@ -128,7 +128,6 @@ const INPUT_TYPE: Partial<
 > = {
   number: { type: 'text', inputMode: 'decimal', narrow: true },
   money: { type: 'text', inputMode: 'decimal', narrow: true },
-  date: { type: 'date', narrow: true },
   email: { type: 'email', inputMode: 'email', autoComplete: 'email' },
   phone: { type: 'tel', inputMode: 'tel', autoComplete: 'tel' },
   url: { type: 'url', inputMode: 'url' },
@@ -190,6 +189,8 @@ export function FormRenderer({
         const list = Array.isArray(values[f.id]) ? (values[f.id] as string[]) : [];
 
         switch (f.kind) {
+          case 'date':
+            return <Field key={f.id} id={id} {...common}><DatePicker value={text} onChange={(event) => set(f.id, event.target.value)} className="max-w-xs" /></Field>;
           case 'longtext':
             return (
               <Field key={f.id} id={id} {...common}>

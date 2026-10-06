@@ -1,4 +1,6 @@
-import { Button, Card, CardHeader, DatePicker, Field, Input, PageHeader, Select, Text, Textarea, useToast } from '@app/ui';
+import { meetingProblem } from '../lib/meetings';
+import { appRole, appPeople, canContributeToApp } from '../lib/appAccess';
+import { Button, Card, CardHeader, DatePicker, Field, Input, PageHeader, Select, Text, Textarea, TimePicker, useToast } from '@app/ui';
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { CheckGroup } from '../components/CheckGroup';
@@ -22,7 +24,8 @@ export function NewMeeting() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [params] = useSearchParams();
-  const linked = state.requests.find((r) => r.id === params.get('request'));
+  const accessibleRequests = appRole(state, 'approvals') ? state.requests : [];
+  const linked = accessibleRequests.find((r) => r.id === params.get('request'));
 
   const [requestId, setRequestId] = useState(linked?.id ?? '');
   const [title, setTitle] = useState(linked ? `Decide: ${linked.title}` : '');
@@ -39,19 +42,18 @@ export function NewMeeting() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    if (!canContributeToApp(state, 'meetings')) return;
     const next: Errors = {};
-    if (!title.trim()) next.title = 'Give the meeting a title people will recognise in their calendar.';
-    if (!date) next.date = 'Choose a date.';
-    if (!/^\d{2}:\d{2}$/.test(time)) next.time = 'Enter a start time, like 10:00.';
-    if (attendees.length < 2) next.attendees = 'Invite at least one other person.';
+    if (!title.trim()) next.title = tr('Give the meeting a title people will recognise in their calendar.');
+    if (!date) next.date = tr('Choose a date.');
+    if (!/^\d{2}:\d{2}$/.test(time)) next.time = tr('Enter a start time, like 10:00.');
+    if (attendees.length < 2) next.attendees = tr('Invite at least one other person.');
     setErrors(next);
     if (Object.keys(next).length) return;
 
     const id = uid('mtg');
     const start = new Date(`${date}T${time}`).toISOString();
-    dispatch({
-      type: 'createMeeting',
-      meeting: {
+    const meeting = {
         id,
         title: title.trim(),
         start,
@@ -63,9 +65,10 @@ export function NewMeeting() {
         decisions: [],
         requestIds: requestId ? [requestId] : [],
         createdAt: new Date().toISOString(),
-      },
-    });
-    if (requestId) dispatch({ type: 'update', requestId, patch: { meetingId: id } });
+    };
+    const problem = meetingProblem(state, meeting);
+    if (problem) { setErrors({ ...next, time: tr(problem) }); return; }
+    dispatch({ type: 'createMeeting', meeting });
     toast({ tone: 'success', title: tr("Meeting scheduled"), description: `${attendees.length - 1} people invited.` });
     navigate(`/meetings/${id}`);
   };
@@ -83,10 +86,8 @@ export function NewMeeting() {
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tr("Operations weekly")} />
           </Field>
           <div className="grid gap-4 sm:grid-cols-3">
-            <DatePicker label={tr("Date")} value={date} onChange={(e) => setDate(e.target.value)} error={errors.date} />
-            <Field label={tr("Start time")} error={errors.time}>
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-            </Field>
+            <DatePicker required label={tr("Date")} value={date} onChange={(e) => setDate(e.target.value)} error={errors.date} />
+            <TimePicker label={tr('Start time')} value={time} onChange={(event) => setTime(event.target.value)} error={errors.time} />
             <Field label={tr("Length")}>
               <Select value={duration} onChange={(e) => setDuration(e.target.value)} options={DURATIONS} />
             </Field>
@@ -94,23 +95,23 @@ export function NewMeeting() {
           <Field label={tr("Where")}>
             <Input value={location} onChange={(e) => setLocation(e.target.value)} />
           </Field>
-          <Field label={tr("Agenda")} helpText="One item per line." optional>
+          <Field label={tr("Agenda")} helpText={tr('One item per line.')} optional>
             <Textarea rows={4} autoGrow value={agenda} onChange={(e) => setAgenda(e.target.value)} />
           </Field>
-          <Field label={tr("About a request")} optional helpText="Decisions in the meeting link back to it.">
+          <Field label={tr("About a request")} optional helpText={tr('Decisions in the meeting link back to it.')}>
             <Select
               value={requestId}
               onChange={(e) => setRequestId(e.target.value)}
               options={[
                 { value: '', label: tr("No request") },
-                ...state.requests
+                ...accessibleRequests
                   .filter((r) => r.status === 'pending' || r.status === 'changes')
                   .map((r) => ({ value: r.id, label: `${r.id} · ${r.title}` })),
               ]}
             />
           </Field>
           <div className="flex justify-end">
-            <Button type="submit" variant="primary">
+            <Button type="submit" variant="primary" disabled={!canContributeToApp(state, 'meetings')}>
               {tr("Schedule and invite")}</Button>
           </div>
         </Card>
@@ -119,7 +120,7 @@ export function NewMeeting() {
           <div className="mt-4">
             <CheckGroup
               legend={tr("People to invite")}
-              options={state.people.map((p) => ({ value: p.id, label: p.id === me.id ? `${p.name} (you, organiser)` : `${p.name} · ${p.role}` }))}
+              options={appPeople(state, 'meetings').map((p) => ({ value: p.id, label: p.id === me.id ? `${p.name} (you, organiser)` : `${p.name} · ${p.role}` }))}
               value={attendees}
               onChange={(v) => setAttendees(v.includes(me.id) ? v : [me.id, ...v])}
             />

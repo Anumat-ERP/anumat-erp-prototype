@@ -23,7 +23,7 @@ test('account menu works by keyboard and restores trigger focus', async ({
 test('dark theme, Khmer and mobile navigation stay usable', async ({
   page,
 }, testInfo) => {
-  await page.goto('/home');
+  await page.goto('/approvals');
   await page.getByRole('button', { name: /^Account:/ }).click();
   await page.getByRole('menuitem', { name: 'Dark theme', exact: true }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -120,9 +120,9 @@ test('workspace setup creates a workspace without starter processes', async ({ p
   await page.getByRole('textbox', { name: 'Company name', exact: false }).fill('Quay Operations');
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await expect(page.getByText(/No approval processes yet/)).toBeVisible();
+  await expect(page.getByText(/A new workspace starts empty./)).toBeVisible();
   await page.getByRole('button', { name: 'Create workspace', exact: true }).click();
-  await expect(page).toHaveURL(/\/discover$/);
+  await expect(page).toHaveURL(/\/home\?app=approvals$/);
   await page.reload();
   const saved = await page.evaluate(() => {
     const root = JSON.parse(localStorage.getItem('anumat-hackathon-v1')!);

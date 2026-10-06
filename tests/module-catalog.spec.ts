@@ -12,13 +12,15 @@ test('first sign-in opens modules; later sign-ins open dashboard', async ({ page
   await signIn();
   await expect(page).toHaveURL(/\/discover$/);
   await expect(page.getByRole('heading', { name: 'What would you like to work on?' })).toBeVisible();
-  await expect(page.getByText('Coming soon')).toBeVisible();
-  await expect(page.getByRole('link', { name: /Open approvals/ })).toBeVisible();
-  await page.getByRole('link', { name: /Open tasks/ }).click();
-  await expect(page).toHaveURL(/\/tasks$/);
+  // Alex has collaboration access; HR apps explain why they cannot be opened.
+  await expect(page.locator('.an-catalog-locked')).toHaveCount(8);
+  await expect(page.locator('.an-catalog-locked').getByRole('link')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /Requests & approvals.*Open app/ })).toBeVisible();
+  await page.getByRole('link', { name: /Tasks.*Open app/ }).click();
+  await expect(page).toHaveURL(/\/home\?app=tasks$/);
   if (testInfo.project.name === 'mobile') await page.getByRole('button', { name: 'Open navigation' }).click();
   await page.getByRole('link', { name: 'Explore modules' }).click();
   await expect(page).toHaveURL(/\/discover$/);
   await signIn();
-  await expect(page).toHaveURL(/\/home$/);
+  await expect(page).toHaveURL(/\/home\?app=tasks$/);
 });

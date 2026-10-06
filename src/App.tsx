@@ -1,4 +1,13 @@
-import { Fragment, useEffect, useRef, type ReactNode } from 'react';
+import {CommercialPreview,OperatorPreview} from './pages/CommercialPreview';
+import { MyWork } from './pages/MyWork';
+import { CompanySettings } from './pages/CompanySettings';
+import { WorkspaceData } from './pages/WorkspaceData';
+import { DeliveryPreviews } from './pages/DeliveryPreviews';
+import { RecruitmentWorkspace } from './hr/RecruitmentWorkspace';
+import { HRPeople } from './hr/HRTools';
+import { HRWorkspace } from './hr/HRWorkspace';
+import { HR_APPS } from './hr/types';
+import { Fragment, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { prefersReducedMotion } from './lib/motion';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router';
 import { TourPanel } from './components/DemoTour';
@@ -7,7 +16,7 @@ import { Shell } from './layout/Shell';
 import { Approvals } from './pages/Approvals';
 import { Documents } from './pages/Documents';
 import { Discover } from './pages/Discover';
-import { Home } from './pages/Home';
+import { AppDashboard } from './pages/AppDashboard';
 import { Landing } from './pages/Landing';
 import { Docs } from './pages/Docs';
 import { SignIn } from './pages/SignIn';
@@ -22,6 +31,8 @@ import { SurveyDetail } from './pages/SurveyDetail';
 import { SurveyEditor } from './pages/SurveyEditor';
 import { Surveys } from './pages/Surveys';
 import { NotificationSettings } from './pages/NotificationSettings';
+import { AppPeople } from './pages/AppPeople';
+import { AppInvitation } from './pages/AppInvitation';
 import { People } from './pages/People';
 import { TelegramPreview } from './pages/TelegramPreview';
 import { Pricing } from './pages/Pricing';
@@ -37,7 +48,7 @@ function RouteFocus() {
   const { pathname, hash, search, key } = useLocation();
   const first = useRef(true);
   const last = useRef({ pathname, hash, search });
-  useEffect(() => {
+  useLayoutEffect(() => {
     const initial = first.current;
     first.current = false;
     const previous = last.current;
@@ -62,7 +73,10 @@ function RouteFocus() {
         if (document.readyState !== 'complete') window.addEventListener('load', realign, { once: true });
       }
     } else window.scrollTo(0, 0);
-    document.getElementById('main-content')?.focus({ preventScroll: true });
+    // A redirect may settle after someone has already opened a menu or begun editing.
+    // Preserve that interaction instead of focusing outside its overlay.
+    const interacting = document.querySelector('[role="dialog"], [role="menu"]') || document.activeElement?.matches('button, input, textarea, [role="combobox"], [contenteditable="true"]');
+    if (!interacting) document.getElementById('main-content')?.focus({ preventScroll: true });
   }, [pathname, hash, search, key]);
   return null;
 }
@@ -80,14 +94,22 @@ export function App() {
       <RouteFocus />
       <Routes>
         <Route index element={<Landing />} />
+        <Route path="invitations/:id" element={<AppInvitation />} />
         <Route path="signin" element={<SignIn />} />
         <Route path="pricing" element={<Pricing />} />
         <Route path="docs" element={<Docs />} />
         <Route path="docs/:topic" element={<Docs />} />
         <Route path="welcome" element={<Welcome />} />
         <Route element={<Shell />}>
+          {HR_APPS.map(app => <Fragment key={app}><Route path={app} element={app === 'recruitment' ? <RecruitmentWorkspace /> : <HRWorkspace app={app} />} /><Route path={`${app}/people`} element={<HRPeople app={app} />} /></Fragment>)}
+          <Route path="work" element={<MyWork />} />
+          <Route path="settings/package" element={<CommercialPreview />} />
+          <Route path="operator" element={<OperatorPreview />} />
+          <Route path="settings/company" element={<CompanySettings />} />
+          <Route path="settings/data" element={<WorkspaceData />} />
+          <Route path="settings/delivery" element={<DeliveryPreviews />} />
           <Route path="discover" element={<Discover />} />
-          <Route path="home" element={<Home />} />
+          <Route path="home" element={<AppDashboard />} />
           <Route path="requests" element={<Requests />} />
           <Route path="requests/new" element={<NewRequest />} />
           <Route path="requests/:id" element={<Keyed><RequestDetail /></Keyed>} />
@@ -99,6 +121,10 @@ export function App() {
           <Route path="documents" element={<Documents />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="insights" element={<Insights />} />
+          <Route path="tasks/people" element={<AppPeople app="tasks" />} />
+          <Route path="approvals/people" element={<AppPeople app="approvals" />} />
+          <Route path="meetings/people" element={<AppPeople app="meetings" />} />
+          <Route path="surveys/people" element={<AppPeople app="surveys" />} />
           <Route path="settings/people" element={<People />} />
           <Route path="settings/feedback" element={<Navigate to="/surveys?tab=feedback" replace />} />
           <Route path="surveys" element={<Surveys />} />

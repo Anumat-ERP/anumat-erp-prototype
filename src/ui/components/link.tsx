@@ -29,7 +29,7 @@ export function Link({
       ? 'text-critical-subtle-fg'
       : tone === 'muted'
       ? 'text-muted-foreground hover:text-foreground'
-      : 'text-primary',
+      : 'text-fg-link',
     className,
   );
   const externalProps = external

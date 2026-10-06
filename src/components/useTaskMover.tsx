@@ -1,6 +1,7 @@
 import { Field, Modal, Textarea, useToast } from '@app/ui';
 import { useState } from 'react';
 import { planMove, statusDef, useStore } from '../data/store';
+import { useLocale } from '../i18n/LocaleProvider';
 import type { Task, TaskStatus } from '../data/types';
 
 /**
@@ -9,6 +10,7 @@ import type { Task, TaskStatus } from '../data/types';
  * a reason. Render `dialog` once wherever the hook is used.
  */
 export function useTaskMover() {
+  const { t: tr } = useLocale();
   const { state, person, dispatch } = useStore();
   const { toast } = useToast();
   const [pending, setPending] = useState<{ task: Task; status: TaskStatus } | null>(null);
@@ -21,7 +23,7 @@ export function useTaskMover() {
     const target = statusDef(state, status);
     switch (plan.kind) {
       case 'denied':
-        toast({ tone: 'critical', title: 'You can’t move this task', description: plan.reason });
+        toast({ tone: 'critical', title: 'You can’t move this task', description: tr(plan.reason) });
         return;
       case 'note':
         setNote('');
@@ -67,7 +69,7 @@ export function useTaskMover() {
       primaryAction={{ content: `Move to ${target?.name ?? ''}`, onAction: confirm }}
       secondaryActions={[{ content: 'Cancel', onAction: close }]}
     >
-      <Field label="Reason" required helpText="Shown on the task, so the team knows what’s needed." error={error}>
+      <Field label="Reason" required helpText={tr('Shown on the task, so the team knows what’s needed.')} error={error}>
         <Textarea
           rows={3}
           autoGrow

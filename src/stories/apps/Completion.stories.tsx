@@ -1,0 +1,13 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { App } from '../../App';
+const meta={title:'Apps/Workflow completion',component:App,parameters:{layout:'fullscreen',hr:true,docs:{description:{component:'Real browser prototype routes for restricted meeting notes, closed-survey improvement tasks and local package/support previews. No external delivery or billing.'}}}} satisfies Meta<typeof App>;
+export default meta;
+type Story=StoryObj<typeof meta>;
+export const MeetingNotes:Story={parameters:{route:'/meetings/ops-weekly'}};
+export const MeetingNotesKhmerDark:Story={parameters:{route:'/meetings/ops-weekly'},globals:{locale:'km',theme:'dark'}};
+export const ClosedSurveyFollowUp:Story={parameters:{route:'/surveys/party'}};
+export const Packages:Story={parameters:{route:'/settings/package'}};
+export const PackagesMember:Story={parameters:{route:'/settings/package',role:'member'}};
+export const PackagesKhmerDark:Story={parameters:{route:'/settings/package'},globals:{locale:'km',theme:'dark'}};
+export const Operator:Story={parameters:{route:'/operator'}};
+export const OperatorOwnerRequired:Story={parameters:{route:'/operator',role:'member'}};

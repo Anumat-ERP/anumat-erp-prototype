@@ -1,0 +1,22 @@
+.an-app-context {
+  position: sticky;
+  top: 4rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-height: 3.25rem;
+  padding: .5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+.an-app-icon { display: inline-flex; flex: none; width: 2rem; height: 2rem; align-items: center; justify-content: center; border-radius: var(--a-radius-md); color: var(--foreground); background: var(--sidebar-accent); }
+.an-app-icon[data-app='approvals'] { color: var(--mint-subtle-foreground); background: var(--mint-subtle); }
+.an-app-icon[data-app='meetings'] { color: var(--warning-subtle-foreground); background: var(--warning-subtle); }
+.an-app-icon[data-app='surveys'] { color: var(--foreground); background: var(--muted); }
+.an-app-icon-small { width: 1.5rem; height: 1.5rem; }
+.an-app-switch { height: 2rem; padding: 0 .5rem; gap: .375rem; }
+.an-app-switch-sidebar { width: 100%; height: auto; min-height: 3rem; padding: .375rem; gap: .625rem; }
+.an-app-switch-rail { width: 2.5rem; padding: .25rem; justify-content: center; }
+@media (min-width: 768px) { .an-app-context { padding-inline: 2rem; } }

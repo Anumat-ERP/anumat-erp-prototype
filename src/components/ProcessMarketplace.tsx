@@ -1,4 +1,4 @@
-import { Badge, Banner, Drawer, EmptyState, Field, Input, Select, Text, cn, useToast } from '@app/ui';
+import { Button, Badge, Banner, Drawer, EmptyState, Field, Input, Select, Text, cn, useToast } from '@app/ui';
 import { Check, ChevronRight, Laptop, Megaphone, Scale, Search, Truck, UsersRound, Wallet, type LucideIcon } from 'lucide-react';
 import { Fragment, useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -63,7 +63,7 @@ export function ProcessMarketplace() {
     return <EmptyState
       size="card"
       heading={tr('No templates available')}
-      action={<button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => navigate('/processes')}>{tr('Your processes')}</button>}
+      action={<Button variant="tertiary" type="button" className="h-auto p-0 justify-start whitespace-normal text-sm font-medium text-fg-link hover:underline" onClick={() => navigate('/processes')}>{tr('Your processes')}</Button>}
     >{tr('Create an approval process from scratch to start accepting requests.')}</EmptyState>;
   }
 
@@ -85,19 +85,19 @@ export function ProcessMarketplace() {
             const count = c === 'All' ? searched.length : searched.filter((p) => p.category === c).length;
             const active = category === c;
             return (
-              <button
+              <Button variant="tertiary"
                 key={c}
                 type="button"
                 aria-pressed={active}
                 onClick={() => setCategory(c)}
-                className={cn(
+                className={cn('h-auto p-0 justify-start whitespace-normal',
                   'inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
                   active ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-muted',
                 )}
               >
                 {tr(c)}
                 <span className={cn('tabular-nums text-xs', active ? 'opacity-80' : 'text-muted-foreground')}>{count}</span>
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -112,10 +112,10 @@ export function ProcessMarketplace() {
             const installed = isPresetInstalled(p, state.processes);
             return (
               <li key={p.id} className="min-w-0">
-                <button
+                <Button variant="tertiary"
                   type="button"
                   onClick={() => show(p)}
-                  className="group flex h-full w-full flex-col gap-3 rounded-xl border border-border bg-card p-4 text-start shadow-card transition-colors hover:border-input hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                  className="h-auto p-0 justify-start whitespace-normal group flex h-full w-full flex-col gap-3 rounded-xl border border-border bg-card p-4 text-start shadow-card transition-colors hover:border-input hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
                   <span className="flex w-full items-start gap-3">
                     <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -148,7 +148,7 @@ export function ProcessMarketplace() {
                       <span className="font-medium text-foreground group-hover:underline">{tr('Preview')}</span>
                     )}
                   </span>
-                </button>
+                </Button>
               </li>
             );
           })}
@@ -160,13 +160,13 @@ export function ProcessMarketplace() {
           heading={tr('No templates match')}
           image={<Search aria-hidden className="size-6 text-muted-foreground" />}
           action={
-            <button
+            <Button variant="tertiary"
               type="button"
               onClick={() => (setQuery(''), setCategory('All'))}
-              className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+              className="h-auto p-0 justify-start whitespace-normal text-sm font-medium text-fg-link underline-offset-4 hover:underline"
             >
               {tr('Clear search and filters')}
-            </button>
+            </Button>
           }
         >
           {tr('Try another word, or start a process from scratch with New process.')}

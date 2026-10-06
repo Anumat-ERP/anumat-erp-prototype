@@ -1,0 +1,10 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { IconButton } from '../../ui';
+import { Pencil, Trash2 } from 'lucide-react';
+const meta = { title: 'Components/Actions/IconButton', component: IconButton, args: { label: 'Edit task', icon: <Pencil /> }, parameters: { docs: { description: { component: 'Always provide an accessible action label.' } } } } satisfies Meta<typeof IconButton>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export const Default: Story = {};
+export const Disabled: Story = { args: { disabled: true } };
+export const Loading: Story = { args: { loading: true } };
+export const Critical: Story = { args: { variant: 'critical', label: 'Delete task', icon: <Trash2 /> } };

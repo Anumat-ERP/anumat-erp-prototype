@@ -142,9 +142,9 @@ table,
   font-family: var(--an-font-display);
 }
 
-/* Compact density (account menu): everything in rem shrinks about 7%. */
+/* Compact density changes spacing while keeping text readable. */
 html[data-density='compact'] {
-  font-size: 93.75%;
+  font-size: 100%;
 }
 
 /* While the demo tour runs, pages can scroll their last controls above the pinned panel. */

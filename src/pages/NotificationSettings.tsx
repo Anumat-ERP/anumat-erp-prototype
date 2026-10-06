@@ -1,209 +1,97 @@
 import { Badge, Banner, Button, Card, CardHeader, Checkbox, Field, Input, Modal, PageHeader, Text, useToast } from '@app/ui';
-import { Send } from 'lucide-react';
+import { Mail, Send } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { CONFIG, isSet } from '../config';
-import { prefsFor, useStore } from '../data/store';
+import { NOTIFICATION_APPS, prefsFor, useStore } from '../data/store';
 import type { Channel, NotificationEvent } from '../data/types';
 import { useLocale } from '../i18n/LocaleProvider';
-import { formatDate } from '../lib/format';
+import { APP_NAMES, appRole } from '../lib/appAccess';
+import { WORKSPACE_APPS, type WorkspaceApp } from '../lib/moduleEntry';
 
 const EVENTS: { id: NotificationEvent; name: string; help: string }[] = [
-  {
-    id: 'approvals',
-    name: 'Waiting for my decision',
-    help: 'A request reaches your approval step.',
-  },
-  {
-    id: 'requestUpdates',
-    name: 'My requests',
-    help: 'Approved, sent back, declined or commented on.',
-  },
+  { id: 'approvals', name: 'Waiting for my decision', help: 'A request reaches your approval step.' },
+  { id: 'requestUpdates', name: 'My requests', help: 'Approved, sent back, declined or commented on.' },
+  { id: 'tasks', name: 'Task updates', help: 'Sign-off requests, requests for your input, and completion or blocked updates for tasks you follow.' },
+  { id: 'meetings', name: 'Meeting invitations', help: 'You are invited to a meeting by another organizer.' },
+  ...WORKSPACE_APPS.filter(app => !['approvals', 'tasks', 'meetings', 'surveys'].includes(app)).map(app => ({ id: app as NotificationEvent, name: APP_NAMES[app], help: 'Changes to HR records within your access scope.' })),
+  { id: 'surveys', name: 'Surveys to answer', help: 'A published survey asks for your response.' },
 ];
-
-const CHANNELS: { id: Channel; name: string }[] = [
-  { id: 'email', name: 'Email' },
-  { id: 'telegram', name: 'Telegram' },
-];
+const APPS = WORKSPACE_APPS;
+const CHANNELS: { id: Channel; name: string }[] = [{ id: 'email', name: 'Email' }, { id: 'telegram', name: 'Telegram' }];
 
 export function NotificationSettings() {
+  const { me, activeWorkspace } = useStore();
+  return <PersonalNotificationSettings key={`${activeWorkspace}-${me.id}`} />;
+}
+function PersonalNotificationSettings() {
   const { t: tr } = useLocale();
   const { state, me, dispatch } = useStore();
   const navigate = useNavigate();
   const { toast } = useToast();
   const prefs = prefsFor(state, me.id);
-  const connected = prefs.telegram;
+  const [email, setEmail] = useState(prefs.email ?? '');
+  const [emailError, setEmailError] = useState<string>();
   const [connecting, setConnecting] = useState(false);
   const [username, setUsername] = useState('');
   const [error, setError] = useState<string>();
-  // A one-time code the person sends to the bot, so it knows which account to link.
-  const code = `ANU-${((me.id.charCodeAt(0) * 97 + me.id.length * 13) % 9000) + 1000}`;
-  const bot = CONFIG.telegram.botUsername.replace(/^@/, '');
-
+  const apps = APPS.filter((app) => appRole(state, app));
+  const saveEmail = () => {
+    const value = email.trim().toLowerCase();
+    if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) { setEmailError(tr('Enter a valid email address.')); return; }
+    dispatch({ type: 'setNotificationEmail', email: value });
+    setEmail(value);
+    toast({ title: tr('Notification email saved') });
+  };
   const connect = () => {
     const name = username.trim().replace(/^@/, '');
-    if (!/^[A-Za-z0-9_]{3,32}$/.test(name)) {
-      setError('Enter your Telegram username: letters, numbers and underscores, like dara_sok.');
-      return;
-    }
+    if (!/^[A-Za-z0-9_]{3,32}$/.test(name)) { setError(tr('Enter your Telegram username: letters, numbers and underscores, like dara_sok.')); return; }
     dispatch({ type: 'connectTelegram', username: name });
     setConnecting(false);
-    toast({
-      tone: 'success',
-      title: tr("Telegram connected"),
-      description: tr('Approval notifications now come to Telegram too.'),
-    });
+    toast({ title: tr('Telegram preview saved'), description: tr('Choose which events to include below.') });
   };
-
-  return (
-    <>
-      <PageHeader title={tr('Notifications')} subtitle={tr('Choose where Anumat tells you about things. In-app notifications are always on.')} />
-
+  return <>
+    <PageHeader secondaryActions={[{content:tr('Delivery previews'),href:'/settings/delivery'}]} title={tr('Notifications')} subtitle={tr('Personal preferences for {name} in {workspace}. Channel choices save automatically.', { name: me.name, workspace: state.org.name })} />
+    <Banner tone="info" title={tr('Delivery in this prototype')}>
+      {tr('In-app choices control your notification bell. Email and Telegram preferences are saved locally; no external messages are sent.')}
+    </Banner>
+    <div className="grid items-start gap-4 md:grid-cols-2">
       <Card className="flex flex-col gap-4">
-        <CardHeader
-          title={
-            <span className="flex items-center gap-2">
-              <Send aria-hidden className="size-5 text-info" /> {tr('Telegram')}{' '}
-            </span>
-          }
-          description={tr("Get approvals and reminders where you already chat, and approve with one tap.")}
-          actions={connected ? <Badge tone="success">{tr('Connected')}</Badge> : null}
-        />
-        {connected ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-surface-sunken p-3">
-            <Text>
-              {tr("Connected as")}{' '}<span className="font-mono font-medium">@{connected.username}</span> {tr("since")}{' '}{formatDate(connected.connectedAt)}.
-            </Text>
-            <div className="flex gap-2">
-              <Button variant="primary" onClick={() => navigate('/telegram')}>
-                {' '}
-                {tr('Open Telegram preview')}{' '}
-              </Button>
-              <Button
-                onClick={() => {
-                  dispatch({ type: 'disconnectTelegram' });
-                  toast({ title: tr("Telegram disconnected") });
-                }}
-              >
-                {' '}
-                {tr('Disconnect')}{' '}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Text tone="muted">{tr("Not connected. It takes about 20 seconds.")}</Text>
-            <Button
-              variant="primary"
-              onClick={() => {
-                setUsername(me.name.toLowerCase().replace(/\s+/g, '_'));
-                setError(undefined);
-                setConnecting(true);
-              }}
-            >
-              {' '}
-              {tr('Connect Telegram')}{' '}
-            </Button>
-          </div>
-        )}
+        <CardHeader title={<span className="flex items-center gap-2"><Mail aria-hidden className="size-4" />{tr('Email')}</span>} description={tr('Choose the email address for your notifications.')} />
+        <Field label={tr('Notification email')} optional error={emailError}>
+          <Input type="email" value={email} onChange={(event) => { setEmail(event.target.value); setEmailError(undefined); }} autoComplete="email" placeholder="name@example.com" />
+        </Field>
+        <Button className="self-start" disabled={email === (prefs.email ?? '')} onClick={saveEmail}>{tr('Save email')}</Button>
       </Card>
-
-      <Card flush>
-        <div className="p-4 pb-2">
-          <CardHeader title={tr('What you hear about, and where')} />
-        </div>
-        <div className="relative overflow-x-auto">
-          <table className="w-full min-w-[32rem] border-collapse text-md">
-            <caption className="sr-only">{tr('Notification channels for each kind of event')}</caption>
-            <thead>
-              <tr className="border-b border-border">
-                <th scope="col" className="px-4 py-2 text-start text-sm font-medium text-fg-muted">
-                  {' '}
-                  {tr('Event')}{' '}
-                </th>
-                <th scope="col" className="px-4 py-2 text-start text-sm font-medium text-fg-muted">
-                  {' '}
-                  {tr('In app')}{' '}
-                </th>
-                {CHANNELS.map((c) => (
-                  <th key={c.id} scope="col" className="px-4 py-2 text-start text-sm font-medium text-fg-muted">
-                    {tr(c.name)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {EVENTS.map((e) => (
-                <tr key={e.id} className="border-b border-border-subtle last:border-0">
-                  <th scope="row" className="px-4 py-3 text-start font-regular">
-                    <span className="block font-medium">{tr(e.name)}</span>
-                    <span className="block text-sm text-fg-muted">{tr(e.help)}</span>
-                  </th>
-                  <td className="px-4 py-3">
-                    <Checkbox label={tr("{value0} in app", { value0: tr(e.name) })} labelHidden checked disabled />
-                  </td>
-                  {CHANNELS.map((c) => (
-                    <td key={c.id} className="px-4 py-3">
-                      <Checkbox
-                        label={tr("{value0} by {value1}", { value0: tr(e.name), value1: c.name })}
-                        labelHidden
-                        checked={prefs.events[e.id].includes(c.id)}
-                        disabled={c.id === 'telegram' && !connected}
-                        onCheckedChange={(on) =>
-                          dispatch({
-                            type: 'setChannel',
-                            event: e.id,
-                            channel: c.id,
-                            on: on === true,
-                          })
-                        }
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {!connected ? (
-          <Text variant="bodySm" tone="muted" className="px-4 pb-4">
-            {' '}
-            {tr('Connect Telegram to choose it for any event.')}{' '}
-          </Text>
-        ) : null}
+      <Card className="flex flex-col gap-4">
+        <CardHeader title={<span className="flex items-center gap-2"><Send aria-hidden className="size-4" />{tr('Telegram')}</span>} description={tr('Save a Telegram username to try the notification preview.')} actions={<Badge>{tr('Preview')}</Badge>} />
+        {prefs.telegram ? <>
+          <Text>@{prefs.telegram.username}</Text>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => navigate('/telegram')}>{tr('Open Telegram preview')}</Button>
+            <Button onClick={() => { dispatch({ type: 'disconnectTelegram' }); toast({ title: tr('Telegram disconnected') }); }}>{tr('Disconnect')}</Button>
+          </div>
+        </> : <Button className="self-start" onClick={() => { setUsername(me.name.toLowerCase().replace(/\s+/g, '_')); setError(undefined); setConnecting(true); }}>{tr('Set up Telegram preview')}</Button>}
       </Card>
-
-      <Modal
-        open={connecting}
-        onOpenChange={setConnecting}
-        title={tr('Connect Telegram')}
-        primaryAction={{ content: tr("I’ve sent the code"), onAction: connect }}
-        secondaryActions={[{ content: tr('Cancel'), onAction: () => setConnecting(false) }]}
-      >
-        <div className="flex flex-col gap-4">
-          <ol className="flex list-decimal flex-col gap-3 ps-5 text-md">
-            <li>
-              {tr("Open the Anumat bot in Telegram:")}{' '}
-              {isSet(bot) ? (
-                <a href={`https://t.me/${bot}?start=${code}`} target="_blank" rel="noopener noreferrer" className="font-medium text-fg-link underline">
-                  @{bot}
-                </a>
-              ) : (
-                <span className="text-fg-muted">{tr("(the bot isn’t set up yet: add its username in src/config.ts)")}</span>
-              )}
-            </li>
-            <li>
-              {tr("Send it this code:")}{' '}<span className="rounded-md bg-surface-sunken px-2 py-0.5 font-mono font-semibold tracking-wide select-all">{code}</span>
-            </li>
-            <li>{tr("Come back here and confirm.")}</li>
-          </ol>
-          <Banner tone="info" inline>
-            {tr("Prototype: nothing is sent to Telegram. Enter your username to see how it works.")}</Banner>
-          <Field label={tr("Your Telegram username")} error={error}>
-            <Input prefix="@" value={username} onChange={(e) => (setUsername(e.target.value), setError(undefined))} />
-          </Field>
-        </div>
-      </Modal>
-    </>
-  );
+    </div>
+    <Text variant="bodySm" tone="muted">{tr('Add an email address or set up Telegram before selecting those channels. You only see apps you can access.')}</Text>
+    {apps.map((app) => <Card key={app} flush>
+      <div className="border-b border-border p-4"><CardHeader title={tr(APP_NAMES[app])} /></div>
+      <ul className="divide-y divide-border">
+        {EVENTS.filter((event) => NOTIFICATION_APPS[event.id] === app).map((event) => <li key={event.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0 flex-1"><Text as="h3" variant="label">{tr(event.name)}</Text><Text variant="bodySm" tone="muted">{tr(event.help)}</Text></div>
+          <div className="flex shrink-0 flex-wrap gap-x-5 gap-y-3" role="group" aria-label={tr(event.name)}>
+            <Checkbox label={tr('In app')} aria-label={tr('{event} in app', { event: tr(event.name) })} checked={prefs.inApp?.[event.id] !== false} onCheckedChange={(on) => dispatch({ type: 'setInAppNotification', event: event.id, on: on === true })} />
+            {CHANNELS.map((channel) => <Checkbox key={channel.id} label={tr(channel.name)} aria-label={tr('{event} by {channel}', { event: tr(event.name), channel: tr(channel.name) })} checked={(prefs.events[event.id] ?? []).includes(channel.id)} disabled={channel.id === 'telegram' ? !prefs.telegram : !prefs.email} onCheckedChange={(on) => dispatch({ type: 'setChannel', event: event.id, channel: channel.id, on: on === true })} />)}
+          </div>
+        </li>)}
+      </ul>
+    </Card>)}
+    {!apps.length && <Text tone="muted">{tr('Join an app to choose its notification channels.')}</Text>}
+    <Modal open={connecting} onOpenChange={setConnecting} title={tr('Set up Telegram preview')} primaryAction={{ content: tr('Save preview'), onAction: connect }} secondaryActions={[{ content: tr('Cancel'), onAction: () => setConnecting(false) }]}>
+      <div className="flex flex-col gap-4">
+        <Text tone="muted">{tr('This saves a local preview profile. It does not connect to Telegram or verify your username.')}</Text>
+        <Field label={tr('Your Telegram username')} error={error}><Input prefix="@" value={username} onChange={(event) => { setUsername(event.target.value); setError(undefined); }} /></Field>
+      </div>
+    </Modal>
+  </>;
 }

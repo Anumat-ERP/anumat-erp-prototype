@@ -1,0 +1,6 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Use case: illustration-story. Asset type: small ERP app launcher illustration for Surveys & evaluations. Input image is STYLE REFERENCE ONLY, not an edit target. Create a single isolated object group: a cyan-framed survey clipboard with a few simple checkbox marks and one rating row of three small coral stars, plus a lilac feedback speech bubble and a mint pencil. Match the reference's tactile paper collage, subtle risograph grain, restrained dimensional paper folds, simple confident forms. Palette cyan #16c1fe, deep cyan #006a8d, mint #9dddbb, lilac #c9b8f3, cream white and tiny coral accent. Center subject, square composition, full object visible, generous 12% empty margins on all sides. Clean genuinely transparent background. Readable as a small 150px thumbnail. No words, letters, labels, logos, watermark, UI screenshot, floor, backdrop or cast shadow outside the object. No glossy 3D.",
+  "reference": "workspace-folder.webp",
+  "transparent_background": true
+}

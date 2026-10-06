@@ -1,3 +1,5 @@
+import { appRole } from '../lib/appAccess';
+import { NOTIFICATION_APPS } from '../data/store';
 import { Button, EmptyState, PageHeader, Text, cn, useToast } from '@app/ui';
 import { ArrowLeft, Send } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
@@ -29,9 +31,9 @@ function InlineButton({ children, onClick, href }: { children: ReactNode; onClic
       </a>
     );
   return (
-    <button type="button" onClick={onClick} className={cls}>
+    <Button variant="tertiary" type="button" onClick={onClick} className={cn('h-auto p-0 justify-start whitespace-normal', cls)}>
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -46,7 +48,7 @@ export function TelegramPreview() {
   const { toast } = useToast();
   const prefs = prefsFor(state, me.id);
   const [replies, setReplies] = useState<Message[]>([]);
-  const on = (e: keyof typeof prefs.events) => prefs.events[e].includes('telegram');
+  const on = (e: keyof typeof prefs.events) => Boolean(appRole(state, NOTIFICATION_APPS[e])) && (prefs.events[e] ?? []).includes('telegram');
 
   if (!prefs.telegram) {
     return (
@@ -191,8 +193,9 @@ export function TelegramPreview() {
     }
   }
 
-  if (on('requestUpdates') || on('tasks')) {
-    for (const n of notificationsFor(state).filter((n) => new Date(n.at).getTime() > recentCut)) {
+  if (on('requestUpdates') || on('tasks') || on('surveys')) {
+    for (const n of notificationsFor(state, 'telegram').filter((n) => new Date(n.at).getTime() > recentCut)) {
+      if (n.event === 'approvals') continue;
       if (n.href.startsWith('/requests/') && !on('requestUpdates')) continue;
       if (n.href === '/tasks' && !on('tasks')) continue;
       if (n.href.startsWith('/meetings/')) continue;

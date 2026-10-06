@@ -12,7 +12,7 @@ export function Notifications() {
   const { t: tr } = useLocale();
   const { state, person, dispatch } = useStore();
   const [open, setOpen] = useState(false);
-  const items = notificationsFor(state).filter((item) => item.href.startsWith('/requests'));
+  const items = notificationsFor(state);
   const seen = state.lastSeen[state.meId] ?? '';
   const unread = items.filter((n) => n.at > seen).length;
 
@@ -66,7 +66,7 @@ export function Notifications() {
                   <span aria-hidden className={n.at > seen ? 'mt-2 size-2 shrink-0 rounded-full bg-primary' : 'mt-2 size-2 shrink-0'} />
                   <span className="flex min-w-0 flex-col gap-0.5">
                     <span className="text-md">
-                      <span className="font-medium">{tr(person(n.personId).name)}</span> {n.text}
+                      <span className="font-medium">{tr(person(n.personId).name)}</span> {tr(n.text)}
                     </span>
                     <Text as="span" variant="caption" tone="subtle">
                       <Time iso={n.at} />

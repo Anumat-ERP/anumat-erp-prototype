@@ -1,0 +1,10 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { PageHeader } from '../../ui';
+import { Badge } from '../../ui';
+const meta = { title: 'Components/Navigation/PageHeader', component: PageHeader, args: { title: 'Task management', subtitle: 'Plan work and verify outcomes.', primaryAction: {content:'Create task'} }, parameters: { docs: { description: { component: '' } } } } satisfies Meta<typeof PageHeader>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export const Default: Story = {};
+export const WithStatus: Story = { args: { title: 'Sprint 1', titleMetadata: <Badge tone="info">Active</Badge> } };
+export const Back: Story = { args: { title: 'Prepare onboarding', backAction: {content:'Tasks',href:'/tasks'} } };
+export const LongTitle: Story = { args: { title: 'Prepare a complete onboarding plan across Operations, Finance, and People teams' } };

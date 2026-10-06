@@ -138,7 +138,7 @@ export function PageActions({
       ))}
       {actions.length > maxVisible ? (
         <ActionMenu
-          trigger={<IconButton icon={<MoreHorizontal />} label={moreLabel} size={size} />}
+          trigger={maxVisible === 0 ? <Button variant="secondary" icon={<MoreHorizontal />} size={size}>{moreLabel}</Button> : <IconButton icon={<MoreHorizontal />} label={moreLabel} size={size} />}
           items={actions.slice(maxVisible)}
         />
       ) : null}

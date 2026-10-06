@@ -1,3 +1,4 @@
+import { canContributeToApp } from '../lib/appAccess';
 import { Button, EmptyState, IndexTable, PageHeader, Tabs, TabsList, TabsTrigger, Text, type DataTableColumn } from '@app/ui';
 import { useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -121,10 +122,10 @@ export function Requests() {
       <PageHeader
         title={tr('Requests')}
         subtitle={tr('Everything people have asked for, and where each one stands.')}
-        primaryAction={{
+        primaryAction={canContributeToApp(state, 'approvals') ? {
           content: tr('New request'),
           onAction: () => navigate('/requests/new'),
-        }}
+        } : undefined}
       />
       <Tabs value={scope} onValueChange={(v) => set('mine', v === 'mine' ? '1' : '')}>
         <TabsList aria-label={tr('Whose requests')}>

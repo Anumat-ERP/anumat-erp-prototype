@@ -10,6 +10,8 @@ export interface AppShellProps extends Omit<ComponentPropsWithRef<'div'>, 'child
   topBar?: ReactNode;
   /** Where you are, at the start of the top bar. */
   breadcrumb?: ReactNode;
+  /** Optional sticky app identity below the utility toolbar. */
+  contextBar?: ReactNode;
   sidebarHeader?: ReactNode;
   sidebarFooter?: ReactNode;
   navigation?: ReactNode;
@@ -33,6 +35,7 @@ export interface AppShellProps extends Omit<ComponentPropsWithRef<'div'>, 'child
 export function AppShell({
   topBar,
   breadcrumb,
+  contextBar,
   sidebarHeader,
   sidebarFooter,
   navigation,
@@ -99,6 +102,7 @@ export function AppShell({
           <div className="hidden min-w-0 flex-1 sm:block">{breadcrumb}</div>
           <div className="ms-auto flex items-center gap-1 sm:gap-1.5">{topBar}</div>
         </header>
+        {contextBar}
         <main
           id={mainId}
           tabIndex={-1}

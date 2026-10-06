@@ -1,0 +1,93 @@
+import { expect, test } from '@playwright/test';
+import { seed } from '../src/data/seed';
+import { initialAppMembers } from '../src/lib/appAccess';
+import { applyHR, hrState, hrProblem } from '../src/hr/engine';
+import { emptyHR } from '../src/hr/types';
+import { candidateStage, candidateStageConfig, candidateStagesProblem } from '../src/hr/candidateStages';
+import { recruitmentProblem } from '../src/hr/recruitment';
+
+function fixture() {
+  const state = structuredClone(seed);
+  state.meId = 'dara'; state.hr = emptyHR(); state.appMembers = initialAppMembers(state);
+  return applyHR(state, { kind: 'loadExamples' });
+}
+test('stage settings preserve legacy records and enforce permissions, versions and protected phases', () => {
+  const state = fixture();
+  const stages = candidateStageConfig(state).stages;
+  stages.splice(1, 0, { id: 'phone-screen', name: 'Phone screen', phase: 'applied' });
+  const command = { action: 'stages' as const, stages, expectedVersion: 0 };
+  expect(recruitmentProblem(state, command)).toBeUndefined();
+  const next = applyHR(state, { kind: 'recruitment', command });
+  expect(candidateStageConfig(next).version).toBe(1);
+  expect(candidateStage(next, hrState(next).applications[0]!)?.id).toBe('applied');
+  expect(recruitmentProblem(next, command)).toContain('changed');
+  const member = structuredClone(next); member.appMembers!.recruitment!.alex = 'member'; member.meId = 'alex';
+  expect(recruitmentProblem(member, { ...command, expectedVersion: 1 })).toContain('Only recruitment admins');
+  expect(applyHR(member, { kind: 'recruitment', command: { ...command, expectedVersion: 1 } })).toEqual(member);
+  expect(candidateStagesProblem(next, stages.filter(stage => stage.id !== 'hired'))).toContain('required');
+  expect(candidateStagesProblem(next, stages.map(stage => stage.id === 'phone-screen' ? { ...stage, name: 'Applied' } : stage))).toContain('unique');
+  expect(candidateStagesProblem(next, [...stages].reverse())).toContain('same hiring phase');
+});
+test('custom stage movement is audited and cannot bypass hiring checks or remove occupied stages', () => {
+  let state = fixture();
+  const stages = candidateStageConfig(state).stages;
+  stages.splice(1, 0, { id: 'phone-screen', name: 'Phone screen', phase: 'applied' });
+  state = applyHR(state, { kind: 'recruitment', command: { action: 'stages', stages, expectedVersion: 0 } });
+  const application = hrState(state).applications[0]!;
+  const command = { action: 'candidateStage' as const, applicationId: application.id, stageId: 'phone-screen', expectedVersion: application.version };
+  expect(recruitmentProblem(state, command)).toBeUndefined();
+  state = applyHR(state, { kind: 'recruitment', command });
+  let updated = hrState(state).applications[0]!;
+  expect(updated.status).toBe('applied'); expect(updated.stageId).toBe('phone-screen');
+  expect(hrState(state).history.at(-1)?.action).toBe('candidateStage');
+  expect(recruitmentProblem(state, command)).toContain('changed');
+  expect(candidateStagesProblem(state, stages.filter(stage => stage.id !== 'phone-screen'))).toContain('Move candidates');
+  expect(recruitmentProblem(state, { ...command, expectedVersion: updated.version, stageId: 'hired' })).toContain('current hiring phase');
+  // Generic record editing cannot inject a protected stage.
+  state = applyHR(state, { kind: 'save', collection: 'applications', record: { ...updated, stageId: 'hired' }, expectedVersion: updated.version });
+  updated = hrState(state).applications[0]!;
+  expect(updated.stageId).toBe('phone-screen');
+  state = applyHR(state, { kind: 'transition', collection: 'applications', id: updated.id, expectedVersion: updated.version, operation: 'shortlist', reason: 'Screened' });
+  updated = hrState(state).applications[0]!;
+  expect(candidateStage(state, updated)?.id).toBe('shortlisted');
+  expect(hrProblem(state, { kind: 'transition', collection: 'applications', id: updated.id, expectedVersion: updated.version, operation: 'offer', reason: 'Skip checks' })).toBeDefined();
+});
+test('admins configure stages, move a candidate, filter by stage and persist changes', async ({ page }, info) => {
+  await page.goto('/home?app=recruitment');
+  await page.getByRole('button', { name: 'Load HR examples', exact: true }).click();
+  await page.goto('/recruitment?tab=pipeline');
+  await page.getByRole('button', { name: 'Manage candidate stages', exact: true }).click();
+  const editor = page.getByRole('dialog', { name: 'Manage candidate stages', exact: true });
+  await editor.getByRole('textbox', { name: 'Stage name', exact: true }).first().fill('New applications');
+  await editor.getByRole('textbox', { name: 'New stage name', exact: true }).fill('Phone screen');
+  await editor.getByRole('button', { name: 'Add stage', exact: true }).click();
+  await expect(editor.getByRole('textbox', { name: 'Stage name', exact: true }).nth(1)).toHaveValue('Phone screen');
+  await page.screenshot({ path: `/tmp/anumat-recruitment-review/stage-settings-${info.project.name}.png`, fullPage: true, animations: 'disabled' });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
+  await editor.getByRole('button', { name: 'Save stages', exact: true }).click();
+  await page.locator('.an-rec-candidate').click();
+  const candidate = page.getByRole('dialog', { name: 'សុភា សុខ · Sophea Sok', exact: true });
+  await candidate.getByRole('combobox', { name: 'Candidate stage', exact: true }).click();
+  await page.getByRole('option', { name: 'Phone screen', exact: true }).click();
+  await expect(candidate.getByRole('combobox', { name: 'Candidate stage', exact: true })).toContainText('Phone screen');
+  await candidate.getByRole('button', { name: 'Close', exact: true }).last().click();
+  await page.goto('/recruitment?tab=pipeline');
+  await expect(page.locator('.an-rec-board section').filter({ has: page.getByRole('heading', { name: 'Phone screen', exact: false }) }).locator('.an-rec-candidate')).toHaveCount(1);
+  await page.goto('/recruitment?tab=applications');
+  await page.getByRole('combobox', { name: 'Status', exact: true }).click();
+  await page.getByRole('option', { name: 'Phone screen', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'សុភា សុខ · Sophea Sok', exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('region', { name: 'Candidates', exact: true }).getByText('Phone screen', { exact: true })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Status', exact: true })).toContainText('Phone screen');
+  await page.goto('/recruitment?tab=pipeline');
+  await page.getByRole('button', { name: 'Manage candidate stages', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Remove stage', exact: true }).nth(1)).toBeDisabled();
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.evaluate(() => {
+    localStorage.setItem('anumat-locale', 'km'); localStorage.setItem('anumat-theme', 'dark');
+  });
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'គ្រប់គ្រងដំណាក់កាលបេក្ខជន', exact: true })).toBeVisible();
+  await page.screenshot({ path: `/tmp/anumat-recruitment-review/custom-stages-km-dark-${info.project.name}.png`, fullPage: true, animations: 'disabled' });
+});

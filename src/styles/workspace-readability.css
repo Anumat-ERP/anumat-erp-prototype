@@ -1,0 +1,66 @@
+/* Readability is shared by every workspace app, including portal controls. */
+html.an-workspace-theme {
+  --a-text-sm: .9375rem;
+  --a-text-xs: .8125rem;
+  --a-text-md: 1rem;
+}
+.an-shell .an-page { gap: 1.75rem; }
+.an-shell .an-page-title { font-size: 1.75rem; line-height: 1.3; }
+.an-shell :is(.text-sm, .text-xs) { line-height: 1.5; }
+.an-shell .an-navigation a { min-height: 44px; }
+.an-shell main :is(input:not([type='checkbox']):not([type='radio']), textarea, [role='combobox']) { font-size: 1rem; }
+.an-shell main :is(button:not([role='checkbox']):not([role='tab']), [role='combobox']) { min-height: 44px; }
+.an-shell .an-task-row { align-items: flex-start; }
+.an-shell .an-task-row button.h-auto { min-height: 24px; }
+html[data-density='compact'] .an-shell .an-page { gap: 1.25rem; }
+html[data-density='compact'] .an-shell .an-task-row { padding-block: .75rem; }
+@media (min-width: 48rem) {
+  .an-shell .an-app-context { display: none; }
+}
+@media (max-width: 47.99rem) {
+  .an-shell .an-page-title { font-size: 1.5rem; }
+}
+
+.an-shell .an-hr-field-group > h2 { font-size: 1.125rem; }
+
+.an-shell main { --a-control-sm: 2.75rem; --a-control-md: 2.75rem; }
+.an-shell :is(.an-hr-dashboard-summary a, .an-hr-dashboard-list a, .an-hr-dashboard-actions > p, .an-hr-section-intro p) { font-size: 1rem; }
+.an-shell .an-hr-dashboard-list small { font-size: .9375rem; }
+
+.an-shell main .an-input input:not([data-floating]) { min-height: 44px; }
+.an-shell main [role='tablist'] { height: 44px; }
+.an-shell main [role='tab'] { min-height: 38px; }
+@media (max-width: 30rem) {
+  .an-shell .an-hr-filters { grid-template-columns: minmax(0, 1fr); }
+  .an-shell .an-hr-filters > :first-child { grid-column: auto; }
+}
+
+.an-shell .an-task-board { contain: inline-size; overflow-x: auto; }
+
+/* Dialogs render in portals and share the workspace's reading/control scale. */
+html.an-workspace-theme :is(.an-pop, .an-sheet) { font-size: 1rem; line-height: 1.5; }
+html.an-workspace-theme :is(.an-pop, .an-sheet) :is(input:not([type='checkbox']):not([type='radio']), textarea, [role='combobox']) { font-size: 1rem; }
+html.an-workspace-theme :is(.an-pop, .an-sheet) :is(.an-input input, [role='combobox']) { min-height: 44px; }
+html.an-workspace-theme :is(.an-pop, .an-sheet) button:not([role='checkbox']):not([role='tab']) { min-height: 44px; }
+html.an-workspace-theme :is(.an-pop, .an-sheet) button[aria-label] { min-width: 44px; }
+html.an-workspace-theme :is(.an-pop, .an-sheet) > :last-child { flex-shrink: 0; }
+html.an-workspace-theme .an-hr-field-group > h2 { font-size: 1.125rem; }
+.an-shell :is(.an-rec-section-intro p, .an-rec-row, .an-rec-candidate, .an-rec-funnel a, .an-rec-stage-settings h3) { font-size: 1rem; }
+.an-shell :is(.an-rec-nav a, .an-rec-results, .an-hr-results, .an-hr-pagination, .an-hr-guide) { font-size: .9375rem; }
+.an-shell :is(.an-rec-nav-label, .an-hr-list-views span, .an-rec-row small) { font-size: .8125rem; }
+.an-shell .an-rec-nav a { min-height: 44px; }
+.an-shell .an-rec-row { padding-block: 1rem; }
+.an-workspace-disclosure { border-top: 1px solid var(--border); padding-top: 1rem; }
+.an-workspace-disclosure > summary { width: fit-content; min-height: 44px; padding-block: .625rem; cursor: pointer; font-size: 1rem; font-weight: 600; color: var(--foreground); }
+.an-workspace-disclosure > summary::marker { color: var(--muted-foreground); }
+.an-workspace-disclosure > summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; border-radius: var(--radius); }
+@media (max-width: 30rem) {
+  .an-shell .an-meeting-filters { grid-template-columns: minmax(0, 1fr); }
+  .an-shell .an-meeting-filters > :first-child { grid-column: auto; }
+  html.an-workspace-theme :is(.an-pop, .an-sheet) { scroll-padding-block: 1rem; }
+}
+
+.an-work-item { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem; padding-block: 1rem; color: var(--foreground); text-decoration: none; }
+.an-work-item strong { min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
+.an-work-item:hover strong { text-decoration: underline; text-underline-offset: 3px; }
+.an-work-item:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; border-radius: var(--radius); }

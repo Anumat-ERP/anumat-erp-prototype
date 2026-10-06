@@ -15,20 +15,20 @@ function ScoreScale({ value, onChange }: { value: number | null; onChange: (n: n
     <div className="flex flex-col gap-1.5">
       <div role="radiogroup" aria-label={tr("How likely are you to recommend Anumat, from 0 (not at all) to 10 (extremely)")} className="flex flex-wrap gap-1">
         {Array.from({ length: 11 }, (_, n) => (
-          <button
+          <Button variant="tertiary"
             key={n}
             type="button"
             role="radio"
             aria-checked={value === n}
             onClick={() => onChange(n)}
-            className={cn(
+            className={cn('h-auto p-0 justify-start whitespace-normal',
               'flex size-8 items-center justify-center rounded-md border text-sm font-medium tabular-nums transition-colors',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
               value === n ? 'border-primary bg-primary text-primary-fg' : 'border-border-strong bg-surface text-fg hover:bg-surface-hover',
             )}
           >
             {n}
-          </button>
+          </Button>
         ))}
       </div>
       <div className="flex justify-between text-xs text-fg-muted" aria-hidden>

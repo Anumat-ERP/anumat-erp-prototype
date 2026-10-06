@@ -30,8 +30,8 @@
   --warning-subtle: #fdf3d8;
   --warning-subtle-foreground: #86500d;
   --border: oklch(0.922 0 0);
-  --input: var(--border);
-  --ring: oklch(0.708 0 0);
+  --input: #7b8790;
+  --ring: #303030;
   /* Mint is for fills, icons and charts; text on light surfaces uses mint-subtle-foreground. */
   --mint: #0c8c5e;
   --mint-foreground: #ffffff;
@@ -78,7 +78,7 @@
   --warning-subtle: #3a2c0a;
   --warning-subtle-foreground: #fcd34d;
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --input: #7f8790;
   --ring: oklch(0.556 0 0);
   --mint: #18e299;
   --mint-foreground: #062b1c;

@@ -38,7 +38,7 @@ const button = cva(
         critical:
           'bg-destructive text-destructive-foreground shadow-xs hover:opacity-90',
         plain:
-          'h-auto min-h-0 p-0 text-primary underline-offset-4 hover:underline',
+          'h-auto min-h-0 p-0 text-fg-link underline-offset-4 hover:underline',
       },
       size: {
         sm: 'h-8 px-3 text-sm',
@@ -76,12 +76,13 @@ export function Button({
   className,
   disabled,
   type = 'button',
+  onClick,
   ...props
 }: ButtonProps) {
   const classes = cn(button({ variant, size }), fullWidth && 'w-full', className);
   if (asChild && isValidElement<{ children?: ReactNode }>(children)) {
     return (
-      <Slot.Root className={classes} aria-disabled={disabled || undefined} {...props}>
+      <Slot.Root className={classes} aria-disabled={disabled || undefined} onClick={onClick} {...props}>
         {children}
       </Slot.Root>
     );
@@ -93,6 +94,14 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       {...props}
+      onClick={(event) => {
+        if (variant === 'primary' || type === 'submit') {
+          const scope = event.currentTarget.closest('[role="dialog"], form, main');
+          const invalidDate = Array.from(scope?.querySelectorAll<HTMLInputElement>('[data-date-input]') ?? []).find((input) => !input.disabled && !input.closest('[data-form-preview]') && input.validity.customError);
+          if (invalidDate) { event.preventDefault(); invalidDate.focus(); invalidDate.scrollIntoView({ block: 'nearest' }); return; }
+        }
+        onClick?.(event);
+      }}
     >
       {loading ? <Spinner size="sm" label={null} tone="inherit" /> : icon}
       {children}

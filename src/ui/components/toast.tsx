@@ -14,6 +14,8 @@ export interface ToastOptions {
   tone?: ToastTone;
   action?: ToastAction;
   duration?: number;
+  /** Informational confirmations can allow clicks through to the page beneath. */
+  interactive?: boolean;
 }
 interface ToastRecord extends ToastOptions {
   id: string;
@@ -74,6 +76,7 @@ export function ToastProvider({
         id,
         description: options.description,
         duration: options.duration ?? duration,
+        style: options.interactive === false && !options.action ? { pointerEvents: 'none' } : undefined,
         action: options.action
           ? { label: options.action.label, onClick: () => options.action?.onAction() }
           : undefined,

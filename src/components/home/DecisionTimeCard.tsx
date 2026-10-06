@@ -9,7 +9,7 @@ import { averageDecisionDays } from './counts';
 const GOAL_DAYS = 2;
 
 /** Average time to a decision against the two-day goal, and the person's own requests by stage. */
-export function DecisionTimeCard() {
+export function DecisionTimeCard({ section = 'all' }: { section?: 'all' | 'requests' | 'timing' }) {
   const { t: tr } = useLocale();
   const { state, me } = useStore();
   const average = averageDecisionDays(state);
@@ -22,7 +22,7 @@ export function DecisionTimeCard() {
   ] as const;
   return (
     <Card flush className="flex flex-col">
-      <section aria-labelledby="decision-time" className="flex flex-col gap-3 px-5 py-4 sm:px-6">
+      {section !== 'requests' && <section aria-labelledby="decision-time" className="flex flex-col gap-3 px-5 py-4 sm:px-6">
         <h2 id="decision-time" className="text-sm font-medium text-muted-foreground">{tr('Average decision time')}</h2>
         <FigureValue value={average === null ? '—' : average.toFixed(1)} unit={average === null ? undefined : tr('days')} />
         <ProgressBar
@@ -40,8 +40,8 @@ export function DecisionTimeCard() {
             ? tr('Within the {count}-day goal.', { count: GOAL_DAYS })
             : tr('Slower than the {count}-day goal.', { count: GOAL_DAYS })}
         </p>
-      </section>
-      <section aria-labelledby="your-requests" className="border-t border-border">
+      </section>}
+      {section !== 'timing' && <section aria-labelledby="your-requests" className={section === 'all' ? 'border-t border-border' : undefined}>
         <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-1 sm:px-6">
           <h2 id="your-requests" className="text-sm font-medium text-muted-foreground">{tr('Your requests')}</h2>
           <AppLink to="/requests?mine=1" className="text-sm">{tr('View all')}</AppLink>
@@ -62,7 +62,7 @@ export function DecisionTimeCard() {
             </li>
           ))}
         </ul>
-      </section>
+      </section>}
     </Card>
   );
 }

@@ -1,3 +1,7 @@
+import { smeKm } from './messages.sme';
+import { navigationKm } from './messages.navigation';
+import { recruitmentKm } from './messages.recruitment';
+import { hrKm } from './messages.hr';
 import { extraKm } from './messages.extra';
 import { redesignKm } from './messages.redesign';
 import { publicKm } from './messages.public';
@@ -1006,4 +1010,8 @@ export const km: Record<string, string> = {
   ...redesignKm,
   ...publicKm,
   ...demoKm,
+  ...hrKm,
+  ...recruitmentKm,
+  ...navigationKm,
+  ...smeKm,
 };

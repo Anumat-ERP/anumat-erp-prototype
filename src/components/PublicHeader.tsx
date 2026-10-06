@@ -1,5 +1,5 @@
-import { Button, IconButton } from '@app/ui';
-import { ArrowLeft } from 'lucide-react';
+import { ActionMenu, Button, IconButton } from '@app/ui';
+import { ArrowLeft, Menu } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { Logo, LogoMark } from './Logo';
 import { LanguageSwitch } from '../i18n/LanguageSwitch';
@@ -17,6 +17,7 @@ export function PublicHeader({ setup, progress, onBack }: { setup?: string; prog
         <Link to="/docs" viewTransition>{tr('Docs')}</Link>
       </nav>}
       <div className="ms-auto flex shrink-0 items-center gap-2 sm:gap-4">
+        {!setup && <div className="an-public-mobile-nav"><ActionMenu trigger={<IconButton icon={<Menu />} label={tr('Browse Anumat')} />} items={[{ content: tr('Product'), onAction: () => navigate('/#product') }, { content: tr('How it works'), onAction: () => navigate('/#how') }, { content: tr('Pricing & deployment'), onAction: () => navigate('/pricing') }, { content: tr('Docs'), onAction: () => navigate('/docs') }, { content: tr('Sign in'), onAction: () => navigate('/signin') }]} /></div>}
         <Link to={setup === tr('Sign in') ? '/welcome' : '/signin'} viewTransition className="hidden text-sm font-medium text-fg-link sm:inline">{setup === tr('Sign in') ? tr('Create a workspace') : tr('Sign in')}</Link>
         <LanguageSwitch />
         {!setup ? <Button variant="primary" asChild className="an-header-cta"><Link to="/welcome" viewTransition>{tr('Create a workspace')}</Link></Button> : null}

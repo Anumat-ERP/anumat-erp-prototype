@@ -1,0 +1,11 @@
+Use case: stylized-concept
+Asset type: supplementary illustration for Anumat ERP People & HR pages, beside real accessible HTML copy
+Primary request: a compact coherent still life of a lavender employee record with a simplified friendly human portrait, a mint open folder, a cobalt-blue calendar tile, and a small cream document. The portrait is a simple paper-cut person with dark hair and a modest coral shirt, no detailed facial features. The calendar has small blank cells without lettering or numerals. The document and employee record use short abstract rules only.
+Scene/backdrop: genuinely transparent background, isolated objects with soft dimensional contact shadows only; no backdrop scene or ground plane.
+Style/medium: tactile handmade 3D paper/cardboard/clay illustration; softly rounded sturdy forms, visible fine paper grain, speckled matte surfaces, shallow layered depth. Friendly professional visual for an approachable enterprise app.
+Composition/framing: square approximately 1024 by 1024 canvas; a single compact cluster, gentle three-quarter view, generous transparent margin on every side, every object fully visible with no clipping. The employee record sits upright in the open mint folder, with the small cream document behind it and the blue calendar tile tucked beside the folder; all objects form one connected still life, no floating decoration.
+Lighting/mood: soft studio light from upper left, warm calm dimensional shadows.
+Color palette: bright cobalt blue, pale mint green, soft lavender, warm cream, and a very modest coral accent.
+Materials/textures: grainy recycled paper and painted cardboard with clay-like bevels; crisp silhouettes and softly imperfect tactile texture.
+Text: no text whatsoever.
+Constraints: symbolic supplementary imagery only, no real UI screenshot, no logos, no watermark, no legible text, no letters, no numerals; no background color or scene, no confetti or floating decorative shapes; preserve actual alpha transparency.

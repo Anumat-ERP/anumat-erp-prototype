@@ -1,0 +1,44 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Welcome/Anumat" />
+
+# Anumat UI library
+
+A working reference for the components and workflows in **Anumat អនុម័ត**. Stories render the same React components, semantic tokens, and styles as the prototype.
+
+## Start exploring
+
+- **Foundations**: colors, typography, spacing, icons, and focus states.
+- **Components**: controls, overlays, navigation, data tables, and feedback states. Use Controls to change props.
+- **Patterns**: conditional forms, rich text, readiness/completion requirements, RACI guidance, and approval simulation.
+- **Apps**: the real application shell and pages, including Discover, tasks, meetings, approvals, surveys, people, and notification preferences.
+
+The toolbar switches **English / Khmer**, **light / dark**, and viewport sizes. User-entered demo titles stay as entered when the interface language changes. Use Canvas for app screens and overlays; Docs explains individual components.
+
+## Product rules
+
+Discover is the app launcher. Each functional app has its own dashboard, identity, members, and roles. Workspace membership alone does not grant every app's permissions. Admin, member, and viewer stories demonstrate the actual app guards.
+
+Tasks support **Epic → Story / Task / Bug → Subtask**, priorities, flexible sprints, acceptance criteria, Definition of Ready (DoR), Definition of Done (DoD), evidence, and RACI responsibilities. These are separate concepts: status shows progress; ownership and verification describe who works and how completion is accepted.
+
+Approval processes use ordered reviewers and conditional steps. Preview and simulation show the route for the current answers; simulation creates no real requests. Surveys reuse the dynamic form components and distinguish named from anonymous responses.
+
+Assets, reports, attendance, recruitment, employees, payroll, performance, and training have **local lifecycle prototypes**. Explore **Apps → HR lifecycle** for their screens, permission states, and Khmer examples. Payroll is explicitly illustrative and calculates no legal deductions. Customer validation and production release gates remain separate from these demos.
+
+## Safe interactive examples
+
+Every story mounts an isolated, in-memory copy of illustrative data. Story edits do not write the application data key. Select another story, change language, or reload to reset the data. No invitations, emails, or Telegram messages are sent. Notification channel setup is a prototype preview.
+
+## Accessibility and localization
+
+Fields link visible labels, help, and errors. Icon-only actions require names. Radix overlays provide focus management and keyboard support. Tables name selection scope; charts include a text summary; flow diagrams offer a list alternative. The Accessibility panel reports issues for inspection; it does not certify the whole application.
+
+Check long titles, error recovery, disabled controls, keyboard focus, mobile layout, and Khmer before introducing a new pattern. Translate system copy through `useLocale`; preserve user content.
+
+## Contributing
+
+Import shared UI through `@app/ui`. Add semantic tokens instead of hardcoded page colors. Prefer Field + the normalized Input, Select, DatePicker, and TimePicker instead of default HTML controls. Keep one main action per view.
+
+Add a typed `.stories.tsx` file under `src/stories`. Include normal, empty, loading, error, disabled, and permission states where relevant. Use controlled React demos for interactive controls. Document whether an action is local, persisted, or externally delivered.
+
+Run `bun run check:storybook`, `bun run build-storybook`, and `bun run test:storybook` before sharing changes. See `STORYBOOK.md` in the project root for setup, coverage, and maintenance.

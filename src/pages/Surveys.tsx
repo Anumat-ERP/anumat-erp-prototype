@@ -1,9 +1,9 @@
-import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Tabs, TabsContent, TabsList, TabsTrigger, Text, type BadgeTone } from '@app/ui';
+import { Badge, Button, Card, EmptyState, Field, SearchField, Select, PageHeader, ProgressBar, Tabs, TabsContent, TabsList, TabsTrigger, Text, type BadgeTone } from '@app/ui';
 import { EyeOff, Users } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { questionsOf } from '../lib/forms';
 import { FeedbackInbox } from '../components/FeedbackInbox';
-import { canManageSurveys, hasAnswered, isOpen, surveyAudience, surveyResponsesFor, surveysToAnswer, useStore } from '../data/store';
+import { canManageSurveys, hasAnswered, isOpen, surveyAudience, surveyResponsesFor, surveysToAnswer, useStore, visibleSurveys } from '../data/store';
 import type { DataState, Survey } from '../data/types';
 import { daysUntil, formatDate } from '../lib/format';
 import { useLocale } from '../i18n/LocaleProvider';
@@ -128,15 +128,47 @@ export function Surveys() {
   const { state } = useStore();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
+  const query = params.get('q') ?? '';
+  const status = ['draft', 'open', 'closed'].includes(params.get('status') ?? '') ? params.get('status')! : 'all';
+  const filter = (key: string, value: string) => {
+    const next = new URLSearchParams(params);
+    if (value && value !== 'all') next.set(key, value); else next.delete(key);
+    setParams(next, { replace: true });
+  };
+  const setQuery = (value: string) => filter('q', value);
+  const setStatus = (value: string) => filter('status', value);
+  const clearFilters = () => {
+    const next = new URLSearchParams(params); next.delete('q'); next.delete('status'); next.delete('waiting');
+    setParams(next, { replace: true });
+  };
   const manage = canManageSurveys(state);
-  const me = state.people.find((p) => p.id === state.meId);
   const toAnswer = surveysToAnswer(state);
 
   // Admins see every survey; others see the published ones that ask them.
   const order = (s: Survey) => (s.status === 'draft' ? 1 : isOpen(s) ? 0 : 2);
-  const visible = state.surveys
-    .filter((s) => manage || (s.status !== 'draft' && (s.audience.length === 0 || (me && s.audience.includes(me.department)))))
+  const visible = visibleSurveys(state)
     .sort((a, b) => order(a) - order(b) || (b.publishedAt ?? b.createdAt).localeCompare(a.publishedAt ?? a.createdAt));
+
+  const matches = visible.filter((survey) =>
+    (params.get('waiting') !== '1' || toAnswer.some(item => item.id === survey.id)) &&
+    (!query.trim() || `${survey.title} ${survey.description ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())) &&
+    (status === 'all' || (status === 'draft' ? survey.status === 'draft' : status === 'open' ? isOpen(survey) : survey.status !== 'draft' && !isOpen(survey))));
+  const surveyFilters = <Card className="flex flex-col gap-3">
+    <div className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
+      <SearchField label={tr('Search surveys')} labelHidden={false} placeholder={tr('Search surveys')} value={query} onChange={setQuery} />
+      <Field label={tr('Survey status')}><Select value={status} onChange={(event) => setStatus(event.target.value)} options={[
+        { value: 'all', label: tr('All statuses') }, { value: 'open', label: tr('Open') },
+        ...(manage ? [{ value: 'draft', label: tr('Draft') }] : []), { value: 'closed', label: tr('Closed') },
+      ]} /></Field>
+    </div>
+    <div className="flex items-center justify-between gap-2">
+      <Text variant="bodySm" tone="muted" aria-live="polite">{tr('{count} matching surveys', { count: matches.length })}</Text>
+      {matches.length > 0 && (query || status !== 'all' || params.get('waiting') === '1') && <Button variant="plain" size="sm" onClick={() => { clearFilters(); }}>{tr('Clear filters')}</Button>}
+    </div>
+  </Card>;
+  const filteredList = query || status !== 'all' || params.get('waiting') === '1'
+    ? matches.length ? <SurveyList surveys={matches} manage={manage} /> : <Card><EmptyState heading={tr('No surveys match')} action={<Button onClick={() => { clearFilters(); }}>{tr('Clear filters')}</Button>}>{tr('Try another search or status.')}</EmptyState></Card>
+    : null;
 
   const waiting = toAnswer.length ? (
     <section aria-labelledby="to-answer" className="flex flex-col gap-3">
@@ -171,7 +203,7 @@ export function Surveys() {
         primaryAction={manage ? { content: tr("New survey"), onAction: () => navigate('/surveys/new') } : undefined}
       />
       {manage ? (
-        <Tabs value={params.get('tab') === 'feedback' ? 'feedback' : 'surveys'} onValueChange={(v) => setParams(v === 'feedback' ? { tab: 'feedback' } : {}, { replace: true })}>
+        <Tabs value={params.get('tab') === 'feedback' ? 'feedback' : 'surveys'} onValueChange={(v) => { const next = new URLSearchParams(params); if (v === 'feedback') next.set('tab', 'feedback'); else next.delete('tab'); setParams(next, { replace: true }); }}>
           <TabsList aria-label={tr("Surveys and feedback")}>
             <TabsTrigger value="surveys" badge={visible.length || undefined}>
               {tr("Team surveys")}</TabsTrigger>
@@ -179,8 +211,8 @@ export function Surveys() {
               {tr("Feedback & enquiries")}</TabsTrigger>
           </TabsList>
           <TabsContent value="surveys" className="flex flex-col gap-6 pt-4">
-            {waiting}
-            <SurveyList surveys={visible} manage />
+            {surveyFilters}
+            {filteredList ?? <SurveyList surveys={visible} manage />}
           </TabsContent>
           <TabsContent value="feedback" className="pt-4">
             <FeedbackInbox />
@@ -188,7 +220,8 @@ export function Surveys() {
         </Tabs>
       ) : (
         <>
-          {waiting}
+          {surveyFilters}
+          {filteredList ?? <>{waiting}
           {!toAnswer.length || visible.some((s) => !toAnswer.includes(s)) ? (
             <section aria-labelledby="earlier" className="flex flex-col gap-3">
               {toAnswer.length ? (
@@ -200,7 +233,7 @@ export function Surveys() {
               )}
               <SurveyList surveys={visible.filter((s) => !toAnswer.includes(s))} manage={false} />
             </section>
-          ) : null}
+          ) : null}</>}
         </>
       )}
     </>

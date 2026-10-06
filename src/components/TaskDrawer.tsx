@@ -1,14 +1,21 @@
-import { Avatar, Banner, Button, DatePicker, Drawer, Field, Select, Text, Textarea, cn, useToast } from '@app/ui';
-import { useEffect, useState } from 'react';
+import { appPeople, canContributeToApp, isAppAdmin, taskTeamProblem } from '../lib/appAccess';
+import { Avatar, Banner, Button, DatePicker, Modal, Badge, Field, Select, Text, Textarea, cn, useToast } from '@app/ui';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { at } from '../data/seed';
-import { canCommentOnTask, canEditTask, firstStatus, isAdmin, planMove, statusDef, uid, useStore } from '../data/store';
-import { formatRelative } from '../lib/format';
+import { canCommentOnTask, canManageTaskResponsibilities, canEditTask, firstStatus, planMove, statusDef, uid, useStore } from '../data/store';
+import { PRIORITY_LABELS, TASK_PRIORITIES } from '../lib/taskPriority';
+import '../styles/work-item-editor.css';
 import { PeoplePicker } from './PeoplePicker';
-import type { Task } from '../data/types';
+import type { Task, TaskPriority } from '../data/types';
 import { AppLink } from './links';
+import { TaskRequirements } from './TaskRequirements';
+import { parentCandidates, taskStructureProblem, TASK_DEFAULTS, WORK_TYPES, WORK_TYPE_LABELS } from '../lib/taskRequirements';
+import type { WorkItemType } from '../data/types';
 import { Time } from './Time';
 import { useFresh } from '../lib/motion';
 import { useLocale } from '../i18n/LocaleProvider';
+
+const RichTextEditor = lazy(() => import('./RichTextEditor').then((module) => ({ default: module.RichTextEditor })));
 
 const CATEGORY_LABEL = { todo: 'To do', active: 'In progress', done: 'Done' } as const;
 
@@ -16,13 +23,14 @@ const CATEGORY_LABEL = { todo: 'To do', active: 'In progress', done: 'Done' } as
  * View and edit one task, or create a new one (`task` null, `creating` true).
  * Changes apply on Save.
  */
-export function TaskDrawer({ task, creating, onClose }: { task: Task | null; creating: boolean; onClose: () => void }) {
+export function TaskDrawer({ task, creating, onClose, initialSprintId }: { task: Task | null; creating: boolean; onClose: () => void; initialSprintId?: string }) {
   const { t: tr } = useLocale();
   const { state, me, person, dispatch } = useStore();
   const { toast } = useToast();
+  const detailsRef = useRef<HTMLElement>(null);
   const open = creating || task !== null;
   const freshComment = useFresh(task?.comments?.map((c) => c.id) ?? [], task?.id);
-  const blank = (): Task => ({ id: '', title: '', ownerId: me.id, assignedById: me.id, due: at(7), status: firstStatus(state, 'todo') });
+  const blank = (): Task => ({ workType: 'task', priority: 'medium', readiness: (state.taskDefaults ?? TASK_DEFAULTS).readiness.map((text) => ({ id: uid('check'), text, done: false })), completion: (state.taskDefaults ?? TASK_DEFAULTS).completion.map((text) => ({ id: uid('check'), text, done: false })), sprintId: initialSprintId, id: '', title: '', ownerId: me.id, assignedById: me.id, due: at(7), status: state.taskStatuses.find((item) => item.category === 'todo' && !item.requireReady && !item.requireDone && !item.signOff)?.id ?? firstStatus(state, 'todo') });
 
   const [draft, setDraft] = useState<Task>(task ?? blank());
   const [error, setError] = useState<string>();
@@ -39,8 +47,9 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
     setConfirmDelete(false);
   }, [task?.id, creating]);
 
-  const editable = creating || (task !== null && canEditTask(state, task));
-  const canDelete = task !== null && (task.assignedById === me.id || isAdmin(state) || (task.ownerId === me.id && task.assignedById === me.id));
+  const editable = (creating && canContributeToApp(state, 'tasks')) || (task !== null && canEditTask(state, task));
+  const canManageResponsibilities = creating || Boolean(task && canManageTaskResponsibilities(state, task));
+  const canDelete = canContributeToApp(state, 'tasks') && task !== null && !state.tasks.some((item) => item.parentId === task.id) && (task.assignedById === me.id || isAppAdmin(state, 'tasks') || (task.ownerId === me.id && task.assignedById === me.id));
   const target = statusDef(state, draft.status);
   const needsNote = !creating && task !== null && draft.status !== task.status && target.requireNote;
 
@@ -49,15 +58,20 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
       setError(tr('Describe the task, starting with a verb, like “Send the updated quote”.'));
       return;
     }
+    const structureError = taskTeamProblem(state, draft) ?? taskStructureProblem(state, draft);
+    if (structureError) { setError(tr(structureError)); return; }
+    if ([...(draft.acceptanceCriteria ?? []), ...(draft.readiness ?? []), ...(draft.completion ?? [])].some((check) => !check.text.trim())) { setError(tr('Give every requirement a description, or remove it.')); return; }
     const clean = { ...draft, title: draft.title.trim(), notes: draft.notes?.trim() || undefined };
+    if (creating && (target.category !== 'todo' || target.requireReady || target.requireDone || target.signOff)) { setStatusError(tr('New work starts in the backlog.')); return; }
     if (creating) {
-      dispatch({ type: 'addTask', task: { ...clean, id: uid('t'), assignedById: me.id } });
+      dispatch({ type: 'addTask', task: { ...clean, id: uid('t'), assignedById: clean.assignedById ?? me.id } });
       toast({ tone: 'success', title: tr('Task added'), description: tr('Assigned to {name}.', { name: clean.ownerId === me.id ? tr('you') : person(clean.ownerId).name }) });
       onClose();
       return;
     }
     if (!task) return;
-    const plan = draft.status !== task.status ? planMove(state, task, draft.status) : null;
+    const checkedPlan = planMove(state, { ...task, ...clean, status: task.status }, draft.status);
+    const plan = draft.status !== task.status || checkedPlan.kind === 'denied' ? checkedPlan : null;
     if (plan?.kind === 'denied') {
       setStatusError(tr(plan.reason));
       return;
@@ -66,13 +80,11 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
       setStatusError(tr('Say why it’s {status}, so the right person can help.', { status: tr(target.name).toLowerCase() }));
       return;
     }
-    // Save the details first, then move it through the rules.
-    dispatch({ type: 'updateTask', taskId: task.id, patch: { ...clean, status: task.status, statusNote: task.statusNote } });
+    // Apply details and workflow together so reopening never loses checklist edits.
+    dispatch({ type: 'saveTask', taskId: task.id, patch: clean, status: draft.status, note: draft.statusNote?.trim() });
     if (plan?.kind === 'signoff') {
-      dispatch({ type: 'moveTask', taskId: task.id, status: plan.via, signOff: true });
       toast({ tone: 'success', title: tr('Sent to {name} for sign-off', { name: person(plan.assignerId).name }) });
     } else if (plan) {
-      dispatch({ type: 'moveTask', taskId: task.id, status: draft.status, note: draft.statusNote?.trim() });
       toast({ title: tr("Task saved") });
     } else {
       toast({ title: tr("Task saved") });
@@ -85,11 +97,12 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
     .filter((g) => g.options.length);
 
   return (
-    <Drawer
+    <Modal
       open={open}
       onOpenChange={(o) => (o ? undefined : onClose())}
       title={creating ? tr('New task') : tr('Task')}
-      size="md"
+      size="xl"
+      className="work-item-dialog"
       primaryAction={editable ? { content: creating ? tr('Add task') : tr('Save'), onAction: save } : undefined}
       secondaryActions={[
         { content: editable ? tr('Cancel') : tr('Close'), onAction: onClose },
@@ -125,6 +138,9 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
           <Banner tone="warning" title={tr("Waiting for sign-off")}>
             {tr(person(task.ownerId).name)} {tr("finished this.")}{' '}{tr(person(task.assignedById ?? task.ownerId).name)} {tr("signs it off by moving it to Done.")}</Banner>
         ) : null}
+        <div className="work-item-identity"><Badge size="sm" tone="info">{tr(WORK_TYPE_LABELS[draft.workType ?? 'task'])}</Badge><Text variant="caption" tone="muted">{creating ? tr('New work item') : draft.id}</Text>{draft.parentId && <Text variant="caption" tone="muted">{state.tasks.find((item) => item.id === draft.parentId)?.title}</Text>}<Button size="sm" variant="plain" className="ms-auto" onClick={() => { detailsRef.current?.focus(); detailsRef.current?.scrollIntoView({ block: 'start' }); }}>{tr('Jump to details')}</Button></div>
+        <div className="work-item-layout">
+          <div className="work-item-main">
         <Field label={tr("Task")} required error={error} disabled={!editable}>
           <Textarea
             rows={2}
@@ -136,107 +152,12 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
             }}
           />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={tr("Status")} error={statusError} disabled={!editable}>
-            <Select
-              value={draft.status}
-              onChange={(e) => {
-                setDraft({ ...draft, status: e.target.value });
-                setStatusError(undefined);
-              }}
-              options={categories}
-            />
-          </Field>
-          <Field label={tr("Owner")} disabled={!editable}>
-            <Select
-              value={draft.ownerId}
-              onChange={(e) => setDraft({ ...draft, ownerId: e.target.value })}
-              options={state.people.map((p) => ({ value: p.id, label: p.id === me.id ? tr('{name} (you)', { name: p.name }) : p.name }))}
-            />
-          </Field>
-        </div>
-        {needsNote ? (
-          <Field label={tr('Why is it {status}?', { status: tr(target.name).toLowerCase() })} required>
-            <Textarea rows={2} autoGrow value={draft.statusNote ?? ''} onChange={(e) => setDraft({ ...draft, statusNote: e.target.value })} />
-          </Field>
-        ) : task?.statusNote && task.status === draft.status ? (
-          <div className="flex flex-col gap-1">
-            <Text variant="caption" tone="muted">
-              {tr('Why it’s {status}', { status: tr(statusDef(state, task.status).name).toLowerCase() })}
-            </Text>
-            <Text>“{task.statusNote}”</Text>
-          </div>
-        ) : null}
-        <section aria-labelledby="raci-title" className="flex flex-col gap-3 rounded-lg border border-border p-3">
-          <div className="flex items-baseline justify-between gap-2">
-            <Text as="h3" id="raci-title" variant="label">
-              {tr("RACI")}</Text>
-            <Text as="span" variant="caption" tone="muted">
-              {tr("Who does it, who answers for it, who to ask, who to tell")}</Text>
-          </div>
-          <dl className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-x-3 gap-y-3 text-md">
-            <dt className="pt-0.5 font-mono text-sm font-semibold text-fg-muted" title={tr("Responsible")}>
-              <span aria-hidden="true">R</span><span className="sr-only">{tr('Responsible')}</span>
-            </dt>
-            <dd className="flex items-center gap-2">
-              <Avatar name={person(draft.ownerId).name} size="xs" decorative />
-              {tr(person(draft.ownerId).name)}
-              <Text as="span" variant="caption" tone="muted">
-                {tr("does the work (owner)")}</Text>
-            </dd>
-            <dt className="pt-0.5 font-mono text-sm font-semibold text-fg-muted" title={tr("Accountable")}>
-              <span aria-hidden="true">A</span><span className="sr-only">{tr('Accountable')}</span>
-            </dt>
-            <dd className="flex items-center gap-2">
-              <Avatar name={person(draft.assignedById ?? draft.ownerId).name} size="xs" decorative />
-              {tr(person(draft.assignedById ?? draft.ownerId).name)}
-              <Text as="span" variant="caption" tone="muted">
-                {tr("assigned it, signs it off")}</Text>
-            </dd>
-            <dt className="pt-1.5 font-mono text-sm font-semibold text-fg-muted" title={tr("Consulted")}>
-              <span aria-hidden="true">C</span><span className="sr-only">{tr('Consulted')}</span>
-            </dt>
-            <dd>
-              <PeoplePicker
-                label={tr("Consulted")}
-                value={draft.consultedIds ?? []}
-                onChange={(ids) => setDraft({ ...draft, consultedIds: ids, informedIds: (draft.informedIds ?? []).filter((i) => !ids.includes(i)) })}
-                exclude={[draft.ownerId, draft.assignedById ?? draft.ownerId]}
-                disabled={!editable}
-                emptyText={tr('Nobody to consult')}
-              />
-            </dd>
-            <dt className="pt-1.5 font-mono text-sm font-semibold text-fg-muted" title={tr("Informed")}>
-              <span aria-hidden="true">I</span><span className="sr-only">{tr('Informed')}</span>
-            </dt>
-            <dd>
-              <PeoplePicker
-                label={tr("Informed")}
-                value={draft.informedIds ?? []}
-                onChange={(ids) => setDraft({ ...draft, informedIds: ids })}
-                exclude={[draft.ownerId, draft.assignedById ?? draft.ownerId, ...(draft.consultedIds ?? [])]}
-                disabled={!editable}
-                emptyText={tr('Nobody to inform')}
-              />
-            </dd>
-          </dl>
-          <Text variant="caption" tone="muted">
-            {tr("Consulted people can comment and are asked for input before sign-off. Informed people hear when it’s done or blocked.")}</Text>
+        <section aria-labelledby="work-description-title" className="flex flex-col gap-2">
+          <Text as="h3" variant="label" id="work-description-title">{tr('Description')}</Text>
+          <Suspense fallback={<Text tone="muted">{tr('Loading editor…')}</Text>}><RichTextEditor documentKey={`${creating ? 'new' : 'task'}-${draft.id}`} document={draft.description} legacyText={draft.notes} disabled={!editable} onChange={(description, notes) => setDraft((current) => ({ ...current, description, notes }))} /></Suspense>
         </section>
-        <DatePicker
-          disabled={!editable}
-          label={tr("Due")}
-          value={draft.due.slice(0, 10)}
-          onChange={(e) => e.target.value && setDraft({ ...draft, due: new Date(`${e.target.value}T09:00`).toISOString() })}
-        />
-        <Field label={tr("Notes")} optional disabled={!editable}>
-          <Textarea rows={3} autoGrow value={draft.notes ?? ''} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
-        </Field>
-        {task && task.assignedById && task.assignedById !== task.ownerId ? (
-          <Text variant="bodySm" tone="muted">
-            {tr('Assigned by {name}', { name: task.assignedById === me.id ? tr('you') : person(task.assignedById).name })}
-          </Text>
-        ) : null}
+        {task && state.tasks.some((item) => item.parentId === task.id) && <section className="flex flex-col gap-2" aria-label={tr('Child items')}><Text as="h3" variant="label">{tr('Child items')}</Text>{state.tasks.filter((item) => item.parentId === task.id).map((item) => <Text key={item.id} variant="bodySm">{item.title} · {tr(statusDef(state, item.status).name)}</Text>)}</section>}
+        <TaskRequirements task={draft} onChange={(patch) => { setDraft({ ...draft, ...patch }); setStatusError(undefined); }} disabled={!editable} />
         {task && !creating ? (
           <section aria-labelledby="comments-title" className="flex flex-col gap-3">
             <Text as="h3" id="comments-title" variant="label">
@@ -280,6 +201,114 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
             )}
           </section>
         ) : null}
+          </div>
+          <aside ref={detailsRef} tabIndex={-1} className="work-item-details" aria-label={tr('Work item details')}>
+            <Text as="h3" variant="label">{tr('Details')}</Text>
+        <div className="grid gap-4">
+          <Field label={tr("Status")} error={statusError} disabled={!editable}>
+            <Select
+              value={draft.status}
+              disabled={creating}
+              onChange={(e) => {
+                setDraft({ ...draft, status: e.target.value });
+                setStatusError(undefined);
+              }}
+              options={categories}
+            />
+          </Field>
+          <Field label={tr("Owner")} disabled={!editable || !canManageResponsibilities}>
+            <Select
+              value={draft.ownerId}
+              onChange={(e) => setDraft({ ...draft, ownerId: e.target.value })}
+              options={appPeople(state, 'tasks').filter((person) => canContributeToApp(state, 'tasks', person.id)).map((p) => ({ value: p.id, label: p.id === me.id ? tr('{name} (you)', { name: p.name }) : p.name }))}
+            />
+          </Field>
+        </div>
+        <Field label={tr('Sprint')} disabled={!editable || state.sprints.some((sprint) => sprint.id === task?.sprintId && sprint.status === 'completed')} helpText={tr('Choose a sprint, or leave this task in the backlog.')}>
+          <Select value={draft.sprintId ?? 'backlog'} onChange={(event) => setDraft({ ...draft, sprintId: event.target.value === 'backlog' ? undefined : event.target.value })} options={[{ value: 'backlog', label: tr('Backlog') }, ...state.sprints.filter((sprint) => sprint.status !== 'completed' || sprint.id === draft.sprintId).map((sprint) => ({ value: sprint.id, label: sprint.name }))]} />
+        </Field>
+        {needsNote ? (
+          <Field label={tr('Why is it {status}?', { status: tr(target.name).toLowerCase() })} required>
+            <Textarea rows={2} autoGrow value={draft.statusNote ?? ''} onChange={(e) => setDraft({ ...draft, statusNote: e.target.value })} />
+          </Field>
+        ) : task?.statusNote && task.status === draft.status ? (
+          <div className="flex flex-col gap-1">
+            <Text variant="caption" tone="muted">
+              {tr('Why it’s {status}', { status: tr(statusDef(state, task.status).name).toLowerCase() })}
+            </Text>
+            <Text>“{task.statusNote}”</Text>
+          </div>
+        ) : null}
+        <Field label={tr('Priority')} disabled={!editable}><Select value={draft.priority ?? 'medium'} onChange={(event) => setDraft({ ...draft, priority: event.target.value as TaskPriority })} options={TASK_PRIORITIES.map((value) => ({ value, label: tr(PRIORITY_LABELS[value]) }))} /></Field>
+        <div className="grid gap-4">
+          <Field label={tr('Work item type')} disabled={!editable}><Select value={draft.workType ?? 'task'} onChange={(event) => setDraft({ ...draft, workType: event.target.value as WorkItemType, parentId: undefined })} options={WORK_TYPES.map((value) => ({ value, label: tr(WORK_TYPE_LABELS[value]) }))} /></Field>
+          <Field label={tr('Parent item')} disabled={!editable || draft.workType === 'epic'} required={draft.workType === 'subtask'}><Select value={draft.parentId ?? 'none'} onChange={(event) => setDraft({ ...draft, parentId: event.target.value === 'none' ? undefined : event.target.value })} options={[{ value: 'none', label: tr('No parent') }, ...parentCandidates(state, draft).map((item) => ({ value: item.id, label: item.title }))]} /></Field>
+        </div>
+        <DatePicker
+          disabled={!editable}
+          label={tr("Due")}
+          required
+          value={draft.due.slice(0, 10)}
+          onChange={(e) => e.target.value && setDraft({ ...draft, due: new Date(`${e.target.value}T09:00`).toISOString() })}
+        />
+        <section aria-labelledby="raci-title" className="flex flex-col gap-3 rounded-lg border border-border p-3">
+          <div className="flex flex-col gap-1">
+            <Text as="h3" id="raci-title" variant="label">
+              {tr("People involved")}</Text>
+            <Text as="span" variant="caption" tone="muted">
+              {tr("Who does it, who answers for it, who to ask, who to tell")}</Text>
+          </div>
+          <dl className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-x-3 gap-y-3 text-md">
+            <dt className="pt-0.5 font-mono text-sm font-semibold text-fg-muted" title={tr("Responsible")}>
+              <span aria-hidden="true">R</span><span className="sr-only">{tr('Responsible')}</span>
+            </dt>
+            <dd className="flex items-center gap-2">
+              <Avatar name={person(draft.ownerId).name} size="xs" decorative />
+              {tr(person(draft.ownerId).name)}
+              <Text as="span" variant="caption" tone="muted">
+                {tr("does the work (owner)")}</Text>
+            </dd>
+            <dt className="pt-0.5 font-mono text-sm font-semibold text-fg-muted" title={tr("Accountable")}>
+              <span aria-hidden="true">A</span><span className="sr-only">{tr('Accountable')}</span>
+            </dt>
+            <dd className="flex items-center gap-2">
+              <Field label={tr('Accountable approver')} labelHidden disabled={!editable || !canManageResponsibilities}><Select value={draft.assignedById ?? draft.ownerId} onChange={(event) => setDraft({ ...draft, assignedById: event.target.value })} options={appPeople(state, 'tasks').filter((person) => canContributeToApp(state, 'tasks', person.id)).map((item) => ({ value: item.id, label: item.name }))} /></Field>
+            </dd>
+            <dt className="pt-1.5 font-mono text-sm font-semibold text-fg-muted" title={tr("Consulted")}>
+              <span aria-hidden="true">C</span><span className="sr-only">{tr('Consulted')}</span>
+            </dt>
+            <dd>
+              <PeoplePicker app="tasks"
+                label={tr("Consulted")}
+                value={draft.consultedIds ?? []}
+                onChange={(ids) => setDraft({ ...draft, consultedIds: ids, informedIds: (draft.informedIds ?? []).filter((i) => !ids.includes(i)) })}
+                exclude={[draft.ownerId, draft.assignedById ?? draft.ownerId]}
+                disabled={!editable}
+                emptyText={tr('Nobody to consult')}
+              />
+            </dd>
+            <dt className="pt-1.5 font-mono text-sm font-semibold text-fg-muted" title={tr("Informed")}>
+              <span aria-hidden="true">I</span><span className="sr-only">{tr('Informed')}</span>
+            </dt>
+            <dd>
+              <PeoplePicker app="tasks"
+                label={tr("Informed")}
+                value={draft.informedIds ?? []}
+                onChange={(ids) => setDraft({ ...draft, informedIds: ids })}
+                exclude={[draft.ownerId, draft.assignedById ?? draft.ownerId, ...(draft.consultedIds ?? [])]}
+                disabled={!editable}
+                emptyText={tr('Nobody to inform')}
+              />
+            </dd>
+          </dl>
+          <Text variant="caption" tone="muted">
+            {tr("Consulted people can comment and are asked for input before sign-off. Informed people hear when it’s done or blocked.")}</Text>
+        </section>
+        {task && task.assignedById && task.assignedById !== task.ownerId ? (
+          <Text variant="bodySm" tone="muted">
+            {tr('Assigned by {name}', { name: task.assignedById === me.id ? tr('you') : person(task.assignedById).name })}
+          </Text>
+        ) : null}
         {draft.source ? (
           <div className="flex flex-col gap-1">
             <Text variant="caption" tone="muted">
@@ -287,7 +316,9 @@ export function TaskDrawer({ task, creating, onClose }: { task: Task | null; cre
             <AppLink to={draft.source.href}>{tr(draft.source.label)}</AppLink>
           </div>
         ) : null}
+          </aside>
+        </div>
       </div>
-    </Drawer>
+    </Modal>
   );
 }

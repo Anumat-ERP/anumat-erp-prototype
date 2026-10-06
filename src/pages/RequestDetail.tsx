@@ -1,3 +1,8 @@
+import {RequestExecution} from '../components/RequestExecution';
+import { ReviewerChange } from '../components/ReviewerChange';
+import { canChangeReviewer } from '../lib/approvalDelegation';
+import { RequestRevisions } from '../components/RequestRevisions';
+import { canContributeToApp, isAppAdmin } from '../lib/appAccess';
 import { Banner, Button, Card, CardHeader, DescriptionList, EmptyState, Field, IconButton, Kbd, Modal, PageHeader, Text, Textarea, useToast } from '@app/ui';
 import { Copy, Paperclip } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -25,11 +30,12 @@ export function RequestDetail() {
   const { toast } = useToast();
   const [decision, setDecision] = useState<Decision | null>(null);
   const [comment, setComment] = useState('');
+  const [changingReviewer, setChangingReviewer] = useState(false);
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
   const [viewingDocument, setViewingDocument] = useState<Attachment | null>(null);
 
   const r = state.requests.find((x) => x.id === id);
-  const canDecideNow = Boolean(r && r.status === 'pending' && r.steps.find((st) => st.status === 'current')?.approverId === me.id);
+  const canDecideNow = Boolean(canContributeToApp(state, 'approvals') && r && r.status === 'pending' && r.steps.find((st) => st.status === 'current')?.approverId === me.id);
 
   // Keyboard: A approve, R request changes, D decline. Never while typing or with a dialog open.
   useEffect(() => {
@@ -58,8 +64,10 @@ export function RequestDetail() {
   const i = r.steps.findIndex((s) => s.status === 'current');
   const current = r.steps[i];
   const next = r.steps[i + 1];
-  const mine = r.status === 'pending' && current?.approverId === me.id;
-  const requester = r.requesterId === me.id;
+  const mine = canContributeToApp(state, 'approvals') && r.status === 'pending' && current?.approverId === me.id;
+  const requester = canContributeToApp(state, 'approvals') && r.requesterId === me.id;
+  const headcount = state.hr?.recruitment?.requisitions.find(q=>q.requestId===r.id);
+  const editRoute = headcount ? `/recruitment?tab=requisitions&record=${headcount.id}` : `/requests/${r.id}/edit`;
   const open = r.status === 'pending' || r.status === 'changes';
   const meeting = state.meetings.find((m) => m.id === r.meetingId);
   const tasks = state.tasks.filter((t) => t.source?.href === `/requests/${r.id}`);
@@ -172,8 +180,8 @@ export function RequestDetail() {
                 }
               : requester && r.status === 'changes'
                 ? {
-                    content: tr('Edit and resubmit'),
-                    onAction: () => navigate(`/requests/${r.id}/edit`),
+                    content: tr(headcount ? 'Revise requisition' : 'Edit and resubmit'),
+                    onAction: () => navigate(editRoute),
                   }
                 : undefined
         }
@@ -195,7 +203,7 @@ export function RequestDetail() {
             ? [
                 {
                   content: tr('Edit draft'),
-                  onAction: () => navigate(`/requests/${r.id}/edit`),
+                  onAction: () => navigate(editRoute),
                 },
               ]
             : []),
@@ -208,10 +216,12 @@ export function RequestDetail() {
                 },
               ]
             : []),
+          ...(canChangeReviewer(state, r.id) ? [{content:tr('Change reviewer'),onAction:()=>setChangingReviewer(true)}] : []),
         ]}
         maxVisibleSecondaryActions={mine ? 2 : 1}
       />
 
+      <ReviewerChange requestId={r.id} open={changingReviewer} onOpenChange={setChangingReviewer} />
       {mine ? (
         <Banner tone="warning" title={tr('Waiting on your decision')}>
           {tr("You are the approver for")}{' '}<strong>{tr(current?.name)}</strong>.
@@ -232,8 +242,8 @@ export function RequestDetail() {
           action={
             requester
               ? {
-                  label: tr('Edit and resubmit'),
-                  onAction: () => navigate(`/requests/${r.id}/edit`),
+                  label: tr(headcount ? 'Revise requisition' : 'Edit and resubmit'),
+                  onAction: () => navigate(editRoute),
                 }
               : undefined
           }
@@ -249,6 +259,11 @@ export function RequestDetail() {
         </Banner>
       ) : null}
 
+      {headcount && isAppAdmin(state, 'recruitment') && (
+        <Banner title={tr('Job description snapshot')} action={{ label: tr('Open requisition'), onAction: () => navigate(editRoute) }}>
+          {tr('Review the role details and qualifications in the linked requisition.')}
+        </Banner>
+      )}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-6">
           <Card>
@@ -270,7 +285,7 @@ export function RequestDetail() {
                 {r.attachments.map((a) => (
                   <li key={a.name} className="flex items-center gap-3 rounded-md border border-border px-3 py-2">
                     <Paperclip aria-hidden className="size-4 text-fg-subtle" />
-                    <button type="button" className="min-w-0 flex-1 truncate rounded-sm text-start font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring" onClick={() => setViewingDocument(a)} title={a.name}>{tr(a.name)}</button>
+                    <Button variant="tertiary" type="button" className="h-auto p-0 justify-start whitespace-normal min-w-0 flex-1 truncate rounded-sm text-start font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring" onClick={() => setViewingDocument(a)} title={a.name}>{tr(a.name)}</Button>
                     <Text as="span" variant="bodySm" tone="muted" numeric>
                       {formatBytesShort(a.size)}
                     </Text>
@@ -281,6 +296,8 @@ export function RequestDetail() {
             ) : null}
           </Card>
 
+          <RequestRevisions request={r} />
+          <RequestExecution key={r.id} request={r} />
           <Card>
             <CardHeader title={tr('Activity')} />
             <ol className="mt-4 flex flex-col gap-4">
@@ -302,7 +319,7 @@ export function RequestDetail() {
               className="mt-5 flex flex-col gap-3"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!comment.trim()) return;
+                if (!comment.trim() || !canContributeToApp(state, 'approvals')) return;
                 dispatch({
                   type: 'comment',
                   requestId: r.id,
@@ -311,11 +328,11 @@ export function RequestDetail() {
                 setComment('');
               }}
             >
-              <Field label={tr('Add a comment')} labelHidden>
+              <Field label={tr('Add a comment')}>
                 <Textarea rows={2} autoGrow placeholder={tr('Add a comment…')} value={comment} onChange={(e) => setComment(e.target.value)} />
               </Field>
               <div>
-                <Button type="submit" disabled={!comment.trim()}>
+                <Button type="submit" disabled={!comment.trim() || !canContributeToApp(state, 'approvals')}>
                   {' '}
                   {tr('Comment')}{' '}
                 </Button>
@@ -378,7 +395,7 @@ export function RequestDetail() {
         </MobileActionBar>
       ) : requester && r.status === 'changes' ? (
         <MobileActionBar label={tr('Next step')}>
-          <Button variant="primary" onClick={() => navigate(`/requests/${r.id}/edit`)}>
+          <Button variant="primary" onClick={() => navigate(editRoute)}>
             {' '}
             {tr('Edit and resubmit')}{' '}
           </Button>

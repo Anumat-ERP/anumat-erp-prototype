@@ -1,0 +1,17 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '../../ui';
+import { Plus } from 'lucide-react';
+const meta = { title: 'Components/Actions/Button', component: Button, args: { children: 'Save changes', variant: 'primary' }, parameters: { docs: { description: { component: 'Use one primary action per view. Loading preserves the label and blocks repeat submission.' } } } } satisfies Meta<typeof Button>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export const Default: Story = {};
+export const Secondary: Story = { args: { variant: 'secondary' } };
+export const Tertiary: Story = { args: { variant: 'tertiary' } };
+export const Critical: Story = { args: { variant: 'critical', children: 'Delete task' } };
+export const Plain: Story = { args: { variant: 'plain' } };
+export const Small: Story = { args: { size: 'sm' } };
+export const Large: Story = { args: { size: 'lg' } };
+export const Loading: Story = { args: { loading: true, children: 'Saving…' } };
+export const Disabled: Story = { args: { disabled: true } };
+export const WithIcon: Story = { args: { icon: <Plus />, children: 'Create task' } };
+export const FullWidth: Story = { args: { fullWidth: true } };

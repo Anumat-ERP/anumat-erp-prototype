@@ -1,0 +1,9 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Text, Button, Badge } from '../../ui';
+import { Check, ShieldCheck, Users, ListTodo, CalendarDays, ClipboardCheck, MessageSquare } from 'lucide-react';
+export default {title:'Foundations/Design system'} satisfies Meta;
+export const Colors:StoryObj={render:()=> <div className="story-fields">{['background','card','foreground','primary','primary-foreground','muted','muted-foreground','border','ring','destructive','accent'].map(token=><div key={token}><div className="story-swatch" style={{background:`var(--${token})`}} /><Text variant="mono">--{token}</Text></div>)}</div>};
+export const Typography:StoryObj={render:()=> <div className="story-stack">{(['display','heading','title','subtitle','body','bodySm','caption','label','mono'] as const).map(variant=><Text key={variant} variant={variant}>{variant} · Anumat អនុម័ត</Text>)}</div>};
+export const Spacing:StoryObj={render:()=> <div className="story-stack">{[4,8,12,16,24,32,48].map(size=><div className="story-row" key={size}><span style={{width:64}}>{size}px</span><div style={{width:size,height:16,background:'var(--primary)'}} /></div>)}</div>};
+export const Icons:StoryObj={render:()=> <div className="story-row">{[Check,ShieldCheck,Users,ListTodo,CalendarDays,ClipboardCheck,MessageSquare].map((Icon,i)=><Icon key={i} size={24} aria-hidden />)}<Text>Lucide icons · consistent stroke and meaningful text labels</Text></div>};
+export const FocusAndStates:StoryObj={render:()=> <div className="story-stack"><p>Press Tab to inspect focus. Hover enabled controls. Loading blocks repeated actions.</p><div className="story-row"><Button variant="primary">Primary</Button><Button>Secondary</Button><Button disabled>Disabled</Button><Button loading>Saving</Button><Badge tone="success">Verified</Badge></div></div>};

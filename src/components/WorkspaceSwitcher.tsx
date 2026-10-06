@@ -1,4 +1,4 @@
-import { ActionMenu, cn, useSidebar, useToast } from '@app/ui';
+import { Button, ActionMenu, cn, useSidebar, useToast } from '@app/ui';
 import { Check, ChevronsUpDown, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useStore } from '../data/store';
@@ -29,10 +29,10 @@ export function WorkspaceSwitcher() {
       <ActionMenu
         align="start"
         trigger={
-          <button
+          <Button variant="tertiary"
             type="button"
             aria-label={tr("Workspace: {value0}. Switch workspace", { value0: state.org.name })}
-            className={cn(
+            className={cn('h-auto p-0 justify-start whitespace-normal',
               'flex items-center gap-2.5 rounded-md text-start hover:bg-sidebar-accent/70 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
               collapsed ? 'p-1' : 'w-full p-1.5',
             )}
@@ -49,7 +49,7 @@ export function WorkspaceSwitcher() {
                 <ChevronsUpDown aria-hidden className="size-4 shrink-0 text-muted-foreground" />
               </>
             )}
-          </button>
+          </Button>
         }
         sections={[
           {

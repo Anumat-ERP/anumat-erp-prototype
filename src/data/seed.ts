@@ -128,7 +128,7 @@ export const seed: DataState = withRaci({
   surveyAt: { alex: at(-5, 16), priya: at(-4, 11), daniel: at(-2, 9) },
   notificationPrefs: {
     priya: {
-      events: { approvals: ['telegram'], requestUpdates: ['email'], tasks: ['telegram'], meetings: ['telegram'] },
+      events: { approvals: ['telegram'], requestUpdates: ['email'], tasks: ['telegram'], meetings: ['telegram'], surveys: [] },
       telegram: { username: 'priya_shah', connectedAt: at(-20) },
     },
   },
@@ -288,6 +288,7 @@ export const seed: DataState = withRaci({
       versions: [{ version: 'v3', at: at(-280, 9, 0), authorId: 'priya', note: 'Replaced by the 2026 policy' }],
     },
   ],
+  sprints: [],
   taskStatuses: [
     { id: 'todo', name: 'To do', category: 'todo', tone: 'neutral', locked: true },
     { id: 'doing', name: 'In progress', category: 'active', tone: 'info' },

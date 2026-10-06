@@ -35,7 +35,7 @@ export function PopoverTrigger({
   );
 }
 
-export interface PopoverContentProps extends ComponentPropsWithoutRef<'div'> {
+export interface PopoverContentProps extends ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> {
   align?: 'start' | 'center' | 'end';
   side?: 'top' | 'bottom' | 'left' | 'right';
   sideOffset?: number;

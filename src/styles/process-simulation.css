@@ -1,0 +1,20 @@
+.an-simulation-canvas { height: 400px; width: 100%; overflow: hidden; border: 1px solid var(--border); border-radius: var(--a-radius-lg); background: var(--background); }
+.an-simulation-node { display: flex; gap: .75rem; width: 248px; min-height: 98px; padding: 1rem; border: 1px solid var(--border); border-radius: var(--a-radius-lg); background: var(--card); color: var(--foreground); }
+.an-simulation-node > div { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: .25rem; }
+.an-simulation-node strong { font-size: .875rem; font-weight: 600; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.an-simulation-node span { font-size: .75rem; color: var(--muted-foreground); }
+.an-simulation-node small { font-size: .75rem; font-weight: 500; }
+.an-simulation-node-icon { flex-shrink: 0; padding-top: .125rem; }
+.an-simulation-node[data-state=current] { border-color: var(--ring); background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); }
+.an-simulation-node[data-state=current] span { color: var(--sidebar-accent-foreground); }
+.an-simulation-node[data-state=done] .an-simulation-node-icon { color: var(--a-color-success); }
+.an-simulation-node[data-state=returned], .an-simulation-node[data-state=declined] { border-color: var(--a-color-critical); }
+.an-simulation-canvas .react-flow__edge-path { stroke: var(--muted-foreground); }
+.an-simulation-canvas .react-flow__arrowhead { fill: var(--muted-foreground); }
+.an-simulation-canvas .react-flow__handle { background: var(--muted-foreground); border-color: var(--card); }
+.an-simulation-canvas .react-flow__attribution { background: var(--card); color: var(--muted-foreground); }
+.an-simulation-canvas .react-flow__attribution a { color: inherit; }
+.an-simulation-list { display: flex; flex-direction: column; gap: .75rem; padding: 0; margin: 0; list-style: none; }
+.an-simulation-list li { display: flex; flex-direction: column; gap: .25rem; padding: .75rem; border: 1px solid var(--border); border-radius: var(--a-radius-lg); font-size: .875rem; }
+.an-simulation-list span { color: var(--muted-foreground); font-size: .75rem; }
+.an-simulation-list li[data-state=current] { border-color: var(--ring); }
